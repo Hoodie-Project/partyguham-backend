@@ -12,115 +12,134 @@
 
           <li class="gi-sb-item">
             <a th:href="@{/admin}" class="gi-page-link">
-              <i class="ri-dashboard-3-line"></i><span class="condense"><span
+              <i class="ri-dashboard-fill"></i><span class="condense"><span
               class="hover-title">Dashboard</span> </span>
             </a>
           </li>
 
+
           <li class="gi-sb-item-separator"></li>
-          <li class="gi-sb-title condense">Apps</li>
+          <li class="gi-sb-title condense">User & Community</li>
           <li class="gi-sb-item">
             <a th:href="@{/admin/chatapp}" class="gi-page-link">
-              <i class="ri-message-3-line"></i><span class="condense"><span
-              class="hover-title">Chatapp</span> </span>
+              <i class="ri-user-search-fill"></i><span class="condense"><span
+              class="hover-title">유저</span> </span>
+            </a>
+          </li>
+          <li class="gi-sb-item">
+            <a th:href="@{/admin/chatapp}" class="gi-page-link">
+              <i class="ri-flag-line"></i><span class="condense"><span
+              class="hover-title">파티</span> </span>
             </a>
           </li>
 
+
+          <li class="gi-sb-item-separator"></li>
+          <li class="gi-sb-title condense">Operations</li>
+          <li class="gi-sb-item">
+            <a th:href="@{/admin/chatapp}" class="gi-page-link">
+              <i class="ri-pages-line"></i><span class="condense"><span
+              class="hover-title">공지사항 관리</span> </span>
+            </a>
+          </li>
           <li class="gi-sb-item">
             <a th:href="@{/admin/versions}" class="gi-page-link">
-              <i class="ri-todo-line"></i><span class="condense"><span
-              class="hover-title">버전 관리</span></span>
+              <i class="ri-image-2-fill"></i><span class="condense"><span
+              class="hover-title">배너 관리</span></span>
+            </a>
+          </li>
+          <li class="gi-sb-item">
+            <a th:href="@{/admin/chatapp}" class="gi-page-link">
+              <i class="ri-message-3-line"></i><span class="condense"><span
+              class="hover-title">문의 관리</span> </span>
             </a>
           </li>
           <li class="gi-sb-item sb-drop-item">
             <a href="javascript:void(0)" class="gi-drop-toggle">
-              <i class="ri-shopping-cart-line"></i><span class="condense">eCommerce<i
+              <i class="ri-file-warning-line"></i><span class="condense">신고 / 정지 관리<i
               class="drop-arrow ri-arrow-down-s-line"></i></span></a>
             <ul class="gi-sb-drop condense">
               <li><a href="product-list.html" class="gi-page-link drop"><i
-                class="ri-checkbox-blank-circle-line"></i>Product list</a></li>
-              <li><a href="add-product.html" class="gi-page-link drop"><i
-                class="ri-checkbox-blank-circle-line"></i>Add Product</a></li>
-              <li><a href="add-category.html" class="gi-page-link drop"><i
-                class="ri-checkbox-blank-circle-line"></i>Add Category</a></li>
-              <li><a href="add-sub-category.html" class="gi-page-link drop"><i
-                class="ri-checkbox-blank-circle-line"></i>Add Sub Category</a></li>
-              <li><a href="order-list.html" class="gi-page-link drop"><i
-                class="ri-checkbox-blank-circle-line"></i>Order List</a></li>
-              <li class="gi-sb-item sb-subdrop-item">
-                <a href="javascript:void(0)" class="gi-sub-drop-toggle">
-                  <i class="ri-shield-user-line"></i><span class="condense">Vendor<i
-                  class="drop-arrow ri-arrow-down-s-line"></i></span></a>
-                <ul class="gi-sb-subdrop condense">
-                  <li><a href="vendor-profile.html" class="gi-page-link subdrop"><i
-                    class="ri-checkbox-blank-circle-line"></i>Profile</a></li>
-                  <li><a href="vendor-update.html" class="gi-page-link subdrop"><i
-                    class="ri-checkbox-blank-circle-line"></i>Vendor Update</a></li>
-                  <li><a href="vendor-list.html" class="gi-page-link subdrop"><i
-                    class="ri-checkbox-blank-circle-line"></i>Vendor List</a></li>
-                  <li><a href="invoice.html" class="gi-page-link subdrop"><i
-                    class="ri-checkbox-blank-circle-line"></i>Invoice</a></li>
-                </ul>
+                class="ri-checkbox-blank-circle-line"></i>신고 리스트</a>
               </li>
+
+<!--              서브 드랍 코드-->
+<!--              <li class="gi-sb-item sb-subdrop-item">-->
+<!--                <a href="javascript:void(0)" class="gi-sub-drop-toggle">-->
+<!--                  <i class="ri-shield-user-line"></i><span class="condense">Vendor<i-->
+<!--                  class="drop-arrow ri-arrow-down-s-line"></i></span></a>-->
+<!--                <ul class="gi-sb-subdrop condense">-->
+<!--                  <li><a href="vendor-profile.html" class="gi-page-link subdrop"><i-->
+<!--                    class="ri-checkbox-blank-circle-line"></i>Profile</a></li>-->
+<!--                  <li><a href="vendor-update.html" class="gi-page-link subdrop"><i-->
+<!--                    class="ri-checkbox-blank-circle-line"></i>Vendor Update</a></li>-->
+<!--                  <li><a href="vendor-list.html" class="gi-page-link subdrop"><i-->
+<!--                    class="ri-checkbox-blank-circle-line"></i>Vendor List</a></li>-->
+<!--                  <li><a href="invoice.html" class="gi-page-link subdrop"><i-->
+<!--                    class="ri-checkbox-blank-circle-line"></i>Invoice</a></li>-->
+<!--                </ul>-->
+<!--              </li>-->
+
             </ul>
           </li>
+
+
           <li class="gi-sb-item-separator"></li>
-          <li class="gi-sb-title condense">Pages</li>
+          <li class="gi-sb-title condense">Analytics</li>
           <li class="gi-sb-item sb-drop-item">
             <a href="javascript:void(0)" class="gi-drop-toggle">
-              <i class="ri-pages-line"></i><span class="condense">Authentication<i
+              <i class="ri-bar-chart-grouped-line"></i><span class="condense">통계<i
               class="drop-arrow ri-arrow-down-s-line"></i></span></a>
             <ul class="gi-sb-drop condense">
               <li><a href="signin.html" class="gi-page-link drop"><i
-                class="ri-checkbox-blank-circle-line"></i></i>Login</a></li>
+                class="ri-checkbox-blank-circle-line"></i></i>회원 통계</a></li>
               <li><a href="signup.html" class="gi-page-link drop"><i
-                class="ri-checkbox-blank-circle-line"></i>Signup</a></li>
+                class="ri-checkbox-blank-circle-line"></i>파티 통계</a></li>
               <li><a href="forgot.html" class="gi-page-link drop"><i
-                class="ri-checkbox-blank-circle-line"></i>Forgot password</a></li>
+                class="ri-checkbox-blank-circle-line"></i>유입 경로 분석</a></li>
               <li><a href="two-factor.html" class="gi-page-link drop"><i
-                class="ri-checkbox-blank-circle-line"></i>two factor</a></li>
-              <li><a href="reset-password.html" class="gi-page-link drop"><i
-                class="ri-checkbox-blank-circle-line"></i>Reset password</a></li>
-              <li><a href="remember.html" class="gi-page-link drop"><i
-                class="ri-checkbox-blank-circle-line"></i>Remember</a></li>
+                class="ri-checkbox-blank-circle-line"></i>신고 통계</a></li>
             </ul>
           </li>
+
+          <li class="gi-sb-item-separator"></li>
+          <li class="gi-sb-title condense">Settings</li>
+          <li class="gi-sb-item sb-drop-item">
+            <a href="javascript:void(0)" class="gi-drop-toggle">
+              <i class="ri-shield-user-line"></i><span class="condense">권한<i
+              class="drop-arrow ri-arrow-down-s-line"></i></span></a>
+            <ul class="gi-sb-drop condense">
+              <li><a href="signin.html" class="gi-page-link drop"><i
+                class="ri-checkbox-blank-circle-line"></i>관리자 계정</a></li>
+            </ul>
+          </li>
+          <li class="gi-sb-item sb-drop-item">
+            <a href="javascript:void(0)" class="gi-drop-toggle">
+              <i class="ri-github-fill"></i><span class="condense">개발<i
+              class="drop-arrow ri-arrow-down-s-line"></i></span></a>
+            <ul class="gi-sb-drop condense">
+              <li class="gi-sb-item">
+                <a th:href="@{/admin/versions}" class="gi-page-link">
+                  <i class="ri-checkbox-blank-circle-line"></i><span class="condense"><span
+                  class="hover-title">앱 버전 관리</span></span>
+                </a>
+              </li>
+              <li><a href="signup.html" class="gi-page-link drop"><i
+                class="ri-checkbox-blank-circle-line"></i>API 키 관리</a>
+              </li>
+              <li><a href="forgot.html" class="gi-page-link drop"><i
+                class="ri-checkbox-blank-circle-line"></i>로그 관리</a>
+              </li>
+            </ul>
+          </li>
+
+
           <li class="gi-sb-item-separator"></li>
           <li class="gi-sb-title condense">Elements</li>
           <li class="gi-sb-item">
-            <a href="remix-icons.html" class="gi-page-link">
-              <i class="ri-remixicon-line"></i><span class="condense"><span class="hover-title">remix
-										icons</span></span></a>
-          </li>
-          <li class="gi-sb-item">
             <a href="material-icons.html" class="gi-page-link">
-              <i class="mdi mdi-material-ui"></i><span class="condense"><span
-              class="hover-title">Material icons</span></span></a>
-          </li>
-          <li class="gi-sb-item">
-            <a href="apexchart.html" class="gi-page-link">
-              <i class="ri-bar-chart-grouped-line"></i><span class="condense"><span
-              class="hover-title">Apexcharts</span></span></a>
-          </li>
-          <li class="gi-sb-item">
-            <a href="buttons.html" class="gi-page-link">
-              <i class="ri-radio-button-line"></i><span class="condense"><span
-              class="hover-title">Buttons</span></span></a>
-          </li>
-          <li class="gi-sb-item">
-            <a href="accordions.html" class="gi-page-link">
-              <i class="ri-play-list-add-line"></i><span class="condense"><span
-              class="hover-title">Accordions</span></span></a>
-          </li>
-          <li class="gi-sb-item">
-            <a href="typography.html" class="gi-page-link">
-              <i class="ri-file-text-line"></i><span class="condense"><span
-              class="hover-title">Typography</span></span></a>
-          </li>
-          <li class="gi-sb-item">
-            <a href="alert-popup.html" class="gi-page-link">
-              <i class="ri-file-warning-line"></i><span class="condense"><span
-              class="hover-title">Alert Popup</span></span></a>
+              <i class="ri-links-fill"></i><span class="condense"><span
+              class="hover-title">관련 링크</span></span></a>
           </li>
         </ul>
       </div>
