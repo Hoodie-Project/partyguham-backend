@@ -1,5 +1,8 @@
 spring:
-  # 로컬 개발용 데이터베이스 설정
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
   datasource:
     url: jdbc:postgresql://localhost:5432/party?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true
     username: ${DB_USERNAME}
@@ -9,4 +12,6 @@ spring:
 # trace - debug - info - warn - error
 logging:
   level:
-    root: trace
+    root: INFO
+    org.springframework.security: INFO
+    org.springframework.web: INFO

@@ -1,5 +1,8 @@
 spring:
-  # 개발 서버용 데이터베이스 설정
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
   datasource:
     url: ${DEV_DATABASE_URL}
     username: ${DEV_DB_USERNAME}

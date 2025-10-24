@@ -1,5 +1,8 @@
 spring:
-  # 프로덕션 서버용 데이터베이스 설정
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: validate
   datasource:
     url: ${PROD_DATABASE_URL}
     username: ${PROD_DB_USERNAME}
