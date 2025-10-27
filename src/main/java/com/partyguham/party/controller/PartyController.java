@@ -1,19 +1,29 @@
 package com.partyguham.party.controller;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import com.partyguham.party.model.Party;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
+@RequestMapping("/api/parties")
 public class PartyController {
 
-    @GetMapping("/party/{partyId}")
-    public String getParty(@PathVariable Long partyId,
-                           @RequestParam String status){
-        return "party";
-    }
+    @PostMapping
+    public ResponseEntity<PartyResponse> createParty(@RequestBody PartyRequest request) {}
 
+    @GetMapping("/types")
+    public ResponseEntity<PartyTypeResponse> getType() {} // 단일객체반환
 
+    @GetMapping("/{partyId}")
+    public ResponseEntity<PartyResponse> getParty(@PathVariable Long partyId) {}
+
+    @GetMapping("/{partyId}/users")
+    public ResponseEntity<List<PartyUserResponse>> getPartyUsers(@PathVariable Long partyId) {}
+
+    @GetMapping("/{partyId}/users/me/authority")
+    public ResponseEntity<PartyMyAuthority> getPartyMyAuthority(@PathVariable Long partyId) {}
+
+    @DeleteMapping("/{partyId}/users/me")
+    public ResponseEntity<Void> leaveParty(@PathVariable Long partyId) {}
 
 }
