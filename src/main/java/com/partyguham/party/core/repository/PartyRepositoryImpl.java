@@ -1,6 +1,6 @@
-package com.partyguham.party.repository;
+package com.partyguham.party.core.repository;
 
-import com.partyguham.party.model.Party;
+import com.partyguham.party.core.entity.Party;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.springframework.stereotype.Repository;

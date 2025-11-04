@@ -1,6 +1,6 @@
-package com.partyguham.party.service;
+package com.partyguham.party.core.service;
 
-import com.partyguham.party.repository.PartyRepository;
+import com.partyguham.party.core.repository.PartyRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

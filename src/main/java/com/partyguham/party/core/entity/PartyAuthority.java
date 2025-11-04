@@ -1,4 +1,4 @@
-package com.partyguham.party.model;
+package com.partyguham.party.core.entity;
 
 public enum  PartyAuthority {
     MASTER, // 파티장

@@ -1,4 +1,4 @@
-package com.partyguham.party.model;
+package com.partyguham.party.core.entity;
 
 import com.partyguham.common.entity.BaseEntity;
 import jakarta.persistence.*;

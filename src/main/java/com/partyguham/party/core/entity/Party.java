@@ -1,12 +1,9 @@
-package com.partyguham.party.model;
+package com.partyguham.party.core.entity;
 
 import com.partyguham.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Getter

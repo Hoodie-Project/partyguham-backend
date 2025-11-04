@@ -1,6 +1,5 @@
-package com.partyguham.party.controller;
+package com.partyguham.party.core.controller;
 
-import com.partyguham.party.model.Party;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
