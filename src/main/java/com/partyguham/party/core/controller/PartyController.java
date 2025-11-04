@@ -1,6 +1,7 @@
 package com.partyguham.party.core.controller;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -8,21 +9,23 @@ import org.springframework.web.bind.annotation.*;
 public class PartyController {
 
     @PostMapping
-    public ResponseEntity<PartyResponse> createParty(@RequestBody PartyRequest request) {}
+    public ResponseEntity<PartyResponseDto> createParty(@RequestBody PartyCreateRequestDto request, @AuthenticationPrincipal UserPrincipal user) {}
 
     @GetMapping("/types")
-    public ResponseEntity<PartyTypeResponse> getType() {} // 단일객체반환
+    public ResponseEntity<PartyTypeResponseDto> getType() {}
 
     @GetMapping("/{partyId}")
-    public ResponseEntity<PartyResponse> getParty(@PathVariable Long partyId) {}
+    public ResponseEntity<GetPartyResponseDto> getParty(@PathVariable Long partyId) {}
 
     @GetMapping("/{partyId}/users")
-    public ResponseEntity<List<PartyUserResponse>> getPartyUsers(@PathVariable Long partyId) {}
+    public ResponseEntity<GetPartyUserResponseDto> getPartyUsers(@PathVariable Long partyId) {}
 
     @GetMapping("/{partyId}/users/me/authority")
-    public ResponseEntity<PartyMyAuthority> getPartyMyAuthority(@PathVariable Long partyId) {}
+    public ResponseEntity<PartyAuthorityResponseDto> getPartyAuthority(@PathVariable Long partyId) {}
 
     @DeleteMapping("/{partyId}/users/me")
-    public ResponseEntity<Void> leaveParty(@PathVariable Long partyId) {}
+    public ResponseEntity<Void> leaveParty(@PathVariable Long partyId, @RequestHeader("Authorization") String authorization) {
+        // "Bearer " 제거
+    }
 
 }
