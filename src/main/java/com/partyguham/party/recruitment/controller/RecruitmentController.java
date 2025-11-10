@@ -1,11 +1,22 @@
 package com.partyguham.party.recruitment.controller;
 
 
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/parties")
-public class PartyRecruitmentController {
+public class RecruitmentController {
+    @GetMapping("/recruitments")
+    public ResponseEntity<GetPartyRecruitmentsResponseDto> getRecruitments(@ModelAttribute GetPartyRecruitmentsRequestDto request) {}
+
+    @GetMapping("/recruitments/personalized")
+    public ResponseEntity<GetPartyRecruitmentsResponseDto> getRecruitmentsPersonalized(
+            @AuthenticationPrincipal Long userId,
+            @ModelAttribute GetPartyRecruitmentsPersonalizedRequestDto request
+    ) {}
+
     @GetMapping("/recruitments/{partyRecruitmentId}")
     public ResponseEntity<PartyRecruitmentResponseDto> getPartyRecruitment(
             @PathVariable Long partyRecruitmentId,
@@ -13,7 +24,7 @@ public class PartyRecruitmentController {
     ) {}
 
     @GetMapping("/{partyId}/recruitments")
-    public ResponseEntity<List<PartyRecruitmentsResponseDto>> getPartyRecruitmentList(
+    public ResponseEntity<PartyRecruitmentsResponseDto> getPartyRecruitmentList(
             @PathVariable Long partyId,
             @ModelAttribute PartyRecruitmentSearchRequestDto request
     ) {}

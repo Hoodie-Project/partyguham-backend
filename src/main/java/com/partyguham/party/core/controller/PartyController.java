@@ -7,12 +7,19 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/parties")
 public class PartyController {
+    @GetMapping
+    public ResponseEntity<GetPartiesResponseDto> getParties(@ModelAttribute GetPartiesRequestDto parties) {}
 
     @PostMapping
     public ResponseEntity<PartyResponseDto> createParty(@RequestBody PartyCreateRequestDto request, @AuthenticationPrincipal UserPrincipal user) {}
 
     @GetMapping("/types")
     public ResponseEntity<PartyTypeResponseDto> getType() {}
+
+    @GetMapping("/search")
+    public ResponseEntity<GetSearchResponseDto> getSearch(@RequestParam int page,
+                                                          @RequestParam int limit,
+                                                          @RequestParam(required = false) String titleSearch) {}
 
     @GetMapping("/{partyId}")
     public ResponseEntity<GetPartyResponseDto> getParty(@PathVariable Long partyId) {}
