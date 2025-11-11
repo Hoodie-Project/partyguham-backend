@@ -17,6 +17,13 @@ spring:
         temp:
           use_jdbc_metadata_defaults: false
 
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: ""   # 필요하면 입력
+      timeout: 2000ms
+
   servlet:
     multipart:
       max-file-size: 50MB
