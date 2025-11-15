@@ -40,11 +40,8 @@ public class OauthAccount {
     @Column(nullable = false)
     private Provider provider;
 
-    @Lob
-    private String accessToken;
-
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = true)
     private User user;
 
     public static OauthAccount of(User u, Provider p, String extId){

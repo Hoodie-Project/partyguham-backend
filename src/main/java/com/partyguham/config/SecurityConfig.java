@@ -39,11 +39,6 @@ public class SecurityConfig {
                         .requestMatchers("/api/v2/auth/oauth/**").permitAll()
 
                         // OTT로 보호할 엔드포인트
-                        .requestMatchers(
-                                "/api/v2/users",
-                                "/api/v2/users/check-nickname"
-                        ).hasRole("SIGNUP")
-
                         .requestMatchers("/api/v2/users/recover/**")
                         .hasRole("RECOVER")
 

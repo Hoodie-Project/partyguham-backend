@@ -1,6 +1,7 @@
 package com.partyguham.auth.oauth.service;
 
 import com.partyguham.auth.jwt.JwtService;
+import com.partyguham.auth.oauth.entity.OauthAccount;
 import com.partyguham.auth.oauth.entity.Provider;
 import com.partyguham.auth.oauth.repository.OauthAccountRepository;
 import com.partyguham.auth.ott.model.OttPayload;
@@ -41,48 +42,39 @@ public class OauthLoginService {
     public Result handleCallback(Provider provider, String externalId, String email, String image) {
         return oauthRepo.findByProviderAndExternalId(provider, externalId)
                 .map(oa -> {
+                    // 1) user가 아직 안 붙어 있는 경우 → 회원가입 필요 상태로 다시 OTT 발급
+                    if (oa.getUser() == null) {
+                        String ott = ottService.issue(
+                                new OttPayload(OttType.SIGNUP, provider, externalId, email, image, null),
+                                Duration.ofMinutes(15)
+                        );
+                        return Result.signupOtt(ott);
+                    }
+
+                    // 2) user가 이미 있는 경우 → 정상 로그인
                     Long userId = oa.getUser().getId();
+
+                    // TODO: 여기서 user 상태 체크 (DELETED/INACTIVE 등) 필요
                     String at = jwtService.issueAccess(userId, "USER");
                     String rt = jwtService.issueRefresh(userId);
                     return Result.loggedIn(at, rt);
                 })
                 .orElseGet(() -> {
+                    // 3) 완전 최초 로그인 → user=null 로 OAuthAccount만 먼저 저장
+                    OauthAccount oa = OauthAccount.builder()
+                            .provider(provider)
+                            .externalId(externalId)
+                            .user(null) // 가입 완료 때 setUser()
+                            .build();
+                    oauthRepo.save(oa);
+
                     String ott = ottService.issue(
                             new OttPayload(OttType.SIGNUP, provider, externalId, email, image, null),
-                            Duration.ofMinutes(10)
+                            Duration.ofMinutes(15)
                     );
                     return Result.signupOtt(ott);
                 });
     }
-
-    /**
-     * 편의 메서드: platform(web/app)에 따라 응답 포맷 구성
-     * - web: RT는 HttpOnly 쿠키, AT는 바디
-     * - app: AT/RT 모두 JSON 바디
-     * - signup(신규): web은 signupToken 쿠키, app은 바디
-     */
-    public ResponseEntity<?> respond(String provider, Result r, String platform, HttpServletResponse res) {
-        if (r.signupOtt() != null) {
-            if ("web".equalsIgnoreCase(platform)) {
-                ResponseCookie ott = ResponseCookie.from("signupToken", r.signupOtt())
-                        .httpOnly(true).secure(true).sameSite("None").path("/").maxAge(600).build();
-                res.addHeader("Set-Cookie", ott.toString());
-                return ResponseEntity.ok(Map.of("type", "signup", "next", "/signup"));
-            } else {
-                return ResponseEntity.ok(Map.of("type", "signup", "signupToken", r.signupOtt(), "next", "app://signup"));
-            }
-        } else {
-            if ("web".equalsIgnoreCase(platform)) {
-                ResponseCookie rt = ResponseCookie.from("refreshToken", r.refreshToken())
-                        .httpOnly(true).secure(true).sameSite("None").path("/").build();
-                res.addHeader("Set-Cookie", rt.toString());
-                return ResponseEntity.ok(Map.of("type", "login", "accessToken", r.accessToken()));
-            } else {
-                return ResponseEntity.ok(Map.of("type", "login", "accessToken", r.accessToken(), "refreshToken", r.refreshToken()));
-            }
-        }
-    }
-
 
     /**
      * 컨트롤러-서비스 간 결과 DTO

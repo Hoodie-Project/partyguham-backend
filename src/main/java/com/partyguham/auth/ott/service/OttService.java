@@ -24,7 +24,6 @@ public class OttService {
 
     /**
      * 발급
-     *
      * @param payload OTT에 저장할 데이터
      * @param ttl     토큰 유효기간 (예: Duration.ofMinutes(10))
      * @return 발급된 토큰 문자열(UUID)
