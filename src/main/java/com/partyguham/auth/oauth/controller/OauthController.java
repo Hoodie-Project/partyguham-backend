@@ -6,6 +6,7 @@ import com.partyguham.auth.oauth.dto.OauthUser;
 import com.partyguham.auth.oauth.service.OauthStateService;
 import com.partyguham.auth.oauth.service.OauthLoginService;
 import com.partyguham.common.annotation.ApiV2Controller;
+import com.partyguham.config.DomainProperties;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseCookie;
@@ -38,6 +39,7 @@ public class OauthController {
     private final Map<String, OauthClient> clients;
     private final OauthStateService oauthStateService;
     private final OauthLoginService oauthLoginService;
+    private final DomainProperties domain;
 
     /**
      * (웹) 로그인 시작: state 저장 후 authorizeUrl 리다이렉트
@@ -79,15 +81,17 @@ public class OauthController {
         if (r.isSignup()) {
             // 회원가입 필요 → signupToken 쿠키 + 회원가입 페이지로 리다이렉트
             ResponseCookie ott = ResponseCookie.from("signupToken", r.signupOtt())
-                    .httpOnly(true).secure(true).sameSite("None").path("/").maxAge(600).build();
+                    .httpOnly(true).secure(true).sameSite("None").path("/").maxAge(900).build();
             res.addHeader("Set-Cookie", ott.toString());
-            res.sendRedirect("https://your-frontend.com/signup"); // 원하는 URL
+
+            res.sendRedirect(domain.signupUrl());
         } else {
             // 로그인 완료 → refreshToken 쿠키 + 메인 페이지로 리다이렉트
             ResponseCookie rt = ResponseCookie.from("refreshToken", r.refreshToken())
                     .httpOnly(true).secure(true).sameSite("None").path("/").build();
             res.addHeader("Set-Cookie", rt.toString());
-            res.sendRedirect("https://your-frontend.com"); // 메인
+
+            res.sendRedirect(domain.getBase());
         }
     }
 

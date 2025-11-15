@@ -1,4 +1,4 @@
-package com.partyguham.auth.ott;
+package com.partyguham.auth.ott.repository;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;

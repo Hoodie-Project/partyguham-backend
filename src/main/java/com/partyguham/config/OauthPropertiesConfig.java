@@ -4,7 +4,9 @@ import com.partyguham.auth.oauth.props.OauthProps;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
-/** yml의 oauth.* 값을 POJO(OauthProps)로 바인딩 활성화 */
+/**
+ * oauth.* YML 설정을 OauthProps 클래스와 연결해주는 설정 파일
+ */
 @Configuration
 @EnableConfigurationProperties(OauthProps.class)
-public class AppConfig {}
+public class OauthPropertiesConfig { }

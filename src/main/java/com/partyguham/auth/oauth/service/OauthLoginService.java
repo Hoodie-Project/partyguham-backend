@@ -5,7 +5,7 @@ import com.partyguham.auth.oauth.entity.Provider;
 import com.partyguham.auth.oauth.repository.OauthAccountRepository;
 import com.partyguham.auth.ott.model.OttPayload;
 import com.partyguham.auth.ott.model.OttType;
-import com.partyguham.auth.ott.OttService;
+import com.partyguham.auth.ott.service.OttService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.http.ResponseCookie;

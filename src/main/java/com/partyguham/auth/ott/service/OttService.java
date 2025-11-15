@@ -1,6 +1,7 @@
-package com.partyguham.auth.ott;
+package com.partyguham.auth.ott.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.partyguham.auth.ott.repository.OttTokenRepository;
 import com.partyguham.auth.ott.model.OttPayload;
 import com.partyguham.auth.ott.model.OttType;
 import lombok.RequiredArgsConstructor;
