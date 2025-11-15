@@ -1,4 +1,4 @@
-package com.partyguham.auth.ott;
+package com.partyguham.auth.ott.model;
 
 
 /**

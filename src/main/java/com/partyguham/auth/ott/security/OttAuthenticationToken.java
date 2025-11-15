@@ -1,6 +1,6 @@
 package com.partyguham.auth.ott.security;
 
-import com.partyguham.auth.ott.OttType;
+import com.partyguham.auth.ott.model.OttType;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 
 /**

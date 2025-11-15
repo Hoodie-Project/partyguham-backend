@@ -1,6 +1,8 @@
 package com.partyguham.auth.ott;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.partyguham.auth.ott.model.OttPayload;
+import com.partyguham.auth.ott.model.OttType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
@@ -38,7 +40,6 @@ public class OttService {
 
     /**
      * 검증 + 소거 (1회용)
-     *
      * @param type  기대하는 OTT 타입 (SIGNUP/RECOVER/LINK)
      * @param token 클라이언트가 보낸 토큰
      * @return OttPayload (기록된 페이로드)

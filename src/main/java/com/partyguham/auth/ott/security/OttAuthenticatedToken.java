@@ -1,6 +1,6 @@
 package com.partyguham.auth.ott.security;
 
-import com.partyguham.auth.ott.OttPayload;
+import com.partyguham.auth.ott.model.OttPayload;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import java.util.Collection;

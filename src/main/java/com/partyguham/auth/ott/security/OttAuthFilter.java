@@ -1,6 +1,6 @@
 package com.partyguham.auth.ott.security;
 
-import com.partyguham.auth.ott.OttType;
+import com.partyguham.auth.ott.model.OttType;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;

@@ -1,8 +1,8 @@
 package com.partyguham.auth.ott.security;
 
-import com.partyguham.auth.ott.OttPayload;
+import com.partyguham.auth.ott.model.OttPayload;
 import com.partyguham.auth.ott.OttService;
-import com.partyguham.auth.ott.OttType;
+import com.partyguham.auth.ott.model.OttType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
