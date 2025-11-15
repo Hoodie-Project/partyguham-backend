@@ -1,4 +1,4 @@
-package com.partyguham.auth;
+package com.partyguham.auth.jwt;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import lombok.Getter; import lombok.Setter;

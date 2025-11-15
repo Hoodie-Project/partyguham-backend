@@ -1,4 +1,4 @@
-package com.partyguham.auth.entity;
+package com.partyguham.auth.oauth.entity;
 
 public enum Provider {
     KAKAO,

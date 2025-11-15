@@ -1,6 +1,5 @@
-package com.partyguham.auth.controller;
+package com.partyguham.auth.jwt;
 
-import com.partyguham.auth.service.JwtService;
 import com.partyguham.auth.service.LogoutService;
 import com.partyguham.common.annotation.ApiV2Controller;
 import jakarta.servlet.http.HttpServletResponse;

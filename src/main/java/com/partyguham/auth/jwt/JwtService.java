@@ -1,6 +1,5 @@
-package com.partyguham.auth.service;
+package com.partyguham.auth.jwt;
 
-import com.partyguham.auth.JwtProperties;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
