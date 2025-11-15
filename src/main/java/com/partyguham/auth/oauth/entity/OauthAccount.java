@@ -1,15 +1,20 @@
-package com.partyguham.auth.entity;
+package com.partyguham.auth.oauth.entity;
 
 import com.partyguham.user.account.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 
+@Entity
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-@Entity
+@SequenceGenerator(
+        name = "oauth_account_seq_gen",
+        sequenceName = "oauth_account_seq",
+        allocationSize = 50
+)
 @Table(
         name = "oauth_account",
         uniqueConstraints = {
@@ -25,7 +30,7 @@ import lombok.*;
 public class OauthAccount {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "oauth_account_seq_gen")
     private Long id;
 
     @Column(name = "external_id", nullable = false)
@@ -38,11 +43,15 @@ public class OauthAccount {
     @Lob
     private String accessToken;
 
-    // ==== Relations ====
-    @ManyToOne(fetch=FetchType.LAZY) @JoinColumn(name="user_id", nullable=false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     public static OauthAccount of(User u, Provider p, String extId){
-        var oa = new OauthAccount(); oa.user=u; oa.provider=p; oa.externalId=extId; return oa;
+        var oa = new OauthAccount();
+        oa.user = u;
+        oa.provider = p;
+        oa.externalId = extId;
+        return oa;
     }
 }
