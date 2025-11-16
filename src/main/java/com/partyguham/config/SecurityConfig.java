@@ -35,12 +35,19 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())        // REST API 이므로 CSRF OFF
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // OAuth 시작/콜백은 누구나 접근 가능
-                        .requestMatchers("/api/v2/auth/oauth/**").permitAll()
+                        /* ==== 공개 테스트 API ==== */
+                        .requestMatchers(
+                                "/api/v2/auth/test/**",
+                                "/api/v2/health",
+                                "/api/v2/auth/oauth/**"
+                        ).permitAll()
 
                         // OTT로 보호할 엔드포인트
                         .requestMatchers("/api/v2/users/recover/**")
                         .hasRole("RECOVER")
+
+                        /* ==== JWT 필요한 엔드포인트 ==== */
+                        .requestMatchers("/api/v2/**").authenticated()
 
                         // 나머지 /api/** 는 JWT 인증 필요
                         .anyRequest().authenticated()

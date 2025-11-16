@@ -1,10 +1,10 @@
 package com.partyguham.user.account.controller;
 
-
-import com.partyguham.auth.jwt.JwtService;
+import com.partyguham.auth.jwt.UserPrincipal;
 import com.partyguham.auth.ott.model.OttPayload;
 import com.partyguham.user.account.dto.request.SignUpRequest;
 import com.partyguham.user.account.dto.response.SignUpResponse;
+import com.partyguham.user.account.service.UserService;
 import com.partyguham.user.account.service.UserSignupService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.*;
 public class UserAccountController {
 
     private final UserSignupService userSignupService;
-    private final JwtService jwtService;
+    private final UserService userService;
 
     @PreAuthorize("hasRole('SIGNUP')")
     @GetMapping("/check-nickname")
@@ -42,8 +42,8 @@ public class UserAccountController {
 //    }
 
     // 필수 회원가입
-    @PostMapping
     @PreAuthorize("hasRole('SIGNUP')")
+    @PostMapping()
     public ResponseEntity<?> signUp(@AuthenticationPrincipal OttPayload ott,
                                     @RequestBody SignUpRequest dto,
                                     HttpServletResponse res) {
@@ -66,7 +66,14 @@ public class UserAccountController {
                 .body(java.util.Map.of("accessToken", result.accessToken()));
     }
 
+
     // 회원탈퇴
+    @PreAuthorize("isAuthenticated()")
+    @DeleteMapping("/me")
+    public ResponseEntity<Void> deleteMe(@AuthenticationPrincipal UserPrincipal user) {
+        userService.deleteUser(user.getId());
+        return ResponseEntity.noContent().build();
+    }
 
     // 나의 소셜 계정 조회
 

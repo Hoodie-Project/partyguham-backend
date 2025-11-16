@@ -43,8 +43,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 Long userId = Long.valueOf(claims.getSubject());
                 String role = claims.get("role", String.class); // "USER" 등
 
+                UserPrincipal principal = new UserPrincipal(userId, role);
+
                 var auth = new UsernamePasswordAuthenticationToken(
-                        userId, // principal (필요하면 UserDetails 로 교체)
+                        principal, // userId
                         null,
                         List.of(new SimpleGrantedAuthority("ROLE_" + role))
                 );

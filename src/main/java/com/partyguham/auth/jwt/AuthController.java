@@ -6,6 +6,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,12 +22,19 @@ public class AuthController {
     private final JwtService jwtService;
     private final LogoutService logoutService;
 
-    @GetMapping("/demo-login")
+    @GetMapping("/test/accessToken")
     public ResponseEntity<Map<String, String>> demoLogin() {
         // 실제로는 사용자 인증 후 userId/role 세팅
         String token = jwtService.issueAccess(1L, "USER");
         return ResponseEntity.ok(Map.of("accessToken", token));
     }
+
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/test/login")
+    public ResponseEntity<Map<String, UserPrincipal>> deleteMe(@AuthenticationPrincipal UserPrincipal user) {
+        return ResponseEntity.ok(Map.of("test", user));
+    }
+
 
     @GetMapping("/me")
     public ResponseEntity<String> me() {
