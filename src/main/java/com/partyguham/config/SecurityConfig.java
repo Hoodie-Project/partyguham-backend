@@ -37,7 +37,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         /* ==== 공개 테스트 API ==== */
                         .requestMatchers(
-                                "/api/v2/auth/test/**",
+                                "/api/v2/auth/**",
                                 "/api/v2/health",
                                 "/api/v2/auth/oauth/**"
                         ).permitAll()

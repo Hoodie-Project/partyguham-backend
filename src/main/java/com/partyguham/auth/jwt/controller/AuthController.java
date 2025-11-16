@@ -1,5 +1,7 @@
-package com.partyguham.auth.jwt;
+package com.partyguham.auth.jwt.controller;
 
+import com.partyguham.auth.jwt.JwtService;
+import com.partyguham.auth.jwt.UserPrincipal;
 import com.partyguham.auth.service.LogoutService;
 import com.partyguham.common.annotation.ApiV2Controller;
 import jakarta.servlet.http.HttpServletResponse;
@@ -22,43 +24,46 @@ public class AuthController {
     private final JwtService jwtService;
     private final LogoutService logoutService;
 
-    @GetMapping("/test/accessToken")
-    public ResponseEntity<Map<String, String>> demoLogin() {
-        // 실제로는 사용자 인증 후 userId/role 세팅
-        String token = jwtService.issueAccess(1L, "USER");
-        return ResponseEntity.ok(Map.of("accessToken", token));
-    }
-
-    @PreAuthorize("isAuthenticated()")
-    @GetMapping("/test/login")
-    public ResponseEntity<Map<String, UserPrincipal>> deleteMe(@AuthenticationPrincipal UserPrincipal user) {
-        return ResponseEntity.ok(Map.of("test", user));
-    }
-
-
-    @GetMapping("/me")
-    public ResponseEntity<String> me() {
-        // 필터가 SecurityContext에 인증을 채우므로 여기 오면 인증된 상태
-        return ResponseEntity.ok("This is protected resource.");
-    }
-
-    // 1) 앱: JSON 본문으로 refreshToken 전달
     @PostMapping("/reissue")
-    public ResponseEntity<Map<String,String>> reissue(@RequestBody Map<String,String> body) {
-        String rt = body.get("refreshToken");
-        String access = jwtService.reissueAccess(rt); // 검증 실패 시 예외 처리
-        return ResponseEntity.ok(Map.of("accessToken", access));
-    }
+    public ResponseEntity<?> reissue(
+            @CookieValue(value = "refreshToken", required = false) String rtCookie,
+            @RequestHeader(value = "Authorization", required = false) String authHeader
+    ) {
+        // 1) 헤더에서 Bearer RT 추출
+        String rtHeader = null;
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            rtHeader = authHeader.substring(7);
+        }
 
-    // 2) 웹: HttpOnly 쿠키에서 읽기 (이름 예: REFRESH_TOKEN)
-    @PostMapping("/reissue-web")
-    public ResponseEntity<Map<String,String>> reissueWeb(@CookieValue("REFRESH_TOKEN") String rt) {
-        String access = jwtService.reissueAccess(rt);
-        return ResponseEntity.ok(Map.of("accessToken", access));
+        // 2) 둘 다 없으면 401
+        if (rtCookie == null && rtHeader == null) {
+            return ResponseEntity.status(401).body(Map.of("error", "refreshToken_missing"));
+        }
+
+        // 3) 둘 다 있으면 정책 결정 (에러로)
+        if (rtCookie != null && rtHeader != null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "multiple_refresh_token_sources"));
+        }
+
+        String refreshToken = (rtCookie != null) ? rtCookie : rtHeader;
+
+        // 4) 서버 저장소(REDIS/DB)에 존재&유효 여부 체크
+//        if (!refreshTokenService.isValid(refreshToken)) {
+//            return ResponseEntity.status(401).body(Map.of("error", "invalid_refresh_token"));
+//        }
+
+        // 5) RT에서 userId 꺼내고 AccessToken 재발급
+        Long userId = jwtService.parse(refreshToken).getPayload().getSubject() != null
+                ? Long.valueOf(jwtService.parse(refreshToken).getPayload().getSubject())
+                : null;
+
+        String newAccess = jwtService.issueAccess(userId, "USER");
+
+        return ResponseEntity.ok(Map.of("accessToken", newAccess));
     }
 
     // ✅ 로그아웃 - 앱(JSON 본문으로 RT 전달)
-    @PostMapping("/logout")
+    @PostMapping("/app/logout")
     public ResponseEntity<Void> logout(@RequestBody Map<String,String> body,
                                        @RequestHeader(value="Authorization", required=false) String auth) {
         String rt = body.get("refreshToken");
@@ -70,7 +75,7 @@ public class AuthController {
     }
 
     // ✅ 로그아웃 - 웹(쿠키 RT 제거)
-    @PostMapping("/logout-web")
+    @PostMapping("/web/logout")
     public ResponseEntity<Void> logoutWeb(
             HttpServletResponse res,
             @CookieValue(value="REFRESH_TOKEN", required=false) String rt,
