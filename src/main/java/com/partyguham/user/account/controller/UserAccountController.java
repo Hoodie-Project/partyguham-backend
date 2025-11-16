@@ -1,9 +1,14 @@
 package com.partyguham.user.account.controller;
 
 
-import com.partyguham.auth.ott.OttPayload;
-import com.partyguham.user.account.service.UserService;
+import com.partyguham.auth.jwt.JwtService;
+import com.partyguham.auth.ott.model.OttPayload;
+import com.partyguham.user.account.dto.request.SignUpRequest;
+import com.partyguham.user.account.dto.response.SignUpResponse;
+import com.partyguham.user.account.service.UserSignupService;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -15,7 +20,8 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("users")
 public class UserAccountController {
 
-    private final UserService signupService;
+    private final UserSignupService userSignupService;
+    private final JwtService jwtService;
 
     @PreAuthorize("hasRole('SIGNUP')")
     @GetMapping("/check-nickname")
@@ -26,28 +32,38 @@ public class UserAccountController {
     }
 
     // 닉네임 예약 (회원가입 토큰 필요)
-    @PreAuthorize("hasRole('SIGNUP')")
-    @PostMapping("/api/v2/users/reserve-nickname")
-    public ResponseEntity<Void> reserve(@AuthenticationPrincipal OttPayload p,
-                                        @RequestBody Map<String,String> body) {
-        String nickname = body.get("nickname");
-        reservationService.reserveForSignup(p.getOauthId(), nickname, Duration.ofMinutes(10));
-        return ResponseEntity.status(201).build();
-    }
+//    @PreAuthorize("hasRole('SIGNUP')")
+//    @PostMapping("/api/v2/users/reserve-nickname")
+//    public ResponseEntity<Void> reserve(@AuthenticationPrincipal OttPayload p,
+//                                        @RequestBody Map<String,String> body) {
+//        String nickname = body.get("nickname");
+//        reservationService.reserveForSignup(p.getOauthId(), nickname, Duration.ofMinutes(10));
+//        return ResponseEntity.status(201).build();
+//    }
 
     // 필수 회원가입
-    @PreAuthorize("hasRole('SIGNUP')")
     @PostMapping
-    public Object signup(
-            @AuthenticationPrincipal OttPayload payload,
-            @RequestBody SignupRequest dto
-    ) {
-        // payload: OAuth에서 온 oauthId/email/image 등
-        // dto: 닉네임/성별/생년월일 등
-        return signupService.createUserAndLogin(
-                payload.oauthId(), payload.email(), payload.image(),
-                dto.nickname(), dto.gender(), dto.birth()
-        );
+    @PreAuthorize("hasRole('SIGNUP')")
+    public ResponseEntity<?> signUp(@AuthenticationPrincipal OttPayload ott,
+                                    @RequestBody SignUpRequest dto,
+                                    HttpServletResponse res) {
+
+        // 1) 서비스 호출 → user 생성 + OAuthAccount 연결 + JWT 발급
+        SignUpResponse result = userSignupService.signUpWithOtt(ott, dto);
+
+        // 2) signupToken 쿠키 제거 (있다면)
+        ResponseCookie delSignup = ResponseCookie.from("signupToken", "")
+                .httpOnly(true).secure(true).sameSite("None").path("/").maxAge(0).build();
+        res.addHeader("Set-Cookie", delSignup.toString());
+
+        // 3) refreshToken 쿠키로 내려주기 (웹 기준)
+        ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", result.refreshToken())
+                .httpOnly(true).secure(true).sameSite("None").path("/").build();
+        res.addHeader("Set-Cookie", refreshCookie.toString());
+
+        // 4) accessToken 은 body 로 내려줌
+        return ResponseEntity.status(201)
+                .body(java.util.Map.of("accessToken", result.accessToken()));
     }
 
     // 회원탈퇴

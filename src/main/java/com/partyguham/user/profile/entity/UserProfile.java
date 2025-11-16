@@ -16,9 +16,6 @@ public class UserProfile {
     @Id
     @GeneratedValue(strategy=GenerationType.IDENTITY) Long id;
 
-    @OneToOne(fetch=FetchType.LAZY) @JoinColumn(name="user_id", nullable=false, unique=true)
-    private User user;
-
     LocalDate birth;
 
     @Enumerated(EnumType.STRING)
@@ -34,5 +31,11 @@ public class UserProfile {
 
     @Lob String image;
 
+    //==RelationShip
+    @OneToOne(fetch=FetchType.LAZY)
+    @JoinColumn(name="user_id", nullable=false, unique=true)
+    private User user;
+
     // 예: region/career/trait FK/조인테이블은 여기로 이동
+
 }

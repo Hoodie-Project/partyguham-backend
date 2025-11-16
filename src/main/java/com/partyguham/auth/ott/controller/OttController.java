@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 @ApiV2Controller
 @RequiredArgsConstructor
 @RequestMapping("ott")
-public class OttTestController {
+public class OttController {
 
     @GetMapping("/signup")
     @PreAuthorize("hasRole('SIGNUP')")

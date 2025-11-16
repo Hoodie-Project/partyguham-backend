@@ -1,17 +1,20 @@
 package com.partyguham.user.account.entity;
 
-import com.partyguham.auth.entity.OauthAccount;
+import com.partyguham.auth.oauth.entity.OauthAccount;
 import com.partyguham.common.entity.BaseEntity;
 import com.partyguham.user.profile.entity.UserProfile;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.util.*;
 
-
-// user/account/entity/User.java
-@Entity @Table(name="users")
+@Entity
+@Table(name = "users")
 @Getter @Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@SuperBuilder
 public class User extends BaseEntity {
     @Id @GeneratedValue(strategy=GenerationType.IDENTITY)
     Long id;
@@ -31,7 +34,10 @@ public class User extends BaseEntity {
     @OneToMany(mappedBy="user", cascade=CascadeType.REMOVE, orphanRemoval=true)
     private List<OauthAccount> oauths = new ArrayList<>();
 
-    public void attachProfile(UserProfile p){ this.profile=p; p.setUser(this); }
+    public void attachProfile(UserProfile p){
+        this.profile=p;
+        p.setUser(this);
+    }
 
 
 }

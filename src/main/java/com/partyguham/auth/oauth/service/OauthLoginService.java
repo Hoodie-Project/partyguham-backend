@@ -9,13 +9,9 @@ import com.partyguham.auth.ott.model.OttType;
 import com.partyguham.auth.ott.service.OttService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.http.ResponseCookie;
-import org.springframework.http.ResponseEntity;
 
-
-import jakarta.servlet.http.HttpServletResponse;
 import java.time.Duration;
-import java.util.Map;
+
 
 /**
  * OAuth 로그인 공통 비즈니스
