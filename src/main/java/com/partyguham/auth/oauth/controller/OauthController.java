@@ -45,11 +45,18 @@ public class OauthController {
      * (웹) 로그인 시작: state 저장 후 authorizeUrl 리다이렉트
      */
     @GetMapping("/{provider}/login")
-    public void start(@PathVariable String provider, HttpServletResponse res) throws IOException {
+    public void start(@PathVariable Provider provider, HttpServletResponse res) throws IOException {
         String state = UUID.randomUUID().toString();
-        oauthStateService.save(provider, state, Duration.ofMinutes(5));
+        oauthStateService.save(provider.name(), state, Duration.ofMinutes(5));
 
-        String url = clients.get(provider.toUpperCase()).buildAuthorizeUrl(state);
+
+        OauthClient client = clients.get(provider.name());
+        if (client == null) {
+            res.sendError(400, "unsupported_provider");
+            return;
+        }
+
+        String url = client.buildAuthorizeUrl(state);
         res.sendRedirect(url);
     }
 
@@ -57,24 +64,24 @@ public class OauthController {
      * (웹) 콜백: state 검증 → code를 user 정보로 교환 → 비즈 로직 처리 → 응답
      * - platform=web 고정 응답. 필요 시 쿼리로 구분 가능
      */
-    @GetMapping("/{provider}/callback")
-    public void callback(@PathVariable String provider,
+    @GetMapping("/{provider}/login/callback")
+    public void callback(@PathVariable Provider provider,
                          @RequestParam String code,
                          @RequestParam String state,
                          HttpServletResponse res) throws IOException {
 
         // 1) state 검증(1회성)
-        boolean ok = oauthStateService.validateAndConsume(provider, state);
+        boolean ok = oauthStateService.validateAndConsume(provider.name(), state);
         if (!ok) {
             res.sendError(HttpServletResponse.SC_BAD_REQUEST, "invalid_state");
             return;
         }
         // 2) code → user
-        OauthUser u = clients.get(provider.toUpperCase()).fetchUserByCode(code, state);
+        OauthUser u = clients.get(provider.name()).fetchUserByCode(code, state);
 
         // 3) 비즈: 가입자? JWT : 신규? OTT
         var r = oauthLoginService.handleCallback(
-                Provider.valueOf(provider.toUpperCase()),
+                Provider.valueOf(provider.name()),
                 u.externalId(), u.email(), u.image()
         );
 
@@ -98,8 +105,8 @@ public class OauthController {
     /**
      * (앱) provider access_token 직접 전달 → user 조회 → 비즈 → 응답(JSON)
      */
-    @PostMapping("/{provider}/token-login")
-    public ResponseEntity<?> appLogin(@PathVariable String provider,
+    @PostMapping("/{provider}/login")
+    public ResponseEntity<?> appLogin(@PathVariable Provider provider,
                                       @RequestBody Map<String, String> body) {
         String providerAccessToken = body.get("accessToken");
         if (providerAccessToken == null || providerAccessToken.isBlank()) {
@@ -107,11 +114,11 @@ public class OauthController {
         }
 
         // 1) access_token → user
-        OauthUser u = clients.get(provider.toUpperCase()).fetchUserByAccessToken(providerAccessToken);
+        OauthUser u = clients.get(provider.name()).fetchUserByAccessToken(providerAccessToken);
 
         // 2) 비즈: 가입자/신규
         var r = oauthLoginService.handleCallback(
-                Provider.valueOf(provider.toUpperCase()),
+                Provider.valueOf(provider.name()),
                 u.externalId(), u.email(), u.image()
         );
 

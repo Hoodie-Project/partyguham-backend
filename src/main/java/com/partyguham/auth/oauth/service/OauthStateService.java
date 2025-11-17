@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import java.time.Duration;
+import java.util.UUID;
 
 
 /**
@@ -33,11 +34,15 @@ public class OauthStateService {
      *  - state는 실제 데이터가 필요 없음 → 존재 여부만 체크하면 됨
      *  - placeholder 형태로 "1" 넣는건 실무에서 흔히 쓰는 방식
      */
-    public String save(String provider, String state, Duration ttl) {
+    public void save(String provider, String state, Duration ttl) {
         //.set(key, value, ttl)
         redis.opsForValue().set(key(provider, state), "1", ttl);
-        return state;
     }
+
+    public void save(String provider, String state, Long userId, Duration ttl) {
+        redis.opsForValue().set(key(provider, state), userId.toString(), ttl);
+    }
+
 
     /**
      * 🌟 state 검증 + 1회성 소비(consuming)
@@ -57,6 +62,29 @@ public class OauthStateService {
             return true;
         }
         return false;
+    }
+
+    // userId 추가 저장
+    public boolean validateAndConsume(String provider, String state, Long userId) {
+        String k = key(provider, state);
+
+        String savedUserId = redis.opsForValue().get(k);
+        if (savedUserId == null) return false;
+
+        // userId 검증
+        if (!savedUserId.equals(userId.toString())) return false;
+
+        redis.delete(k); // 1회성 소비
+        return true;
+    }
+
+    // 예: key = "oauth:link:{provider}:{state}", value = userId
+    public void saveForLink(String provider, Long userId, Duration ttl) {
+        String state = UUID.randomUUID().toString();
+        redis.opsForValue().set("oauth:link:%s:%s".formatted(provider, state),
+                String.valueOf(userId),
+                ttl);
+        // state는 컨트롤러에서 리턴
     }
 
     /**
