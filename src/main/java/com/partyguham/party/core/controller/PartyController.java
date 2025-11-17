@@ -2,43 +2,76 @@ package com.partyguham.party.core.controller;
 
 import com.partyguham.party.core.dto.request.*;
 import com.partyguham.party.core.dto.response.*;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/parties")
-public class PartyController {
-    @GetMapping
-    public ResponseEntity<GetPartiesResponseDto> getParties(@ModelAttribute GetPartiesRequestDto parties) {}
+public class PartyController { // create → get → search → action 순서
 
-    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    private final PartyService partyService;
+
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE) // 파티생성
     public ResponseEntity<PartyResponseDto> createParty(
-            @ModelAttribute PartyCreateRequestDto request, 
-            @AuthenticationPrincipal UserPrincipal user) {}
+            @ModelAttribute PartyCreateRequestDto request,
+            @AuthenticationPrincipal UserPrincipal user) {
 
-    @GetMapping("/types")
-    public ResponseEntity<PartyTypeResponseDto> getType() {}
+        return ResponseEntity.ok(partyService.createParty(request, user.getId()));
+    }
 
-    @GetMapping("/search")
-    public ResponseEntity<GetSearchResponseDto> getSearch(
-            @RequestParam int page,
-            @RequestParam int limit,
-            @RequestParam(required = false) String titleSearch) {
+    @GetMapping
+    public ResponseEntity<GetPartiesResponseDto> getParties( // 파티 목록 조회
+            @ModelAttribute GetPartiesRequestDto parties) {
+
+        return ResponseEntity.ok(partyService.getParties(parties));
     }
 
     @GetMapping("/{partyId}")
-    public ResponseEntity<GetPartyResponseDto> getParty(@PathVariable Long partyId) {}
+    public ResponseEntity<GetPartyResponseDto> getParty( //파티 단일 조회
+            @PathVariable Long partyId) {
 
-    @GetMapping("/{partyId}/users")
-    public ResponseEntity<GetPartyUserResponseDto> getPartyUsers(@PathVariable Long partyId) {}
-
-    @GetMapping("/{partyId}/users/me/authority")
-    public ResponseEntity<PartyAuthorityResponseDto> getPartyAuthority(@PathVariable Long partyId) {}
-
-    @DeleteMapping("/{partyId}/users/me")
-    public ResponseEntity<Void> leaveParty(@PathVariable Long partyId, @RequestHeader("Authorization") String authorization) {
-        // "Bearer " 제거
+        return ResponseEntity.ok(partyService.getParty(partyId));
     }
 
+    @GetMapping("/{partyId}/users")
+    public ResponseEntity<GetPartyUserResponseDto> getPartyUsers( //파티원 목록 조회
+            @PathVariable Long partyId) {
+
+        return ResponseEntity.ok(partyService.getPartyUsers(partyId));
+    }
+
+    @GetMapping("/{partyId}/users/me/authority")
+    public ResponseEntity<PartyAuthorityResponseDto> getPartyAuthority( // 나의 파티 권한 조회
+            @PathVariable Long partyId,
+            @AuthenticationPrincipal UserPrincipal user) {
+
+        return ResponseEntity.ok(partyService.getPartyAuthority(partyId, user.getId()));
+    }
+
+    @GetMapping("/types")
+    public ResponseEntity<PartyTypeResponseDto> getPartyTypes() { // 파티 타입 목록 조회
+
+        return ResponseEntity.ok(partyService.getPartyTypes());
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<GetSearchResponseDto> searchParties( // 파티 / 파티 모집공고 통합 검색
+            @RequestParam int page,
+            @RequestParam int limit,
+            @RequestParam(required = false) String titleSearch) {
+
+        return ResponseEntity.ok(partyService.searchParties(page, limit, titleSearch));
+    }
+
+    @DeleteMapping("/{partyId}/users/me") //파티 나가기
+    public ResponseEntity<Void> leaveParty(
+            @PathVariable Long partyId,
+            @AuthenticationPrincipal UserPrincipal user) {
+                
+        partyService.leaveParty(partyId, user.getId());
+        
+        return ResponseEntity.noContent().build();
+    }
 }
