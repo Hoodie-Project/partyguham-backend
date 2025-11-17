@@ -10,12 +10,12 @@ import com.partyguham.auth.oauth.dto.OauthUser;
  */
 public interface OauthClient {
 
-    /** 웹 시작 URL 생성 (state 포함 권장) */
-    String buildAuthorizeUrl(String state);
+    /** 웹: 로그인/연동 시작 URL 생성 (state 인증, flow에 따라 redirectUri 달라짐) */
+    String buildAuthorizeUrl(String state, OAuthFlow flow);
 
-    /** 웹: code + (옵션)state → access_token 교환 → /userinfo 호출 → OauthUser */
-    OauthUser fetchUserByCode(String code, String state);
+    /** 웹: code → access_token → user (flow는 어떤 redirectUri 썼는지 맞추기 위해 필요) */
+    OauthUser fetchUserByCode(String code, OAuthFlow flow);
 
-    /** 앱: provider access_token → /userinfo 호출 → OauthUser */
+    /** 앱: provider access_token 으로 바로 user 조회 */
     OauthUser fetchUserByAccessToken(String accessToken);
 }

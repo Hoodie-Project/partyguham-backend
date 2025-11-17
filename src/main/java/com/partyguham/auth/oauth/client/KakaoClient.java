@@ -18,85 +18,90 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * ✅ 카카오 OAuth Client (전략 구현)
+ * ✅ 카카오 OAuth Client
  *
- * 지원 시나리오
- *  - 웹: buildAuthorizeUrl() → 사용자 로그인 → callback(code) → fetchUserByCode()
- *  - 앱: SDK 등으로 받은 provider access_token → fetchUserByAccessToken()
+ * - 웹:
+ *   1) buildAuthorizeUrl(state, LOGIN/ LINK) → 카카오 로그인 화면
+ *   2) callback 에서 code 받음
+ *   3) fetchUserByCode(code, LOGIN/ LINK) → access_token
  *
- * 구현 포인트
- *  - code→access_token 교환 로직을 exchangeCodeForAccessToken()로 분리하고
- *    fetchUserByCode()가 fetchUserByAccessToken()을 재사용하여 중복 제거
- *  - 응답 JSON은 동적이므로 Map<String,Object>로 역직렬화
- *  - asMap()/asString() 헬퍼로 NPE/캐스팅 안전화
- *  - onStatus(...)로 HTTP 오류 → 예외 전파
+ * - 앱:
+ *   - SDK 등으로 받은 access_token 을 그대로 fetchUserByAccessToken 에 전달
  */
 @Component("KAKAO")
 @RequiredArgsConstructor
 public class KakaoClient implements OauthClient {
 
-    private final WebClient web;   // 외부 API 호출
-    private final OauthProps props; // application.yml 바인딩
+    private final WebClient web;
+    private final OauthProps props;
 
-    /** 로그인 시작 URL 생성 (프런트가 여기로 리다이렉트) */
+    private OauthProviderProps p() {
+        return props.getKakao();
+    }
+
+    /** 로그인/연동 시작 URL 생성 */
     @Override
-    public String buildAuthorizeUrl(String state) {
-        var p = p(); // kakao 설정 단축
+    public String buildAuthorizeUrl(String state, OAuthFlow flow) {
+        var p = p();
+        String redirectUri = (flow == OAuthFlow.LOGIN)
+                ? p.getRedirect().getLogin()
+                : p.getRedirect().getLink();
+
         return UriComponentsBuilder.fromHttpUrl(p.getAuthUri())
                 .queryParam("response_type", "code")
                 .queryParam("client_id", p.getClientId())
-                .queryParam("redirect_uri", p.getRedirectUri())
+                .queryParam("redirect_uri", redirectUri)
                 .queryParam("scope", "account_email")
-                .queryParam("state", state) // CSRF 방지용
+                .queryParam("state", state)
                 .toUriString();
     }
 
-    /** 웹: code → access_token 교환 후 사용자정보 조회 */
+    /** 웹: code → access_token 교환 → user 조회 */
     @Override
-    public OauthUser fetchUserByCode(String code, String state) {
-        String accessToken = exchangeCodeForAccessToken(code);
-        return fetchUserByAccessToken(accessToken); // 공통 경로 재사용
+    public OauthUser fetchUserByCode(String code, OAuthFlow flow) {
+        String accessToken = exchangeCodeForAccessToken(code, flow);
+        return fetchUserByAccessToken(accessToken);
     }
 
-    /** 앱: provider access_token을 직접 받아 사용자정보 조회 */
+    /** 앱: provider access_token → user 조회 */
     @Override
     public OauthUser fetchUserByAccessToken(String accessToken) {
         Map<String, Object> me = web.get()
-                .uri(p().getUserinfoUri()) // ex) https://kapi.kakao.com/v2/user/me
+                .uri(p().getUserinfoUri())
                 .headers(h -> h.setBearerAuth(accessToken))
                 .retrieve()
                 .onStatus(HttpStatusCode::isError, r -> r.createException().flatMap(Mono::error))
                 .bodyToMono(Types.MAP_STR_OBJ)
                 .blockOptional().orElseThrow();
 
-        // 카카오 고유 사용자 식별자
         String id = asString(me.get("id"));
         if (id == null) throw new IllegalStateException("kakao id null");
 
-        // kakao_account.email
         Map<String, Object> acc = asMap(me.get("kakao_account"));
         String email = asString(acc.get("email"));
 
-        // kakao_account.profile.profile_image_url
         Map<String, Object> prof = asMap(acc.get("profile"));
         String image = asString(prof.get("profile_image_url"));
 
         return new OauthUser(id, email, image);
     }
 
-    /** code → access_token 교환 (x-www-form-urlencoded) */
-    private String exchangeCodeForAccessToken(String code) {
+    /** code → access_token (flow별 redirectUri로 교환해야 함) */
+    private String exchangeCodeForAccessToken(String code, OAuthFlow flow) {
         var p = p();
+        String redirectUri = (flow == OAuthFlow.LOGIN)
+                ? p.getRedirect().getLogin()
+                : p.getRedirect().getLink();
 
         MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
         form.add("grant_type", "authorization_code");
         form.add("client_id", p.getClientId());
         form.add("client_secret", p.getClientSecret());
-        form.add("redirect_uri", p.getRedirectUri());
+        form.add("redirect_uri", redirectUri);
         form.add("code", code);
 
         Map<String, Object> token = web.post()
-                .uri(p.getTokenUri()) // ex) https://kauth.kakao.com/oauth/token
+                .uri(p.getTokenUri())
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .body(BodyInserters.fromFormData(form))
                 .retrieve()
@@ -109,18 +114,16 @@ public class KakaoClient implements OauthClient {
         return access;
     }
 
-    /** kakao provider 설정 단축 접근자 */
-    private OauthProviderProps p() { return props.getKakao(); }
-
-    // ====== 안전 헬퍼 ======
+    // ===== 공통 헬퍼 =====
     @SuppressWarnings("unchecked")
     private static Map<String, Object> asMap(Object o) {
-        return (o instanceof Map) ? (Map<String, Object>) o : java.util.Map.of();
+        return (o instanceof Map) ? (Map<String, Object>) o : Map.of();
     }
+
     private static String asString(Object o) {
         return (o == null) ? null : Objects.toString(o, null);
     }
-    /** WebClient 제네릭 역직렬화 타입 지정 */
+
     private static final class Types {
         static final org.springframework.core.ParameterizedTypeReference<Map<String, Object>> MAP_STR_OBJ =
                 new org.springframework.core.ParameterizedTypeReference<>() {};

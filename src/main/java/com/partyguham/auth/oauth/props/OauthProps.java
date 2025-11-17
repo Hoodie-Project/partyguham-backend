@@ -1,11 +1,13 @@
 package com.partyguham.auth.oauth.props;
 
 import lombok.Getter;
+import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @Getter
-@ConfigurationProperties("oauth")
+@Setter
+@ConfigurationProperties(prefix = "oauth")
 public class OauthProps {
-    private final OauthProviderProps kakao = new OauthProviderProps();
-    private final OauthProviderProps google = new OauthProviderProps();
+    private OauthProviderProps kakao;
+    private OauthProviderProps google;
 }

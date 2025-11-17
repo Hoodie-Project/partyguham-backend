@@ -1,5 +1,6 @@
 package com.partyguham.auth.oauth.controller;
 
+import com.partyguham.auth.oauth.client.OAuthFlow;
 import com.partyguham.auth.oauth.entity.Provider;
 import com.partyguham.auth.oauth.client.OauthClient;
 import com.partyguham.auth.oauth.dto.OauthUser;
@@ -56,7 +57,7 @@ public class OauthController {
             return;
         }
 
-        String url = client.buildAuthorizeUrl(state);
+        String url = client.buildAuthorizeUrl(state, OAuthFlow.LOGIN);
         res.sendRedirect(url);
     }
 
@@ -77,7 +78,7 @@ public class OauthController {
             return;
         }
         // 2) code → user
-        OauthUser u = clients.get(provider.name()).fetchUserByCode(code, state);
+        OauthUser u = clients.get(provider.name()).fetchUserByCode(code, OAuthFlow.LOGIN);
 
         // 3) 비즈: 가입자? JWT : 신규? OTT
         var r = oauthLoginService.handleCallback(

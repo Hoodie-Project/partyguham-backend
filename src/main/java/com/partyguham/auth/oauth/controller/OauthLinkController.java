@@ -1,6 +1,7 @@
 package com.partyguham.auth.oauth.controller;
 
 import com.partyguham.auth.jwt.UserPrincipal;
+import com.partyguham.auth.oauth.client.OAuthFlow;
 import com.partyguham.auth.oauth.client.OauthClient;
 import com.partyguham.auth.oauth.dto.OauthUser;
 import com.partyguham.auth.oauth.entity.Provider;
@@ -76,7 +77,7 @@ public class OauthLinkController {
             return;
         }
 
-        String url = client.buildAuthorizeUrl(state);
+        String url = client.buildAuthorizeUrl(state, OAuthFlow.LOGIN);
         res.sendRedirect(url);
     }
 
@@ -115,7 +116,7 @@ public class OauthLinkController {
             return;
         }
 
-        OauthUser ou = client.fetchUserByCode(code, state);
+        OauthUser ou = client.fetchUserByCode(code, OAuthFlow.LOGIN);
 
         // 3) 현재 로그인한 유저 기준으로 연동
         oauthLinkService.linkAccount(

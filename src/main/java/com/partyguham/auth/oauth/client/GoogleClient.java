@@ -37,40 +37,47 @@ public class GoogleClient implements OauthClient {
     private final WebClient web;
     private final OauthProps props;
 
-    /** 로그인 시작 URL 생성 */
+    private OauthProviderProps p() {
+        return props.getGoogle();
+    }
+
+    /** 로그인/연동 시작 URL 생성 */
     @Override
-    public String buildAuthorizeUrl(String state) {
+    public String buildAuthorizeUrl(String state, OAuthFlow flow) {
         var p = p();
+        String redirectUri = (flow == OAuthFlow.LOGIN)
+                ? p.getRedirect().getLogin()
+                : p.getRedirect().getLink();
+
         return UriComponentsBuilder.fromHttpUrl(p.getAuthUri())
                 .queryParam("response_type", "code")
                 .queryParam("client_id", p.getClientId())
-                .queryParam("redirect_uri", p.getRedirectUri())
+                .queryParam("redirect_uri", redirectUri)
                 .queryParam("scope", "openid email profile")
-                .queryParam("access_type", "offline")          // refresh_token 발급 유도(구글)
+                .queryParam("access_type", "offline")
                 .queryParam("include_granted_scopes", "true")
                 .queryParam("state", state)
                 .toUriString();
     }
 
-    /** 웹: code → access_token → 사용자정보 */
+    /** 웹: code → access_token → user */
     @Override
-    public OauthUser fetchUserByCode(String code, String state) {
-        String accessToken = exchangeCodeForAccessToken(code);
+    public OauthUser fetchUserByCode(String code, OAuthFlow flow) {
+        String accessToken = exchangeCodeForAccessToken(code, flow);
         return fetchUserByAccessToken(accessToken);
     }
 
-    /** 앱: provider access_token → 사용자정보 */
+    /** 앱: provider access_token → user */
     @Override
     public OauthUser fetchUserByAccessToken(String accessToken) {
         Map<String, Object> me = web.get()
-                .uri(p().getUserinfoUri()) // ex) https://www.googleapis.com/oauth2/v3/userinfo
+                .uri(p().getUserinfoUri())
                 .headers(h -> h.setBearerAuth(accessToken))
                 .retrieve()
                 .onStatus(HttpStatusCode::isError, r -> r.createException().flatMap(Mono::error))
                 .bodyToMono(Types.MAP_STR_OBJ)
                 .blockOptional().orElseThrow();
 
-        // 구글 고유 ID는 "sub"
         String id = asString(me.get("sub"));
         if (id == null) throw new IllegalStateException("google sub null");
 
@@ -80,19 +87,22 @@ public class GoogleClient implements OauthClient {
         return new OauthUser(id, email, image);
     }
 
-    /** code → access_token 교환 */
-    private String exchangeCodeForAccessToken(String code) {
+    /** code → access_token (flow별 redirectUri 사용) */
+    private String exchangeCodeForAccessToken(String code, OAuthFlow flow) {
         var p = p();
+        String redirectUri = (flow == OAuthFlow.LOGIN)
+                ? p.getRedirect().getLogin()
+                : p.getRedirect().getLink();
 
         MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
         form.add("grant_type", "authorization_code");
         form.add("client_id", p.getClientId());
         form.add("client_secret", p.getClientSecret());
-        form.add("redirect_uri", p.getRedirectUri());
+        form.add("redirect_uri", redirectUri);
         form.add("code", code);
 
         Map<String, Object> token = web.post()
-                .uri(p.getTokenUri()) // ex) https://oauth2.googleapis.com/token
+                .uri(p.getTokenUri())
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .body(BodyInserters.fromFormData(form))
                 .retrieve()
@@ -105,18 +115,14 @@ public class GoogleClient implements OauthClient {
         return access;
     }
 
-    /** google provider 설정 단축 접근자 */
-    private OauthProviderProps p() { return props.getGoogle(); }
-
-    // ====== 안전 헬퍼 ======
+    // ===== 공통 헬퍼 =====
     @SuppressWarnings("unchecked")
     private static Map<String, Object> asMap(Object o) {
-        return (o instanceof Map) ? (Map<String, Object>) o : java.util.Map.of();
+        return (o instanceof Map) ? (Map<String, Object>) o : Map.of();
     }
     private static String asString(Object o) {
         return (o == null) ? null : Objects.toString(o, null);
     }
-    /** WebClient 제네릭 역직렬화 타입 지정 */
     private static final class Types {
         static final org.springframework.core.ParameterizedTypeReference<Map<String, Object>> MAP_STR_OBJ =
                 new org.springframework.core.ParameterizedTypeReference<>() {};
