@@ -31,6 +31,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
 
     // Thymeleaf + Spring Security
     implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
@@ -67,9 +68,12 @@ dependencies {
 
     // Jsoup HTML parser
     implementation 'org.jsoup:jsoup:1.17.2'
-
     implementation 'org.postgresql:postgresql:42.7.4'
 
+    //JWT
+    implementation 'io.jsonwebtoken:jjwt-api:0.12.5'
+    runtimeOnly  'io.jsonwebtoken:jjwt-impl:0.12.5'
+    runtimeOnly  'io.jsonwebtoken:jjwt-jackson:0.12.5'
 }
 
 tasks.named('test') {

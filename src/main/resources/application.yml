@@ -47,3 +47,31 @@ springdoc:
     path: /v3/api-docs
   default-consumes-media-type: application/json
   default-produces-media-type: application/json
+
+jwt:
+  secret: ${JWT_SECRET}
+  issuer: partyguham
+  access-exp: 900000
+  refresh-exp: 1209600000  # 14일
+  header: Authorization
+  prefix: Bearer
+
+oauth:
+  kakao:
+    client-id: ${KAKAO_CLIENT_ID}
+    client-secret: ${KAKAO_CLIENT_SECRET}
+    redirect-uri:
+      login: http://localhost:8081/api/v2/auth/oauth/kakao/login/callback
+      link: http://localhost:8081/api/v2/auth/oauth/kakao/link/callback
+    auth-uri: https://kauth.kakao.com/oauth/authorize
+    token-uri: https://kauth.kakao.com/oauth/token
+    userinfo-uri: https://kapi.kakao.com/v2/user/me
+  google:
+    client-id: ${GOOGLE_CLIENT_ID}
+    client-secret: ${GOOGLE_CLIENT_SECRET}
+    redirect-uri:
+      login: http://localhost:8081/api/v2/auth/oauth/google/login/callback
+      link: http://localhost:8081/api/v2/auth/oauth/google/link/callback
+    auth-uri: https://accounts.google.com/o/oauth2/v2/auth
+    token-uri: https://oauth2.googleapis.com/token
+    userinfo-uri: https://www.googleapis.com/oauth2/v3/userinfo
