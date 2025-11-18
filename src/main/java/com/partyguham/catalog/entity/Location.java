@@ -1,39 +1,34 @@
 package com.partyguham.catalog.entity;
 
-import com.partyguham.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
-import lombok.experimental.SuperBuilder;
+
+import java.util.List;
 
 @Entity
+@Table(name = "location")
 @Getter
 @Setter
-@SuperBuilder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-@SequenceGenerator(name="location_seq_gen", sequenceName="location_id_seq", allocationSize=50)
-public class Location extends BaseEntity {
+@Builder
+@SequenceGenerator(
+        name = "location_seq_gen",
+        sequenceName = "location_seq",
+        allocationSize = 50
+)
+public class Location {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "location_seq_gen")
-    @Column(name = "location_id")
     private Long id;
 
-    @Column
-    private String title;
+    @Column(nullable = false)
+    private String province;
 
-    @Column
-    private String content;
+    @Column(nullable = false)
+    private String city;
 
-    @Column()
-    private String image;
-
-//    @OneToMany(mappedBy = "party")
-//    private List<PartyUser> partyUsers = new ArrayList<>();
-//
-//    public void addPartyUser(PartyUser partyUser) {
-//        partyUsers.add(partyUser);
-//        partyUser.setParty(this);
-//
-//    }
+//    @OneToMany(mappedBy = "location", fetch = FetchType.LAZY)
+//    private List<UserLocation> userLocations;
 }
