@@ -1,5 +1,6 @@
 package com.partyguham.auth.jwt;
 
+import com.partyguham.auth.jwt.service.JwtService;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

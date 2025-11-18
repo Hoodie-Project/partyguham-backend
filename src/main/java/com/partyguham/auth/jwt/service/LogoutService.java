@@ -1,4 +1,4 @@
-package com.partyguham.auth.service;
+package com.partyguham.auth.jwt.service;
 
 import org.springframework.stereotype.Service;
 

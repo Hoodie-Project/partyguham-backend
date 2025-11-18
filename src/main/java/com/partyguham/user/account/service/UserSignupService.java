@@ -1,6 +1,6 @@
 package com.partyguham.user.account.service;
 
-import com.partyguham.auth.jwt.JwtService;
+import com.partyguham.auth.jwt.service.JwtService;
 import com.partyguham.auth.oauth.repository.OauthAccountRepository;
 import com.partyguham.user.account.dto.request.SignUpRequest;
 import com.partyguham.user.account.dto.response.SignUpResponse;

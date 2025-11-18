@@ -1,6 +1,6 @@
 package com.partyguham.auth.oauth.service;
 
-import com.partyguham.auth.jwt.JwtService;
+import com.partyguham.auth.jwt.service.JwtService;
 import com.partyguham.auth.oauth.entity.OauthAccount;
 import com.partyguham.auth.oauth.entity.Provider;
 import com.partyguham.auth.oauth.repository.OauthAccountRepository;

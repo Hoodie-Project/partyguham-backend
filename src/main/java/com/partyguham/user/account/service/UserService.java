@@ -1,21 +1,13 @@
 package com.partyguham.user.account.service;
 
-import com.partyguham.auth.jwt.JwtService;
-import com.partyguham.auth.oauth.entity.OauthAccount;
-import com.partyguham.auth.oauth.entity.Provider;
+import com.partyguham.auth.jwt.service.JwtService;
 import com.partyguham.auth.oauth.repository.OauthAccountRepository;
-import com.partyguham.auth.ott.model.OttPayload;
 import com.partyguham.common.entity.Status;
-import com.partyguham.user.account.dto.request.SignUpRequest;
-import com.partyguham.user.account.dto.response.SignUpResponse;
 import com.partyguham.user.account.entity.User;
 import com.partyguham.user.account.repository.UserRepository;
-import com.partyguham.user.profile.entity.UserProfile;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
