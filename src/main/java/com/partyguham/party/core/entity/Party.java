@@ -11,29 +11,28 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-@SequenceGenerator(name="party_seq_gen", sequenceName="party_seq", allocationSize=50)
+@SequenceGenerator(name="party_id_seq_gen", sequenceName="party_id_seq", allocationSize=50)
 public class Party extends BaseEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "party_seq_gen")
-    @Column(name = "party_id")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "party_id_seq_gen")
+    @Column
     private Long id;
+
+    @Column(insertable = false, updatable = false)
+    private Long partyTypeId;
 
     @Column
     private String title;
 
-    @Column
+    @Column(columnDefinition = "text")
     private String content;
 
     @Column()
     private String image;
 
-//    @OneToMany(mappedBy = "party")
-//    private List<PartyUser> partyUsers = new ArrayList<>();
-//
-//    public void addPartyUser(PartyUser partyUser) {
-//        partyUsers.add(partyUser);
-//        partyUser.setParty(this);
-//
-//    }
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "party_type_id", nullable = false)
+    private PartyType partyType;
+
 }
