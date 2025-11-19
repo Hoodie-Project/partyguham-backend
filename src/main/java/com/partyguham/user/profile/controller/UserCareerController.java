@@ -1,10 +1,9 @@
 package com.partyguham.user.profile.controller;
 
-import com.partyguham.auth.jwt.UserPrincipal;
 import com.partyguham.common.annotation.ApiV2Controller;
 import com.partyguham.user.profile.dto.request.UserCareerBulkCreateRequest;
 import com.partyguham.user.profile.dto.response.CareerResponse;
-import com.partyguham.user.career.service.UserCareerService;
+import com.partyguham.user.profile.service.UserCareerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
