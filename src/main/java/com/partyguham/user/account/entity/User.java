@@ -2,6 +2,7 @@ package com.partyguham.user.account.entity;
 
 import com.partyguham.auth.oauth.entity.OauthAccount;
 import com.partyguham.common.entity.BaseEntity;
+import com.partyguham.user.profile.entity.UserLocation;
 import com.partyguham.user.profile.entity.UserProfile;
 import jakarta.persistence.*;
 import lombok.*;
@@ -33,6 +34,9 @@ public class User extends BaseEntity {
 
     @OneToMany(mappedBy="user", cascade=CascadeType.REMOVE, orphanRemoval=true)
     private List<OauthAccount> oauths = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<UserLocation> userLocations = new ArrayList<>();
 
     public void attachProfile(UserProfile p){
         this.profile=p;
