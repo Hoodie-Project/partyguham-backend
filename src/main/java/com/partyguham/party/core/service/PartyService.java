@@ -1,7 +1,8 @@
 package com.partyguham.party.core.service;
 
-import com.partyguham.party.core.dto.request.*;
-import com.partyguham.party.core.dto.response.*;
+import com.partyguham.party.core.dto.party.request.GetPartiesRequestDto;
+import com.partyguham.party.core.dto.party.request.PartyCreateRequestDto;
+import com.partyguham.party.core.dto.party.response.*;
 
 public interface PartyService { 
    

@@ -1,5 +1,8 @@
 package com.partyguham.party.core.controller;
 
+import com.partyguham.party.core.dto.partyAdmin.request.*;
+import com.partyguham.party.core.dto.partyAdmin.response.*;
+import com.partyguham.party.core.service.PartyAdminService;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,7 +19,7 @@ public class PartyAdminController {
     ) {}
 
     @PatchMapping("/status")
-    public ResponseEntity<UpdatePartyResponseDto> updatePartyStatus(
+    public ResponseEntity<UpdatePartyStatusResponseDto> updatePartyStatus(
             @PathVariable Long partyId,
             @RequestHeader("Authorization") String authorization,
             @RequestBody UpdatePartyStatusRequestDto request
@@ -35,10 +38,10 @@ public class PartyAdminController {
     ) {}
 
     @PatchMapping("/delegation")
-    public ResponseEntity<MessageResponseDto> delegateParty(
-            @PathVariable Long partyId,
-            @RequestHeader("Authorization") String authorization,
-            @RequestBody PartyDelegationRequestDto request
+    public ResponseEntity<PartyDelegationResponseDto> delegateParty( // MessageResponseDto
+                                                                     @PathVariable Long partyId,
+                                                                     @RequestHeader("Authorization") String authorization,
+                                                                     @RequestBody PartyDelegationRequestDto request
     ) {}
 
     @GetMapping("/users")
@@ -49,11 +52,11 @@ public class PartyAdminController {
     ) {}
 
     @PatchMapping("/users/{partyUserId}")
-    public RequestEntity<MessageResponseDto> updatePartyUser( // common
-                                                              @PathVariable Long partyId,
-                                                              @PathVariable Long partyUserId,
-                                                              @RequestHeader("Authorization") String authorization,
-                                                              @RequestBody UpdatePartyUserRequestDto request
+    public RequestEntity<UpdatePartyUserResponseDto> updatePartyUser( // MessageResponseDto
+                                                                      @PathVariable Long partyId,
+                                                                      @PathVariable Long partyUserId,
+                                                                      @RequestHeader("Authorization") String authorization,
+                                                                      @RequestBody UpdatePartyUserRequestDto request
     ) {}
 
     @DeleteMapping("/users/{partyUserId}")

@@ -1,7 +1,9 @@
 package com.partyguham.party.core.controller;
 
-import com.partyguham.party.core.dto.request.*;
-import com.partyguham.party.core.dto.response.*;
+import com.partyguham.party.core.dto.party.request.GetPartiesRequestDto;
+import com.partyguham.party.core.dto.party.request.PartyCreateRequestDto;
+import com.partyguham.party.core.dto.party.response.*;
+import com.partyguham.party.core.service.PartyService;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -23,21 +25,21 @@ public class PartyController { // create → get → search → action 순서
 
     @GetMapping
     public ResponseEntity<GetPartiesResponseDto> getParties( // 파티 목록 조회
-            @ModelAttribute GetPartiesRequestDto parties) {
+                                                             @ModelAttribute GetPartiesRequestDto parties) {
 
         return ResponseEntity.ok(partyService.getParties(parties));
     }
 
     @GetMapping("/{partyId}")
     public ResponseEntity<GetPartyResponseDto> getParty( //파티 단일 조회
-            @PathVariable Long partyId) {
+                                                         @PathVariable Long partyId) {
 
         return ResponseEntity.ok(partyService.getParty(partyId));
     }
 
     @GetMapping("/{partyId}/users")
     public ResponseEntity<GetPartyUserResponseDto> getPartyUsers( //파티원 목록 조회
-            @PathVariable Long partyId) {
+                                                                  @PathVariable Long partyId) {
 
         return ResponseEntity.ok(partyService.getPartyUsers(partyId));
     }
@@ -58,9 +60,9 @@ public class PartyController { // create → get → search → action 순서
 
     @GetMapping("/search")
     public ResponseEntity<GetSearchResponseDto> searchParties( // 파티 / 파티 모집공고 통합 검색
-            @RequestParam int page,
-            @RequestParam int limit,
-            @RequestParam(required = false) String titleSearch) {
+                                                               @RequestParam int page,
+                                                               @RequestParam int limit,
+                                                               @RequestParam(required = false) String titleSearch) {
 
         return ResponseEntity.ok(partyService.searchParties(page, limit, titleSearch));
     }
