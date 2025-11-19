@@ -35,9 +35,6 @@ public class User extends BaseEntity {
     @OneToMany(mappedBy="user", cascade=CascadeType.REMOVE, orphanRemoval=true)
     private List<OauthAccount> oauths = new ArrayList<>();
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
-    private List<UserLocation> userLocations = new ArrayList<>();
-
     public void attachProfile(UserProfile p){
         this.profile=p;
         p.setUser(this);
