@@ -64,5 +64,11 @@ public class JwtService {
         return issueAccess(userId, role);
     }
 
+    public Long getUserIdFromAuthorization(String authorization) { //party controller에서 호출
+        String token = authorization.replace("Bearer ", "");
+        var claims = parse(token).getPayload();
+        return Long.valueOf(claims.getSubject());
+    }
+
     /** 계정 복구/비번 재설정 토큰은 랜덤 불투명 토큰(opaque) **/
 }
