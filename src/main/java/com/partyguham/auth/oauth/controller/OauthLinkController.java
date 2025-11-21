@@ -30,10 +30,9 @@ import java.util.UUID;
  *   POST /api/v2/auth/oauth/link/{provider}/token-link
  *        → provider access_token 으로 바로 연동
  */
-@RestController
-@ApiV2Controller                  // → /api/v2 prefix 부여하는 커스텀 애노테이션
+@ApiV2Controller
+@RequiredArgsConstructor// → /api/v2 prefix 부여하는 커스텀 애노테이션
 @RequestMapping("/auth/oauth")
-@RequiredArgsConstructor
 public class OauthLinkController {
 
     // "KAKAO", "GOOGLE" 이름으로 등록된 OauthClient 빈들을 주입받음

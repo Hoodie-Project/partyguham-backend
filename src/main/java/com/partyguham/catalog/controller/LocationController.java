@@ -1,6 +1,5 @@
 package com.partyguham.catalog.controller;
 
-
 import com.partyguham.catalog.entity.Location;
 import com.partyguham.catalog.service.LocationService;
 import com.partyguham.common.annotation.ApiV2Controller;

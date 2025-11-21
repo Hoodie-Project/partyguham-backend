@@ -12,9 +12,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @ApiV2Controller
-@RestController
-@RequestMapping("/users/me/locations")
 @RequiredArgsConstructor
+@RequestMapping("/users/me/locations")
 public class UserLocationController {
 
     private final UserLocationService userLocationService;

@@ -2,6 +2,7 @@ package com.partyguham.user.account.controller;
 
 import com.partyguham.auth.jwt.UserPrincipal;
 import com.partyguham.auth.ott.model.OttPayload;
+import com.partyguham.common.annotation.ApiV2Controller;
 import com.partyguham.user.account.dto.request.SignUpRequest;
 import com.partyguham.user.account.dto.response.SignUpResponse;
 import com.partyguham.user.account.service.UserService;
@@ -15,7 +16,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
-@RestController
+@ApiV2Controller
 @RequiredArgsConstructor
 @RequestMapping("users")
 public class UserAccountController {

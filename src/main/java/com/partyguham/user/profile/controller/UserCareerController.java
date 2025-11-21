@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @ApiV2Controller
-@RequestMapping("/users/me/careers")
 @RequiredArgsConstructor
+@RequestMapping("/users/me/careers")
 public class UserCareerController {
 
     private final UserCareerService userCareerService;

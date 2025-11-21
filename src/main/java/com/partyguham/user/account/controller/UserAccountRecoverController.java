@@ -1,6 +1,5 @@
 package com.partyguham.user.account.controller;
 
-
 import com.partyguham.auth.jwt.service.JwtService;
 import com.partyguham.auth.ott.model.OttPayload;
 import com.partyguham.common.annotation.ApiV2Controller;
@@ -11,11 +10,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
 
-@RestController
 @ApiV2Controller
 @RequiredArgsConstructor
 @RequestMapping("/users")
