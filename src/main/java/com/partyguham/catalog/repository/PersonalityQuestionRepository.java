@@ -8,7 +8,6 @@ import java.util.List;
 
 public interface PersonalityQuestionRepository extends JpaRepository<PersonalityQuestion, Long> {
 
-    // ✅ 질문 + 옵션들을 한 번에 조회 (N+1 방지용)
-    @EntityGraph(attributePaths = "options")
+    @EntityGraph(attributePaths = "personalityOptions")
     List<PersonalityQuestion> findAll();
 }

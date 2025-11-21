@@ -28,7 +28,7 @@ public class PersonalityQuestion {
     private String content;
 
     @Column(name = "response_count", nullable = false)
-    private int responseCount;
+    private short responseCount;
 
     @OneToMany(
             mappedBy = "personalityQuestion",
