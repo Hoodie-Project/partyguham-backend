@@ -1,7 +1,11 @@
 package com.partyguham.party.core.controller;
 
-import com.partyguham.party.core.dto.request.*;
-import com.partyguham.party.core.dto.response.*;
+import com.partyguham.auth.jwt.UserPrincipal;
+import com.partyguham.party.core.dto.party.request.GetPartiesRequestDto;
+import com.partyguham.party.core.dto.party.request.PartyCreateRequestDto;
+import com.partyguham.party.core.dto.party.response.*;
+import com.partyguham.party.core.service.PartyService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -9,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/parties")
+@RequiredArgsConstructor
 public class PartyController { // create → get → search → action 순서
 
     private final PartyService partyService;
@@ -17,6 +22,7 @@ public class PartyController { // create → get → search → action 순서
     public ResponseEntity<PartyResponseDto> createParty(
             @ModelAttribute PartyCreateRequestDto request,
             @AuthenticationPrincipal UserPrincipal user) {
+
 
         return ResponseEntity.ok(partyService.createParty(request, user.getId()));
     }

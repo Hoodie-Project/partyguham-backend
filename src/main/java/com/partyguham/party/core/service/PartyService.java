@@ -1,7 +1,8 @@
 package com.partyguham.party.core.service;
 
-import com.partyguham.party.core.dto.request.*;
-import com.partyguham.party.core.dto.response.*;
+import com.partyguham.party.core.dto.party.request.GetPartiesRequestDto;
+import com.partyguham.party.core.dto.party.request.PartyCreateRequestDto;
+import com.partyguham.party.core.dto.party.response.*;
 
 public interface PartyService { 
    
@@ -20,4 +21,8 @@ public interface PartyService {
     GetSearchResponseDto getSearch(int page, int limit, String titleSearch); //파티/파티 모집공고 통합검색
 
     void leaveParty(Long partyId, Long userId); // 파티 나가기
+
+    PartyTypeResponseDto getPartyTypes();
+
+    GetSearchResponseDto searchParties(int page, int limit, String titleSearch);
 }   

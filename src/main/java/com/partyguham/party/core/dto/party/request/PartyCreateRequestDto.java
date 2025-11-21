@@ -1,4 +1,4 @@
-package com.partyguham.party.core.dto.request;
+package com.partyguham.party.core.dto.party.request;
 
 
 import lombok.Getter;
