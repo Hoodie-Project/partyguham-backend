@@ -23,26 +23,27 @@ public class PartyController { // create → get → search → action 순서
             @ModelAttribute PartyCreateRequestDto request,
             @AuthenticationPrincipal UserPrincipal user) {
 
+
         return ResponseEntity.ok(partyService.createParty(request, user.getId()));
     }
 
     @GetMapping
     public ResponseEntity<GetPartiesResponseDto> getParties( // 파티 목록 조회
-                                                             @ModelAttribute GetPartiesRequestDto parties) {
+            @ModelAttribute GetPartiesRequestDto parties) {
 
         return ResponseEntity.ok(partyService.getParties(parties));
     }
 
     @GetMapping("/{partyId}")
     public ResponseEntity<GetPartyResponseDto> getParty( //파티 단일 조회
-                                                         @PathVariable Long partyId) {
+            @PathVariable Long partyId) {
 
         return ResponseEntity.ok(partyService.getParty(partyId));
     }
 
     @GetMapping("/{partyId}/users")
     public ResponseEntity<GetPartyUserResponseDto> getPartyUsers( //파티원 목록 조회
-                                                                  @PathVariable Long partyId) {
+            @PathVariable Long partyId) {
 
         return ResponseEntity.ok(partyService.getPartyUsers(partyId));
     }
@@ -63,9 +64,9 @@ public class PartyController { // create → get → search → action 순서
 
     @GetMapping("/search")
     public ResponseEntity<GetSearchResponseDto> searchParties( // 파티 / 파티 모집공고 통합 검색
-                                                               @RequestParam int page,
-                                                               @RequestParam int limit,
-                                                               @RequestParam(required = false) String titleSearch) {
+            @RequestParam int page,
+            @RequestParam int limit,
+            @RequestParam(required = false) String titleSearch) {
 
         return ResponseEntity.ok(partyService.searchParties(page, limit, titleSearch));
     }
