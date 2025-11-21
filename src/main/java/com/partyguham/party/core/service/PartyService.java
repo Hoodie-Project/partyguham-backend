@@ -21,4 +21,8 @@ public interface PartyService {
     GetSearchResponseDto getSearch(int page, int limit, String titleSearch); //파티/파티 모집공고 통합검색
 
     void leaveParty(Long partyId, Long userId); // 파티 나가기
+
+    PartyTypeResponseDto getPartyTypes();
+
+    GetSearchResponseDto searchParties(int page, int limit, String titleSearch);
 }   
