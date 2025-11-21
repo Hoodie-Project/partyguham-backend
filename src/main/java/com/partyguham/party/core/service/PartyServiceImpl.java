@@ -1,15 +1,18 @@
 package com.partyguham.party.core.service;
 
 import com.partyguham.catalog.entity.Position;
+import com.partyguham.catalog.repository.PositionRepository;
 import com.partyguham.common.util.ImageUploader;
 import com.partyguham.party.core.dto.party.request.GetPartiesRequestDto;
 import com.partyguham.party.core.dto.party.request.PartyCreateRequestDto;
 import com.partyguham.party.core.dto.party.response.*;
 import com.partyguham.party.core.entity.Party;
+import com.partyguham.party.core.entity.PartyAuthority;
 import com.partyguham.party.core.entity.PartyType;
 import com.partyguham.party.core.entity.PartyUser;
 import com.partyguham.party.core.repository.PartyRepository;
 import com.partyguham.party.core.repository.PartyTypeRepository;
+import com.partyguham.party.core.repository.PartyUserRepository;
 import com.partyguham.user.account.entity.User;
 import com.partyguham.user.account.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -57,14 +60,14 @@ public class PartyServiceImpl implements PartyService {
 
         partyRepository.save(party);
 
-        PartyUser leader = PartyUser.builder()
+        PartyUser masterUser = PartyUser.builder()
             .party(party)
             .user(user)
             .position(position)                   
-            .authority(Authority.MASTER)         
+            .authority(PartyAuthority.MASTER)
             .build();
 
-        partyUserRepository.save(leader);
+        partyUserRepository.save(masterUser);
 
         return PartyResponseDto.of(party);
     }

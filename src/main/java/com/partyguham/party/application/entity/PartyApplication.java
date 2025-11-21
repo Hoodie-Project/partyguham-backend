@@ -1,6 +1,8 @@
 package com.partyguham.party.application.entity;
 
 import com.partyguham.common.entity.BaseEntity;
+import com.partyguham.party.core.entity.PartyUser;
+import com.partyguham.party.recruitment.entity.PartyRecruitment;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;

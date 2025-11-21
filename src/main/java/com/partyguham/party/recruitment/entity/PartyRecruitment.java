@@ -32,9 +32,6 @@ public class PartyRecruitment extends BaseEntity {
     @Column(nullable = false)
     private Long id;
 
-    @Column(insertable = false, updatable = false)
-    private Long partyId;
-
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "party_id", nullable = false)
     private Party party;

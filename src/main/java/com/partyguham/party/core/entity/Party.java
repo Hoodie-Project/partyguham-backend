@@ -19,9 +19,6 @@ public class Party extends BaseEntity {
     @Column
     private Long id;
 
-    @Column(insertable = false, updatable = false)
-    private Long partyTypeId;
-
     @Column
     private String title;
 
