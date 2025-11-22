@@ -7,9 +7,12 @@ import com.partyguham.banner.dto.response.BannerListResponse;
 import com.partyguham.banner.entity.BannerPlatform;
 import com.partyguham.banner.service.BannerService;
 import com.partyguham.common.annotation.ApiV2Controller;
+import com.partyguham.infra.s3.S3FileService;
+import com.partyguham.infra.s3.S3Folder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @ApiV2Controller
 @RequestMapping("/banners")
@@ -17,12 +20,22 @@ import org.springframework.web.bind.annotation.*;
 public class BannerController {
 
     private final BannerService bannerService;
+    private final S3FileService s3FileService;
 
     // 생성
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public BannerResponse create(@RequestBody BannerCreateRequest req) {
-        return bannerService.create(req);
+    @PostMapping("/banner")
+    public BannerResponse createBanner(
+            @RequestPart MultipartFile image,
+            @RequestPart BannerCreateRequest req
+    ) {
+        String key = s3FileService.upload(image, S3Folder.BANNER);
+
+        return bannerService.create(
+                req.getPlatform(),
+                req.getTitle(),
+                key,
+                req.getLink()
+        );
     }
 
     // 단건 조회

@@ -1,5 +1,6 @@
 package com.partyguham.banner.dto.response;
 
+import com.partyguham.banner.entity.Banner;
 import com.partyguham.banner.entity.BannerPlatform;
 import lombok.Builder;
 
@@ -9,8 +10,21 @@ public record BannerResponse(
         String status,
         String createdAt,
         String updatedAt,
-        BannerPlatform platform,
+        BannerPlatform platform,   // 문자열로 내려줌
         String title,
-        String image,
+        String image,   // S3 URL
         String link
-) {}
+) {
+    public static BannerResponse from(Banner b) {
+        return BannerResponse.builder()
+                .id(b.getId())
+                .status(b.getStatus().toJson())
+                .createdAt(b.getCreatedAt().toString())
+                .updatedAt(b.getUpdatedAt().toString())
+                .platform(b.getPlatform())
+                .title(b.getTitle())
+                .image(b.getImage())
+                .link(b.getLink())
+                .build();
+    }
+}
