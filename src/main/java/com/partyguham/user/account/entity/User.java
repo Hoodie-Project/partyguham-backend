@@ -23,6 +23,9 @@ public class User extends BaseEntity {
     @Column(unique=true)
     String externalId;
 
+    @Column(length = 255)
+    private String fcmToken;
+
     @Column(unique=true)
     String email;
 
