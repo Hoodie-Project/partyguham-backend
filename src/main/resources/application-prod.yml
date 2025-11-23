@@ -12,9 +12,9 @@ spring:
 
   data:
     redis:
-      host: ${REDIS_HOST}
-      port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD:}   # 없으면 빈 값
+      host: ${PROD_REDIS_HOST}
+      port: ${PROD_REDIS_PORT:6379}
+      password: ${PROD_REDIS_PASSWORD:}   # 없으면 빈 값
 
 app:
   domain:

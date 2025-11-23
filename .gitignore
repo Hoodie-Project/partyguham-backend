@@ -1,5 +1,6 @@
 # Created by https://www.toptal.com/developers/gitignore/api/java,intellij,git,gradle,macos,windows
 # Edit at https://www.toptal.com/developers/gitignore?templates=java,intellij,git,gradle,macos,windows
+.env
 
 ### Git ###
 # Created by git for backups. To disable backups in Git:
@@ -29,6 +30,16 @@
 
 # AWS User-specific
 .idea/**/aws.xml
+
+### Firebase ###
+**/firebase/*.json
+
+**/node_modules/*
+**/.firebaserc
+
+### Firebase Patch ###
+.runtimeconfig.json
+.firebase/
 
 # Generated files
 .idea/**/contentModel.xml
