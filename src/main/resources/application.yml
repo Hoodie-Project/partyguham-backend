@@ -61,8 +61,8 @@ oauth:
     client-id: ${KAKAO_CLIENT_ID}
     client-secret: ${KAKAO_CLIENT_SECRET}
     redirect-uri:
-      login: http://localhost:8081/api/v2/auth/oauth/kakao/login/callback
-      link: http://localhost:8081/api/v2/auth/oauth/kakao/link/callback
+      login: ${app.domain.base}/api/v2/auth/oauth/kakao/login/callback
+      link:  ${app.domain.base}/api/v2/auth/oauth/kakao/link/callback
     auth-uri: https://kauth.kakao.com/oauth/authorize
     token-uri: https://kauth.kakao.com/oauth/token
     userinfo-uri: https://kapi.kakao.com/v2/user/me
@@ -70,8 +70,21 @@ oauth:
     client-id: ${GOOGLE_CLIENT_ID}
     client-secret: ${GOOGLE_CLIENT_SECRET}
     redirect-uri:
-      login: http://localhost:8081/api/v2/auth/oauth/google/login/callback
-      link: http://localhost:8081/api/v2/auth/oauth/google/link/callback
+      login: ${app.domain.base}/api/v2/auth/oauth/google/login/callback
+      link:  ${app.domain.base}/api/v2/auth/oauth/google/link/callback
     auth-uri: https://accounts.google.com/o/oauth2/v2/auth
     token-uri: https://oauth2.googleapis.com/token
     userinfo-uri: https://www.googleapis.com/oauth2/v3/userinfo
+
+aws:
+  s3:
+    bucket: ${S3_BUCKET}
+    region: ap-northeast-2
+    base-folder: images
+  credentials:
+    access-key: ${AWS_ACCESS_KEY}
+    secret-key: ${AWS_SECRET_KEY}
+
+firebase:
+  service-account:
+    path: ${FIREBASE_KEY_PATH}

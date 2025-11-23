@@ -2,12 +2,13 @@ package com.partyguham.admin.version.controller;
 
 import com.partyguham.admin.version.VersionEntity;
 import com.partyguham.admin.version.VersionService;
+import com.partyguham.common.annotation.ApiV2Controller;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
-@RestController
+@ApiV2Controller
 @RequestMapping("/api/versions")
 @RequiredArgsConstructor
 public class VersionController {

@@ -19,7 +19,7 @@ spring:
 
 app:
   domain:
-    base: http://localhost:8081
+    base: ${LOCAL_DOMAIN_BASE}
 
 # trace - debug - info - warn - error
 logging:

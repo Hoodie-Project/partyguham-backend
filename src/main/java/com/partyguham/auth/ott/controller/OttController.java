@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RestController;
  * ✅ OTT 테스트용 컨트롤러
  * - OTT가 제대로 인증되면 ROLE_SIGNUP 권한 + OttPayload를 확인할 수 있다.
  */
-@RestController
 @ApiV2Controller
 @RequiredArgsConstructor
 @RequestMapping("ott")

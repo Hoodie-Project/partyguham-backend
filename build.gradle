@@ -74,6 +74,13 @@ dependencies {
     implementation 'io.jsonwebtoken:jjwt-api:0.12.5'
     runtimeOnly  'io.jsonwebtoken:jjwt-impl:0.12.5'
     runtimeOnly  'io.jsonwebtoken:jjwt-jackson:0.12.5'
+
+    //AWS
+    implementation platform('software.amazon.awssdk:bom:2.25.0')
+    implementation 'software.amazon.awssdk:s3'
+
+    //Firebase
+    implementation 'com.google.firebase:firebase-admin:9.3.0'
 }
 
 tasks.named('test') {

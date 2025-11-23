@@ -7,6 +7,5 @@ import java.util.List;
 
 public interface PersonalityOptionRepository extends JpaRepository<PersonalityOption, Long> {
 
-    // ✅ 질문 ID로 옵션 리스트 조회
-    List<PersonalityOption> findByQuestionId(Long questionId);
+    List<PersonalityOption> findByIdIn(List<Long> ids);
 }

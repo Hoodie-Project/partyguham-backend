@@ -1,23 +1,19 @@
 package com.partyguham.auth.jwt.controller;
 
-import com.partyguham.auth.jwt.JwtService;
-import com.partyguham.auth.jwt.UserPrincipal;
-import com.partyguham.auth.service.LogoutService;
+import com.partyguham.auth.jwt.service.JwtService;
+import com.partyguham.auth.jwt.service.LogoutService;
 import com.partyguham.common.annotation.ApiV2Controller;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
-@RestController
-@RequiredArgsConstructor
 @ApiV2Controller
+@RequiredArgsConstructor
 @RequestMapping("auth")
 public class AuthController {
 

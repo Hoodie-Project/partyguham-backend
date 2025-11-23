@@ -31,9 +31,9 @@ import java.util.UUID;
  * - provider는 "KAKAO", "GOOGLE" 등의 bean 이름과 매칭됨(@Component("KAKAO"))
  * - 웹에서는 반드시 state를 저장/검증하여 CSRF 방지
  */
-@RestController
-@RequiredArgsConstructor
+
 @ApiV2Controller
+@RequiredArgsConstructor
 @RequestMapping("/auth/oauth")
 public class OauthController {
 

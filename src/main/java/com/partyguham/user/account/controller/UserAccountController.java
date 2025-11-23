@@ -2,7 +2,9 @@ package com.partyguham.user.account.controller;
 
 import com.partyguham.auth.jwt.UserPrincipal;
 import com.partyguham.auth.ott.model.OttPayload;
+import com.partyguham.common.annotation.ApiV2Controller;
 import com.partyguham.user.account.dto.request.SignUpRequest;
+import com.partyguham.user.account.dto.response.MyOauthAccountResponse;
 import com.partyguham.user.account.dto.response.SignUpResponse;
 import com.partyguham.user.account.service.UserService;
 import com.partyguham.user.account.service.UserSignupService;
@@ -15,7 +17,9 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
-@RestController
+import java.util.List;
+
+@ApiV2Controller
 @RequiredArgsConstructor
 @RequestMapping("users")
 public class UserAccountController {
@@ -75,6 +79,14 @@ public class UserAccountController {
         return ResponseEntity.noContent().build();
     }
 
-    // 나의 소셜 계정 조회
-
+    /**
+     * 내가 연동한 소셜 계정 조회
+     * GET /api/v2/users/me/oauth-accounts
+     */
+    @GetMapping("/me/oauth-accounts")
+    public List<MyOauthAccountResponse> getMyOauthAccounts(
+            @AuthenticationPrincipal UserPrincipal user
+    ) {
+        return userService.getMyOauthAccounts(user.getId());
+    }
 }

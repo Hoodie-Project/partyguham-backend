@@ -1,0 +1,44 @@
+package com.partyguham.report.entity;
+
+import com.partyguham.common.entity.BaseEntity;
+import com.partyguham.user.account.entity.User;
+import jakarta.persistence.*;
+import lombok.*;
+
+@Entity
+@Table(name = "report")
+@Getter
+@Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
+@SequenceGenerator(
+        name = "report_seq_gen",
+        sequenceName = "report_seq",
+        allocationSize = 50
+)
+public class Report extends BaseEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "report_seq_gen")
+    private Long id;
+
+    /** 신고 대상 타입 (USER / PARTY / PARTY_RECRUITMENT ...) */
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 50)
+    private ReportTargetType targetType;
+
+    /** 신고 대상 PK */
+    @Column(nullable = false)
+    private Long targetId;
+
+    /** 신고 내용 */
+    @Lob
+    @Column(nullable = false)
+    private String content;
+
+    /** 신고한 유저 */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "reporter_id", nullable = false)
+    private User reporter;
+}
