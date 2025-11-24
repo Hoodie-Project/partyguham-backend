@@ -60,7 +60,7 @@ oauth:
   kakao:
     client-id: ${KAKAO_CLIENT_ID}
     client-secret: ${KAKAO_CLIENT_SECRET}
-    redirect-uri:
+    redirect:
       login: ${app.domain.base}/api/v2/auth/oauth/kakao/login/callback
       link:  ${app.domain.base}/api/v2/auth/oauth/kakao/link/callback
     auth-uri: https://kauth.kakao.com/oauth/authorize
@@ -69,7 +69,7 @@ oauth:
   google:
     client-id: ${GOOGLE_CLIENT_ID}
     client-secret: ${GOOGLE_CLIENT_SECRET}
-    redirect-uri:
+    redirect:
       login: ${app.domain.base}/api/v2/auth/oauth/google/login/callback
       link:  ${app.domain.base}/api/v2/auth/oauth/google/link/callback
     auth-uri: https://accounts.google.com/o/oauth2/v2/auth
