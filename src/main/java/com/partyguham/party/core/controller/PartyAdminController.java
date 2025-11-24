@@ -1,6 +1,6 @@
 package com.partyguham.party.core.controller;
 
-import com.partyguham.auth.jwt.JwtService;
+import com.partyguham.auth.jwt.service.JwtService;
 import com.partyguham.party.core.dto.partyAdmin.request.*;
 import com.partyguham.party.core.dto.partyAdmin.response.*;
 import com.partyguham.party.core.service.PartyAdminService;
