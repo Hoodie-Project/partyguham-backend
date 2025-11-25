@@ -130,6 +130,11 @@ public class UserPersonalityService {
         return result;
     }
 
+    @Transactional
+    public void deleteAllAnswers(Long userId) {
+        userPersonalityRepository.deleteByUserId(userId);
+    }
+
     /**
      * 특정 질문에 대한 내 성향 삭제
      */

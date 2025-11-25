@@ -16,4 +16,6 @@ public interface UserPersonalityRepository extends JpaRepository<UserPersonality
 
     // 질문 단위로 삭제
     void deleteByUserIdAndQuestionId(Long userId, Long questionId);
+
+    void deleteByUserId(Long userId);
 }

@@ -35,6 +35,14 @@ public class UserPersonalityController {
         return userPersonalityService.getMyAnswers(user.getId());
     }
 
+    /** 내 성향 전체 삭제 */
+    @DeleteMapping
+    public void deleteAll(
+            @AuthenticationPrincipal UserPrincipal user
+    ) {
+        userPersonalityService.deleteAllAnswers(user.getId());
+    }
+
     /** 특정 질문에 대한 내 성향 삭제 */
     @DeleteMapping("/{questionId}")
     public void delete(
