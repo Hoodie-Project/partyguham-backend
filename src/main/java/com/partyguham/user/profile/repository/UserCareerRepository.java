@@ -14,5 +14,7 @@ public interface UserCareerRepository extends JpaRepository<UserCareer, Long> {
 
     Optional<UserCareer> findByUserAndCareerType(User user, CareerType type);
 
+    void deleteByUserId(Long userId);
+
     boolean existsByUserAndCareerType(User user, CareerType type);
 }
