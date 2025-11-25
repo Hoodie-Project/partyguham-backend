@@ -89,6 +89,12 @@ public class UserLocationService {
         userLocationRepository.saveAll(newList);
     }
 
+    /** 특정 관심지역 전체 삭제 */
+    @Transactional
+    public void deleteAllMyLocations(Long userId) {
+        userLocationRepository.deleteByUserId(userId);
+    }
+
     /** 특정 관심지역 한 개 삭제 */
     @Transactional
     public void deleteMyLocation(Long userId, Long userLocationId) {

@@ -34,6 +34,12 @@ public class UserLocationController {
         userLocationService.setMyLocations(user.getId(), req);
     }
 
+    /** 내 관심지역 전체 삭제 */
+    @DeleteMapping
+    public void deleteAllMyLocations(@AuthenticationPrincipal UserPrincipal user) {
+        userLocationService.deleteAllMyLocations(user.getId());
+    }
+
     /** 개별 관심지역 삭제 */
     @DeleteMapping("/{userLocationId}")
     public void deleteMyLocation(@AuthenticationPrincipal UserPrincipal user,
