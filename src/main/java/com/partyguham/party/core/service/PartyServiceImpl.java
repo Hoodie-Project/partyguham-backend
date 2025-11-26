@@ -4,6 +4,7 @@ import com.partyguham.catalog.entity.Position;
 import com.partyguham.catalog.repository.PositionRepository;
 import com.partyguham.common.util.ImageUploader;
 import com.partyguham.party.core.dto.party.request.GetPartiesRequestDto;
+import com.partyguham.party.core.dto.party.request.GetPartyUsersRequestDto;
 import com.partyguham.party.core.dto.party.request.PartyCreateRequestDto;
 import com.partyguham.party.core.dto.party.response.*;
 import com.partyguham.party.core.entity.Party;
@@ -15,6 +16,7 @@ import com.partyguham.party.core.repository.PartyTypeRepository;
 import com.partyguham.party.core.repository.PartyUserRepository;
 import com.partyguham.user.account.entity.User;
 import com.partyguham.user.account.repository.UserRepository;
+import com.partyguham.user.profile.repository.UserCareerRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -28,13 +30,14 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class PartyServiceImpl implements PartyService {
+public class PartyServiceImpl implements PartyService { //TODO: 예외처리필요
 
     private final PartyRepository partyRepository;
     private final PartyTypeRepository partyTypeRepository;
     private final PositionRepository positionRepository;
     private final UserRepository userRepository;
     private final PartyUserRepository partyUserRepository;
+    private final UserCareerRepository userCareerRepository;
     private final ImageUploader imageUploader;
 
     @Override
@@ -108,18 +111,54 @@ public class PartyServiceImpl implements PartyService {
         Party party = partyRepository.findById(partyId)
                 .orElseThrow(() -> new IllegalArgumentException("파티를 찾을 수 없습니다: " + partyId));
 
-        // TODO: DTO 변환
-        return null;
+        return GetPartyResponseDto.from(party);
     }
 
     @Override
-    public GetPartyUserResponseDto getPartyUsers(Long partyId) {
-        Party party = partyRepository.findById(partyId)
+    public GetPartyUserResponseDto getPartyUsers(GetPartyUsersRequestDto request, Long partyId) {
+        // 파티 존재 확인
+        partyRepository.findById(partyId)
                 .orElseThrow(() -> new IllegalArgumentException("파티를 찾을 수 없습니다: " + partyId));
 
-        // TODO: PartyUser 조회
-        // TODO: DTO 변환
-        return null;
+        // 기본값 적용
+        request.applyDefaultValues();
+
+        Pageable pageable = PageRequest.of(
+            request.getPage() - 1,
+            request.getLimit()
+        );
+
+        Page<PartyUser> page = partyUserRepository.findPartyUsers(
+                partyId,
+                request.getMain(),
+                request.getNickname(),
+                request.getSort(),
+                request.getOrder(),
+                pageable
+        );
+
+        // 권한별로 분리하고 DTO 변환 (UserCareer 포함)
+        List<PartyUserDto> partyAdmin = page.getContent().stream()
+                .filter(partyUser -> partyUser.getAuthority() == PartyAuthority.MASTER ||
+                                    partyUser.getAuthority() == PartyAuthority.DEPUTY)
+                .map(partyUser -> {
+                    var userCareers = userCareerRepository.findByUser(partyUser.getUser());
+                    return PartyUserDto.from(partyUser, userCareers);
+                })
+                .toList();
+
+        List<PartyUserDto> partyUserList = page.getContent().stream()
+                .filter(pu -> pu.getAuthority() == PartyAuthority.MEMBER)
+                .map(pu -> {
+                    var userCareers = userCareerRepository.findByUser(pu.getUser());
+                    return PartyUserDto.from(pu, userCareers);
+                })
+                .toList();
+
+        return GetPartyUserResponseDto.builder()
+                .partyAdmin(partyAdmin)
+                .partyUser(partyUserList)
+                .build();
     }
 
     @Override
