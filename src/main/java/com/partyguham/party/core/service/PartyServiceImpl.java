@@ -16,6 +16,10 @@ import com.partyguham.party.core.repository.PartyUserRepository;
 import com.partyguham.user.account.entity.User;
 import com.partyguham.user.account.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -88,7 +92,7 @@ public class PartyServiceImpl implements PartyService {
         Page<Party> page = partyRepository.searchParties(request, pageable);
 
         List<PartiesDto> parties = page.getContent().stream()
-                .map(PartiesDto::fromEntity)
+                .map(PartiesDto::from)
                 .toList();
 
         GetPartiesResponseDto response = GetPartiesResponseDto.builder()
