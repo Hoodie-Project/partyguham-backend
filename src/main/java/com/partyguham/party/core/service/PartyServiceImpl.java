@@ -108,7 +108,7 @@ public class PartyServiceImpl implements PartyService { //TODO: 예외처리필�
 
     @Override
     public GetPartyResponseDto getParty(Long partyId) {
-        Party party = partyRepository.findById(partyId)
+        Party party = partyRepository.findByPartyId(partyId)
                 .orElseThrow(() -> new IllegalArgumentException("파티를 찾을 수 없습니다: " + partyId));
 
         return GetPartyResponseDto.from(party);
@@ -164,20 +164,21 @@ public class PartyServiceImpl implements PartyService { //TODO: 예외처리필�
     @Override
     public PartyAuthorityResponseDto getPartyAuthority(Long partyId, Long userId) {
         // 파티 존재 확인
-        Party party = partyRepository.findById(partyId)
+        partyRepository.findById(partyId)
                 .orElseThrow(() -> new IllegalArgumentException("파티를 찾을 수 없습니다: " + partyId));
 
-        // TODO: PartyUser 조회 및 권한 확인
-        // TODO: DTO 변환
-        return null;
+        // PartyUser 조회
+        PartyUser partyUser = partyUserRepository.findByPartyIdAndUserId(partyId, userId)
+                .orElseThrow(() -> new IllegalArgumentException("파티원을 찾을 수 없습니다. 파티 ID: " + partyId + ", 사용자 ID: " + userId));
+
+        return PartyAuthorityResponseDto.from(partyUser);
     }
 
     @Override
     public PartyTypeResponseDto getType() {
         List<PartyType> partyTypes = partyTypeRepository.findAll();
 
-        // TODO: DTO 변환
-        return null;
+        return PartyTypeResponseDto.from(partyTypes);
     }
 
     @Override

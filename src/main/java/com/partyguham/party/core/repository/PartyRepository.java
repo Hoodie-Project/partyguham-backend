@@ -12,5 +12,5 @@ public interface PartyRepository extends JpaRepository<Party, Long>, PartyCustom
 
     // N+1 문제 해결 / Lazy Loading 개선 / 지연 로딩으로 인한 성능 저하 해결
     @EntityGraph(attributePaths = {"partyType", "partyUsers", "partyRecruitments"})
-    Optional<Party> findByPartyId(Long id);
+    Optional<Party> findById(Long id);
 }

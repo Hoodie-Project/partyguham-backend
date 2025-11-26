@@ -19,7 +19,7 @@ public class Party extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "party_id_seq_gen")
-    @Column
+    @Column(name = "party_id")
     private Long id;
 
     @Column
