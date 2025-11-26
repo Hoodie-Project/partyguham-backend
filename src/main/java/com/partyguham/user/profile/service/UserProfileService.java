@@ -2,7 +2,9 @@ package com.partyguham.user.profile.service;
 
 import com.partyguham.user.account.entity.User;
 import com.partyguham.user.account.repository.UserRepository;
+import com.partyguham.user.profile.dto.request.UserProfileUpdateRequest;
 import com.partyguham.user.profile.dto.response.UserProfileResponse;
+import com.partyguham.user.profile.entity.Gender;
 import com.partyguham.user.profile.entity.UserProfile;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -42,5 +44,46 @@ public class UserProfileService {
                 userCareerService.getMyCareers(userId),
                 userLocationService.getMyLocations(userId)
         );
+    }
+
+    @Transactional
+    public void updateProfile(Long userId, UserProfileUpdateRequest req) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("user not found"));
+
+        UserProfile profile = user.getProfile();
+        if (profile == null) {
+            throw new EntityNotFoundException("profile not found");
+        }
+
+        // gender
+        if (req.getGender() != null) {
+            profile.setGender(Gender.from(req.getGender()));
+        }
+
+        if (req.getGenderVisible() != null) {
+            profile.setGenderVisible(req.getGenderVisible());
+        }
+
+        // birth
+        if (req.getBirth() != null) {
+            profile.setBirth(req.getBirth());
+        }
+
+        if (req.getBirthVisible() != null) {
+            profile.setBirthVisible(req.getBirthVisible());
+        }
+
+        // portfolio
+        if (req.getPortfolioTitle() != null) {
+            profile.setPortfolioTitle(req.getPortfolioTitle());
+        }
+
+        if (req.getPortfolio() != null) {
+            profile.setPortfolio(req.getPortfolio());
+        }
+
+        // 변경 감지(Dirty Checking) 자동 반영됨
     }
 }
