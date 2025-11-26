@@ -1,9 +1,12 @@
 package com.partyguham.party.core.entity;
 
 import com.partyguham.common.entity.BaseEntity;
+import com.partyguham.party.recruitment.entity.PartyRecruitment;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
+
+import java.util.List;
 
 @Entity
 @Getter
@@ -31,5 +34,11 @@ public class Party extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "party_type_id", nullable = false)
     private PartyType partyType;
+
+    @OneToMany(mappedBy = "party", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PartyUser> partyUsers;
+
+    @OneToMany(mappedBy = "party", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PartyRecruitment> partyRecruitments;
 
 }
