@@ -135,11 +135,13 @@ public class UserPersonalityService {
         userPersonalityRepository.deleteByUserId(userId);
     }
 
-    /**
-     * 특정 질문에 대한 내 성향 삭제
-     */
     @Transactional
-    public void deleteAnswer(Long userId, Long questionId) {
+    public void deleteAnswersByQuestion(Long userId, Long questionId) {
         userPersonalityRepository.deleteByUserIdAndQuestionId(userId, questionId);
+    }
+
+    @Transactional
+    public void deleteAnswerByOption(Long userId, Long optionId) {
+        userPersonalityRepository.deleteByUserIdAndPersonalityOptionId(userId, optionId);
     }
 }
