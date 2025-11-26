@@ -74,7 +74,29 @@ public class PartyServiceImpl implements PartyService {
 
     @Override
     public GetPartiesResponseDto getParties(GetPartiesRequestDto request) {
-        return null;
+        Pageable pageable = PageRequest.of(
+                request.getPage() - 1,
+                request.getLimit(),
+                Sort.by(
+                        request.getOrder().equalsIgnoreCase("ASC")
+                                ? Sort.Direction.ASC
+                                : Sort.Direction.DESC,
+                        request.getSort()
+                )
+        );
+
+        Page<Party> page = partyRepository.searchParties(request, pageable);
+
+        List<PartiesDto> parties = page.getContent().stream()
+                .map(PartiesDto::fromEntity)
+                .toList();
+
+        GetPartiesResponseDto response = GetPartiesResponseDto.builder()
+                .total(page.getTotalElements())
+                .parties(parties)
+                .build();
+
+        return response;
     }
 
     @Override
