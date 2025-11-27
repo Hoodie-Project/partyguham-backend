@@ -2,6 +2,7 @@ package com.partyguham.party.core.controller;
 
 import com.partyguham.auth.jwt.UserPrincipal;
 import com.partyguham.party.core.dto.party.request.GetPartiesRequestDto;
+import com.partyguham.party.core.dto.party.request.GetPartyUsersRequestDto;
 import com.partyguham.party.core.dto.party.request.PartyCreateRequestDto;
 import com.partyguham.party.core.dto.party.response.*;
 import com.partyguham.party.core.service.PartyService;
@@ -36,16 +37,20 @@ public class PartyController { // create → get → search → action 순서
 
     @GetMapping("/{partyId}")
     public ResponseEntity<GetPartyResponseDto> getParty( //파티 단일 조회
-            @PathVariable Long partyId) {
-
+            @PathVariable Long partyId){
+           
         return ResponseEntity.ok(partyService.getParty(partyId));
     }
 
     @GetMapping("/{partyId}/users")
     public ResponseEntity<GetPartyUserResponseDto> getPartyUsers( //파티원 목록 조회
-            @PathVariable Long partyId) {
+            @PathVariable Long partyId,
+            @ModelAttribute GetPartyUsersRequestDto request) {
 
-        return ResponseEntity.ok(partyService.getPartyUsers(partyId));
+        request.setPartyId(partyId);
+        request.applyDefaultValues();
+
+        return ResponseEntity.ok(partyService.getPartyUsers(request, partyId));
     }
 
     @GetMapping("/{partyId}/users/me/authority")

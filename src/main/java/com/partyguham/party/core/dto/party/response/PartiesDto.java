@@ -1,27 +1,28 @@
 package com.partyguham.party.core.dto.party.response;
 
 import com.partyguham.party.core.entity.Party;
+
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 @Getter
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class GetPartyResponseDto {
+public class PartiesDto {
 
     private Long id;
     private PartyTypeDto partyType;
     private String title;
     private String content;
     private String image;
-    private String status;
+    private String status;     
     private String createdAt;
     private String updatedAt;
-    private Integer userCount;
     private Integer recruitmentCount;
 
-    public static GetPartyResponseDto from(Party party) {
-        return GetPartyResponseDto.builder()
+    public static PartiesDto from(Party party) {
+        return PartiesDto.builder()
                 .id(party.getId())
                 .partyType(
                         PartyTypeDto.builder()
@@ -35,10 +36,6 @@ public class GetPartyResponseDto {
                 .status(party.getStatus().name())
                 .createdAt(party.getCreatedAt().toString())
                 .updatedAt(party.getUpdatedAt().toString())
-                .userCount(
-                        party.getPartyUsers() != null ?
-                                party.getPartyUsers().size() : 0
-                )
                 .recruitmentCount(
                         party.getPartyRecruitments() != null ?
                                 party.getPartyRecruitments().size() : 0

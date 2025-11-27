@@ -1,6 +1,7 @@
 package com.partyguham.party.core.service;
 
 import com.partyguham.party.core.dto.party.request.GetPartiesRequestDto;
+import com.partyguham.party.core.dto.party.request.GetPartyUsersRequestDto;
 import com.partyguham.party.core.dto.party.request.PartyCreateRequestDto;
 import com.partyguham.party.core.dto.party.response.*;
 
@@ -12,7 +13,7 @@ public interface PartyService {
     
     GetPartyResponseDto getParty(Long partyId); // 파티 단일 조회
 
-    GetPartyUserResponseDto getPartyUsers(Long partyId); // 파티원 목록 조회
+    GetPartyUserResponseDto getPartyUsers(GetPartyUsersRequestDto request, Long partyId); // 파티원 목록 조회
 
     PartyAuthorityResponseDto getPartyAuthority(Long partyId, Long userId); //나의 파티 권한 조회
      
