@@ -27,7 +27,7 @@ public class UserPersonalityController {
         return userPersonalityService.saveAnswer(user.getId(), request);
     }
 
-    /** 내 성향 전체 조회 */
+    /** 나의 성향 전체 조회 */
     @GetMapping
     public List<PersonalityAnswerResponse> list(
             @AuthenticationPrincipal UserPrincipal user
@@ -35,12 +35,23 @@ public class UserPersonalityController {
         return userPersonalityService.getMyAnswers(user.getId());
     }
 
-    /** 특정 질문에 대한 내 성향 삭제 */
-    @DeleteMapping("/{questionId}")
-    public void delete(
-            @AuthenticationPrincipal UserPrincipal user,
-            @PathVariable Long questionId
-    ) {
-        userPersonalityService.deleteAnswer(user.getId(), questionId);
+    /** 나의 성향 전체 삭제 */
+    @DeleteMapping
+    public void deleteAll(@AuthenticationPrincipal UserPrincipal user) {
+        userPersonalityService.deleteAllAnswers(user.getId());
+    }
+
+    /** 특정 질문에 대한 나의 성향 전체 삭제 */
+    @DeleteMapping("/questions/{questionId}")
+    public void deleteByQuestion(@AuthenticationPrincipal UserPrincipal user,
+                                 @PathVariable Long questionId) {
+        userPersonalityService.deleteAnswersByQuestion(user.getId(), questionId);
+    }
+
+    /** 특정 질문에 대한 나의 응답 하나만 삭제 */
+    @DeleteMapping("/options/{optionId}")
+    public void deleteByOption(@AuthenticationPrincipal UserPrincipal user,
+                               @PathVariable Long optionId) {
+        userPersonalityService.deleteAnswerByOption(user.getId(), optionId);
     }
 }

@@ -1,5 +1,6 @@
 package com.partyguham.user.profile.controller;
 
+import com.partyguham.auth.jwt.UserPrincipal;
 import com.partyguham.common.annotation.ApiV2Controller;
 import com.partyguham.user.profile.dto.request.UserCareerBulkCreateRequest;
 import com.partyguham.user.profile.dto.response.CareerResponse;
@@ -19,32 +20,39 @@ public class UserCareerController {
 
     // READ: 내 경력 목록 조회
     @GetMapping
-    public List<CareerResponse> getMyCareers(@AuthenticationPrincipal Long userId) {
-        return userCareerService.getMyCareers(userId);
+    public List<CareerResponse> getMyCareers(@AuthenticationPrincipal UserPrincipal user) {
+        return userCareerService.getMyCareers(user.getId());
     }
 
     // CREATE/UPSERT: PRIMARY / SECONDARY 한 번에 등록/갱신
     @PostMapping
     public List<CareerResponse> upsertMyCareers(
-            @AuthenticationPrincipal Long userId,
+            @AuthenticationPrincipal UserPrincipal user,
             @RequestBody UserCareerBulkCreateRequest req) {
-        return userCareerService.upsertMyCareers(userId, req);
+        return userCareerService.upsertMyCareers(user.getId(), req);
     }
 
     // UPDATE: 특정 경력의 years 수정
     @PatchMapping("/{careerId}")
     public CareerResponse updateYears(
-            @AuthenticationPrincipal Long userId,
+            @AuthenticationPrincipal UserPrincipal user,
             @PathVariable Long careerId,
             @RequestParam("years") Integer years) {
-        return userCareerService.updateYears(userId, careerId, years);
+        return userCareerService.updateYears(user.getId(), careerId, years);
     }
 
-    // DELETE: 특정 경력 삭제
+    // DELETE: 경력 전체 삭제
+    @DeleteMapping
+    public void deleteAllCareers(@AuthenticationPrincipal UserPrincipal user) {
+        userCareerService.deleteAllByUserId(user.getId());
+    }
+
+    // DELETE: 경력 삭제
     @DeleteMapping("/{careerId}")
     public void deleteCareer(
-            @AuthenticationPrincipal Long userId,
+            @AuthenticationPrincipal UserPrincipal user,
             @PathVariable Long careerId) {
-        userCareerService.deleteCareer(userId, careerId);
+        userCareerService.deleteCareer(user.getId(), careerId);
     }
+
 }

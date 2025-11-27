@@ -119,6 +119,11 @@ public class UserCareerService {
         userCareerRepository.delete(uc);
     }
 
+    @Transactional
+    public void deleteAllByUserId(Long userId) {
+        userCareerRepository.deleteByUserId(userId);
+    }
+
     private CareerResponse toResponse(UserCareer uc) {
         CareerResponse dto = new CareerResponse();
         dto.setId(uc.getId());

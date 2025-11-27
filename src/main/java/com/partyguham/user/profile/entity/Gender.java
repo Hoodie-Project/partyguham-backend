@@ -8,8 +8,13 @@ public enum Gender {
 
     /** JSON → Enum (역직렬화) */
     @JsonCreator
-    public static CareerType from(String value) {
-        return CareerType.valueOf(value.toUpperCase());
+    public static Gender from(String value) {
+        if (value == null) return null;
+        try {
+            return Gender.valueOf(value.toUpperCase());
+        } catch (Exception e) {
+            throw new IllegalArgumentException("invalid gender: " + value);
+        }
     }
 
     /** Enum → JSON (직렬화) */

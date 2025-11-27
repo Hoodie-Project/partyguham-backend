@@ -10,9 +10,5 @@ public interface UserLocationRepository extends JpaRepository<UserLocation, Long
 
     List<UserLocation> findByUserId(Long userId);
 
-    boolean existsByUserIdAndLocationId(Long userId, Long locationId);
-
-    long countByUserId(Long userId);
-
-    void deleteByUserIdAndLocationId(Long userId, Long locationId);
+    void deleteByUserId(Long userId);
 }

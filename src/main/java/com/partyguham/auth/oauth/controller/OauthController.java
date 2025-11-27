@@ -46,14 +46,14 @@ public class OauthController {
      * (웹) 로그인 시작: state 저장 후 authorizeUrl 리다이렉트
      */
     @GetMapping("/{provider}/login")
-    public void start(@PathVariable String provider, HttpServletResponse res) throws IOException {
+    public void start(@PathVariable Provider provider, HttpServletResponse res) throws IOException {
+
         String state = UUID.randomUUID().toString();
-        Provider p = Provider.from(provider);
 
-        oauthStateService.save(p.name(), state, Duration.ofMinutes(5));
+        oauthStateService.save(provider.name(), state, Duration.ofMinutes(5));
 
 
-        OauthClient client = clients.get(p.name());
+        OauthClient client = clients.get(provider.name());
         if (client == null) {
             res.sendError(400, "unsupported_provider");
             return;
@@ -68,25 +68,23 @@ public class OauthController {
      * - platform=web 고정 응답. 필요 시 쿼리로 구분 가능
      */
     @GetMapping("/{provider}/login/callback")
-    public void callback(@PathVariable String provider,
+    public void callback(@PathVariable Provider provider,
                          @RequestParam String code,
                          @RequestParam String state,
                          HttpServletResponse res) throws IOException {
 
-        Provider p = Provider.from(provider);
-
         // 1) state 검증(1회성)
-        boolean ok = oauthStateService.validateAndConsume(p.name(), state);
+        boolean ok = oauthStateService.validateAndConsume(provider.name(), state);
         if (!ok) {
             res.sendError(HttpServletResponse.SC_BAD_REQUEST, "invalid_state");
             return;
         }
         // 2) code → user
-        OauthUser u = clients.get(p.name()).fetchUserByCode(code, OAuthFlow.LOGIN);
+        OauthUser u = clients.get(provider.name()).fetchUserByCode(code, OAuthFlow.LOGIN);
 
         // 3) 비즈: 가입자? JWT : 신규? OTT
         var r = oauthLoginService.handleCallback(
-                Provider.valueOf(p.name()),
+                Provider.valueOf(provider.name()),
                 u.externalId(), u.email(), u.image()
         );
 
@@ -113,6 +111,7 @@ public class OauthController {
     @PostMapping("/{provider}/login")
     public ResponseEntity<?> appLogin(@PathVariable Provider provider,
                                       @RequestBody Map<String, String> body) {
+
         String providerAccessToken = body.get("accessToken");
         if (providerAccessToken == null || providerAccessToken.isBlank()) {
             return ResponseEntity.badRequest().body(Map.of("error", "missing_access_token"));
