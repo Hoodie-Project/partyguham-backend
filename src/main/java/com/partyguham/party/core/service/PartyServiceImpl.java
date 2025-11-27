@@ -14,6 +14,8 @@ import com.partyguham.party.core.entity.PartyUser;
 import com.partyguham.party.core.repository.PartyRepository;
 import com.partyguham.party.core.repository.PartyTypeRepository;
 import com.partyguham.party.core.repository.PartyUserRepository;
+import com.partyguham.party.recruitment.entity.PartyRecruitment;
+import com.partyguham.party.recruitment.repository.PartyRecruitmentRepository;
 import com.partyguham.user.account.entity.User;
 import com.partyguham.user.account.repository.UserRepository;
 import com.partyguham.user.profile.repository.UserCareerRepository;
@@ -38,6 +40,7 @@ public class PartyServiceImpl implements PartyService { //TODO: 예외처리필�
     private final UserRepository userRepository;
     private final PartyUserRepository partyUserRepository;
     private final UserCareerRepository userCareerRepository;
+    private final PartyRecruitmentRepository partyRecruitmentRepository;
     private final ImageUploader imageUploader;
 
     @Override
@@ -108,7 +111,7 @@ public class PartyServiceImpl implements PartyService { //TODO: 예외처리필�
 
     @Override
     public GetPartyResponseDto getParty(Long partyId) {
-        Party party = partyRepository.findByPartyId(partyId)
+        Party party = partyRepository.findById(partyId)
                 .orElseThrow(() -> new IllegalArgumentException("파티를 찾을 수 없습니다: " + partyId));
 
         return GetPartyResponseDto.from(party);
@@ -184,12 +187,43 @@ public class PartyServiceImpl implements PartyService { //TODO: 예외처리필�
     @Override
     public GetSearchResponseDto getSearch(int page, int limit, String titleSearch) {
         if (titleSearch == null || titleSearch.trim().isEmpty()) {
-            return null;
+            // 빈 검색어인 경우 빈 결과 반환
+            return GetSearchResponseDto.builder()
+                    .party(GetSearchResponseDto.PartySearchDto.builder()
+                            .total(0L)
+                            .parties(List.of())
+                            .build())
+                    .partyRecruitment(GetSearchResponseDto.PartyRecruitmentSearchResultDto.builder()
+                            .total(0L)
+                            .partyRecruitments(List.of())
+                            .build())
+                    .build();
         }
 
-        List<Party> parties = partyRepository.findByTitleKeyword(titleSearch);
+        Pageable pageable = PageRequest.of(page - 1, limit);
 
-        return null;
+        // Party 검색
+        Page<Party> partyPage = partyRepository.findByTitleKeyword(titleSearch, pageable);
+        List<PartiesDto> partyDtos = partyPage.getContent().stream()
+                .map(PartiesDto::from)
+                .toList();
+
+        // PartyRecruitment 검색
+        Page<PartyRecruitment> recruitmentPage = partyRecruitmentRepository.findByTitleKeyword(titleSearch, pageable);
+        List<PartyRecruitmentSearchDto> recruitmentDtos = recruitmentPage.getContent().stream()
+                .map(PartyRecruitmentSearchDto::from)
+                .toList();
+
+        return GetSearchResponseDto.builder()
+                .party(GetSearchResponseDto.PartySearchDto.builder()
+                        .total(partyPage.getTotalElements())
+                        .parties(partyDtos)
+                        .build())
+                .partyRecruitment(GetSearchResponseDto.PartyRecruitmentSearchResultDto.builder()
+                        .total(recruitmentPage.getTotalElements())
+                        .partyRecruitments(recruitmentDtos)
+                        .build())
+                .build();
     }
 
     @Override
@@ -207,6 +241,6 @@ public class PartyServiceImpl implements PartyService { //TODO: 예외처리필�
 
     @Override
     public GetSearchResponseDto searchParties(int page, int limit, String titleSearch) {
-        return null;
+        return getSearch(page, limit, titleSearch);
     }
 }

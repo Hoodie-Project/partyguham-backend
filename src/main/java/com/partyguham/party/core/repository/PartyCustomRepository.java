@@ -9,5 +9,6 @@ import java.util.List;
 
 public interface PartyCustomRepository {
     List<Party> findByTitleKeyword(String keyword);
+    Page<Party> findByTitleKeyword(String keyword, Pageable pageable);
     Page<Party> searchParties(GetPartiesRequestDto request, Pageable pageable);
 }

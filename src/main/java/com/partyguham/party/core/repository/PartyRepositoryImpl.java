@@ -49,6 +49,35 @@ public class PartyRepositoryImpl implements PartyCustomRepository {
     }
 
     @Override
+    public Page<Party> findByTitleKeyword(String keyword, Pageable pageable) {
+        QParty party = QParty.party;
+
+        BooleanBuilder builder = new BooleanBuilder();
+        
+        if (keyword != null && !keyword.isBlank()) {
+            builder.and(party.title.containsIgnoreCase(keyword));
+        }
+
+        // 조회
+        List<Party> results = queryFactory
+                .selectFrom(party)
+                .where(builder)
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .orderBy(party.createdAt.desc())
+                .fetch();
+
+        // count
+        Long total = queryFactory
+                .select(party.id.count())
+                .from(party)
+                .where(builder)
+                .fetchOne();
+
+        return new PageImpl<>(results, pageable, total != null ? total : 0L);
+    }
+
+    @Override
     public Page<Party> searchParties(GetPartiesRequestDto request, Pageable pageable) {
         QParty party = QParty.party;
         BooleanBuilder builder = new BooleanBuilder();
