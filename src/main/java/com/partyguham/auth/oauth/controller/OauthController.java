@@ -1,5 +1,7 @@
 package com.partyguham.auth.oauth.controller;
 
+import com.partyguham.auth.oauth.LoginResult;
+import com.partyguham.auth.oauth.UserErrorType;
 import com.partyguham.auth.oauth.client.OAuthFlow;
 import com.partyguham.auth.oauth.entity.Provider;
 import com.partyguham.auth.oauth.client.OauthClient;
@@ -10,9 +12,11 @@ import com.partyguham.common.annotation.ApiV2Controller;
 import com.partyguham.config.DomainProperties;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -73,36 +77,64 @@ public class OauthController {
                          @RequestParam String state,
                          HttpServletResponse res) throws IOException {
 
-        // 1) state 검증(1회성)
-        boolean ok = oauthStateService.validateAndConsume(provider.name(), state);
-        if (!ok) {
+        // 1) state 검증
+        if (!oauthStateService.validateAndConsume(provider.name(), state)) {
             res.sendError(HttpServletResponse.SC_BAD_REQUEST, "invalid_state");
             return;
         }
+
         // 2) code → user
         OauthUser u = clients.get(provider.name()).fetchUserByCode(code, OAuthFlow.LOGIN);
 
-        // 3) 비즈: 가입자? JWT : 신규? OTT
-        var r = oauthLoginService.handleCallback(
-                Provider.valueOf(provider.name()),
-                u.externalId(), u.email(), u.image()
+        // 3) 비즈 로직
+        LoginResult r = oauthLoginService.handleCallback(
+                provider, u.externalId(), u.email(), u.image()
         );
 
-        if (r.isSignup()) {
-            // 회원가입 필요 → signupToken 쿠키 + 회원가입 페이지로 리다이렉트
-            ResponseCookie ott = ResponseCookie.from("signupToken", r.signupOtt())
-                    .httpOnly(true).secure(true).sameSite("None").path("/").maxAge(900).build();
-            res.addHeader("Set-Cookie", ott.toString());
-
-            res.sendRedirect(domain.signupUrl());
-        } else {
-            // 로그인 완료 → refreshToken 쿠키 + 메인 페이지로 리다이렉트
-            ResponseCookie rt = ResponseCookie.from("refreshToken", r.refreshToken())
-                    .httpOnly(true).secure(true).sameSite("None").path("/").build();
-            res.addHeader("Set-Cookie", rt.toString());
-
-            res.sendRedirect(domain.getBase());
+        // 4) 결과 타입별 응답
+        switch (r.type()) {
+            case SIGNUP -> handleSignup(res, r);
+            case LOGIN -> handleLogin(res, r);
+            case RECOVER -> handleRecover(res, r);
+            case ERROR -> handleErrorRedirect(res, r);
         }
+    }
+
+    /** 회원가입 필요: signupToken 쿠키 + /signup 으로 이동 */
+    private void handleSignup(HttpServletResponse res, LoginResult r) throws IOException {
+        ResponseCookie ott = ResponseCookie.from("signupToken", r.signupToken())
+                .httpOnly(true).secure(true).sameSite("None").path("/").maxAge(900).build();
+        res.addHeader("Set-Cookie", ott.toString());
+        res.sendRedirect(domain.signupUrl());
+    }
+
+    /** 정상 로그인: refreshToken 쿠키 + 메인으로 이동 */
+    private void handleLogin(HttpServletResponse res, LoginResult r) throws IOException {
+        ResponseCookie rt = ResponseCookie.from("refreshToken", r.refreshToken())
+                .httpOnly(true).secure(true).sameSite("None").path("/").build();
+        res.addHeader("Set-Cookie", rt.toString());
+        res.sendRedirect(domain.getBase());
+    }
+
+    /** 복구 플로우: 쿼리 파라미터를 포함해 /home 으로 리다이렉트 */
+    private void handleRecover(HttpServletResponse res, LoginResult r) throws IOException {
+        String url = UriComponentsBuilder.fromHttpUrl(domain.homeUrl())
+                .queryParam("error", r.errorType().name()) // USER_DELETED_30D
+                .queryParam("recoverToken", r.recoverToken())
+                .queryParam("email", r.email())
+                .queryParam("deletedAt", r.deletedAt())
+                .build(true)
+                .toUriString();
+        res.sendRedirect(url);
+    }
+
+    /** 삭제/비활성 등 에러 상태: 에러 코드만 쿼리로 리다이렉트 */
+    private void handleErrorRedirect(HttpServletResponse res, LoginResult r) throws IOException {
+        String url = UriComponentsBuilder.fromHttpUrl(domain.homeUrl())
+                .queryParam("error", r.errorType().name())
+                .build(true)
+                .toUriString();
+        res.sendRedirect(url);
     }
 
     /**
@@ -114,31 +146,43 @@ public class OauthController {
 
         String providerAccessToken = body.get("accessToken");
         if (providerAccessToken == null || providerAccessToken.isBlank()) {
-            return ResponseEntity.badRequest().body(Map.of("error", "missing_access_token"));
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", "missing_access_token"));
         }
 
         // 1) access_token → user
-        OauthUser u = clients.get(provider.name()).fetchUserByAccessToken(providerAccessToken);
+        OauthUser u = clients.get(provider.name())
+                .fetchUserByAccessToken(providerAccessToken);
 
-        // 2) 비즈: 가입자/신규
-        var r = oauthLoginService.handleCallback(
-                Provider.valueOf(provider.name()),
-                u.externalId(), u.email(), u.image()
+        // 2) 비즈니스 로직
+        LoginResult r = oauthLoginService.handleCallback(
+                provider, u.externalId(), u.email(), u.image()
         );
 
-        // 3) 앱 응답 포맷(JSON)
-        if (r.isSignup()) {
-            return ResponseEntity.ok(Map.of(
+        // 3) 결과 타입별 JSON 응답
+        return switch (r.type()) {
+            case SIGNUP -> ResponseEntity.ok(Map.of(
                     "type", "signup",
-                    "signupToken", r.signupOtt(),
+                    "signupToken", r.signupToken(),
                     "next", "app://signup"
             ));
-        } else {
-            return ResponseEntity.ok(Map.of(
+            case LOGIN -> ResponseEntity.ok(Map.of(
                     "type", "login",
                     "accessToken", r.accessToken(),
                     "refreshToken", r.refreshToken()
             ));
-        }
+            case RECOVER -> ResponseEntity.ok(Map.of(
+                    "type", "recover",
+                    "error", r.errorType().name(),              // USER_DELETED_30D
+                    "recoverToken", r.recoverToken(),
+                    "email", r.email(),
+                    "deletedAt", r.deletedAt()
+            ));
+            case ERROR -> ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of(
+                            "type", "error",
+                            "error", r.errorType().name()          // USER_DELETED, USER_FORBIDDEN_DISABLED
+                    ));
+        };
     }
 }

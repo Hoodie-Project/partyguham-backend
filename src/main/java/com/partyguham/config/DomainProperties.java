@@ -15,4 +15,7 @@ public class DomainProperties {
     public String signupUrl() {
         return base + "/signup";
     }
+    public String homeUrl() {return base + "/home";}
+
+
 }
