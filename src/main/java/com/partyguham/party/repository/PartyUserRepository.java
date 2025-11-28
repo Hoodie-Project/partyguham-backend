@@ -9,4 +9,6 @@ import java.util.Optional;
 @Repository
 public interface PartyUserRepository extends JpaRepository<PartyUser, Long>, PartyUserCustomRepository {
     Optional<PartyUser> findByPartyIdAndUserId(Long partyId, Long userId); //나의 파티 권한 조회
+
+    boolean existsByPartyIdAndUserId(Long partyId, Long userId);
 }
