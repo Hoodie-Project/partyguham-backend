@@ -186,19 +186,7 @@ public class PartyServiceImpl implements PartyService { //TODO: 예외처리필�
 
     @Override
     public GetSearchResponseDto getSearch(int page, int limit, String titleSearch) {
-        if (titleSearch == null || titleSearch.trim().isEmpty()) {
-            // 빈 검색어인 경우 빈 결과 반환
-            return GetSearchResponseDto.builder()
-                    .party(GetSearchResponseDto.PartySearchDto.builder()
-                            .total(0L)
-                            .parties(List.of())
-                            .build())
-                    .partyRecruitment(GetSearchResponseDto.PartyRecruitmentSearchResultDto.builder()
-                            .total(0L)
-                            .partyRecruitments(List.of())
-                            .build())
-                    .build();
-        }
+    
 
         Pageable pageable = PageRequest.of(page - 1, limit);
 
@@ -241,6 +229,6 @@ public class PartyServiceImpl implements PartyService { //TODO: 예외처리필�
 
     @Override
     public GetSearchResponseDto searchParties(int page, int limit, String titleSearch) {
-        return getSearch(page, limit, titleSearch);
+        return null;
     }
 }
