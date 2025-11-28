@@ -28,8 +28,8 @@ public class ReportService {
                 .orElseThrow(() -> new EntityNotFoundException("user not found"));
 
         Report report = Report.builder()
-                .targetType(req.targetType())
-                .targetId(req.targetId())
+                .targetType(req.type())
+                .targetId(req.typeId())
                 .content(req.content())
                 .reporter(reporter)
                 .build();

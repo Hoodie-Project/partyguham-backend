@@ -1,16 +1,21 @@
 package com.partyguham.auth.oauth.service;
 
 import com.partyguham.auth.jwt.service.JwtService;
+import com.partyguham.auth.oauth.LoginResult;
+import com.partyguham.auth.oauth.UserErrorType;
 import com.partyguham.auth.oauth.entity.OauthAccount;
 import com.partyguham.auth.oauth.entity.Provider;
 import com.partyguham.auth.oauth.repository.OauthAccountRepository;
 import com.partyguham.auth.ott.model.OttPayload;
 import com.partyguham.auth.ott.model.OttType;
 import com.partyguham.auth.ott.service.OttService;
+import com.partyguham.common.entity.Status;
+import com.partyguham.user.account.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
 
 
 /**
@@ -32,55 +37,74 @@ public class OauthLoginService {
     private final JwtService jwtService;   // AT/RT 발급
     private final OttService ottService;   // OTT 발급(예: Redis 저장)
 
-    /**
-     * 콜백 핵심 로직: 가입자/신규 판정 + 발급
-     */
-    public Result handleCallback(Provider provider, String externalId, String email, String image) {
+
+    public LoginResult handleCallback(Provider provider, String externalId, String email, String image) {
         return oauthRepo.findByProviderAndExternalId(provider, externalId)
-                .map(oa -> {
-                    // 1) user가 아직 안 붙어 있는 경우 → 회원가입 필요 상태로 다시 OTT 발급
-                    if (oa.getUser() == null) {
-                        String ott = ottService.issue(
-                                new OttPayload(OttType.SIGNUP, provider, externalId, email, image, null),
-                                Duration.ofMinutes(15)
-                        );
-                        return Result.signupOtt(ott);
-                    }
-
-                    // 2) user가 이미 있는 경우 → 정상 로그인
-                    Long userId = oa.getUser().getId();
-
-                    // TODO: 여기서 user 상태 체크 (DELETED/INACTIVE 등) 필요
-                    String at = jwtService.issueAccess(userId, "USER");
-                    String rt = jwtService.issueRefresh(userId);
-                    return Result.loggedIn(at, rt);
-                })
-                .orElseGet(() -> {
-                    // 3) 완전 최초 로그인 → user=null 로 OAuthAccount만 먼저 저장
-                    OauthAccount oa = OauthAccount.builder()
-                            .provider(provider)
-                            .externalId(externalId)
-                            .user(null) // 가입 완료 때 setUser()
-                            .build();
-                    oauthRepo.save(oa);
-
-                    String ott = ottService.issue(
-                            new OttPayload(OttType.SIGNUP, provider, externalId, email, image, null),
-                            Duration.ofMinutes(15)
-                    );
-                    return Result.signupOtt(ott);
-                });
+                .map(oa -> handleExistingAccount(oa, provider, externalId, email, image))
+                .orElseGet(() -> handleFirstLogin(provider, externalId, email, image));
     }
 
     /**
-     * 컨트롤러-서비스 간 결과 DTO
+     * 이미 OAuthAccount 가 존재하는 경우 처리
      */
-    public record Result(String accessToken, String refreshToken, String signupOtt) {
-        public static Result loggedIn(String at, String rt) { return new Result(at, rt, null); }
-        public static Result signupOtt(String ott) { return new Result(null, null, ott); }
-        public String accessToken() { return accessToken; }
-        public String refreshToken() { return refreshToken; }
-        public String signupOtt() { return signupOtt; }
-        public boolean isSignup() { return signupOtt != null; }
+    private LoginResult handleExistingAccount(OauthAccount oa,
+                                              Provider provider, String externalId,
+                                              String email, String image) {
+
+        // user가 아직 안 붙은 경우 → 가입 필요
+        if (oa.getUser() == null) {
+            String ott = ottService.issue(
+                    new OttPayload(OttType.SIGNUP, provider, externalId, email, image, null),
+                    Duration.ofMinutes(15)
+            );
+            return LoginResult.signup(ott);
+        }
+
+        User user = oa.getUser();
+        Status status = user.getStatus();
+
+        // 삭제 계정
+        if (status == Status.DELETED) {
+            return LoginResult.error(UserErrorType.USER_DELETED);
+        }
+
+        // 탈퇴 후 30일 이내, 복구 가능
+        if (status == Status.INACTIVE) {
+            String recoverToken = ottService.issue(
+                    new OttPayload(OttType.RECOVER, provider, externalId, email, image, user.getId()),
+                    Duration.ofDays(30)
+            );
+            return LoginResult.recover(recoverToken, user.getEmail(), user.getUpdatedAt());
+        }
+
+        // ACTIVE 외 다른 상태
+        if (status != Status.ACTIVE) {
+            return LoginResult.error(UserErrorType.USER_FORBIDDEN_DISABLED);
+        }
+
+        // 정상 로그인
+        String at = jwtService.issueAccess(user.getId(), "USER");
+        String rt = jwtService.issueRefresh(user.getId());
+        return LoginResult.login(at, rt);
+    }
+
+    /**
+     * 최초 로그인 (OauthAccount 새로 생성)
+     */
+    private LoginResult handleFirstLogin(Provider provider, String externalId,
+                                         String email, String image) {
+
+        OauthAccount oa = OauthAccount.builder()
+                .provider(provider)
+                .externalId(externalId)
+                .user(null)
+                .build();
+        oauthRepo.save(oa);
+
+        String ott = ottService.issue(
+                new OttPayload(OttType.SIGNUP, provider, externalId, email, image, null),
+                Duration.ofMinutes(15)
+        );
+        return LoginResult.signup(ott);
     }
 }

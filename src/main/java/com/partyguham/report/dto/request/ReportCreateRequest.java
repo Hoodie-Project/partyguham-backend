@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 public record ReportCreateRequest(
-        @NotNull ReportTargetType targetType,   // "user" / "party" ...
-        @NotNull Long targetId,
+        @NotNull ReportTargetType type,   // "user" / "party" ...
+        @NotNull Long typeId,
         @NotBlank String content
 ) {}
