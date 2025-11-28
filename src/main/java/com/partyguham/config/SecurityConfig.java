@@ -38,7 +38,7 @@ public class SecurityConfig {
                         /* ==== 공개 테스트 API ==== */
                         .requestMatchers(
                                 "/api/v2/auth/**",
-                                "/api/v2/health",
+                                "/api/v2/banners",
                                 "/api/v2/auth/oauth/**"
                         ).permitAll()
 

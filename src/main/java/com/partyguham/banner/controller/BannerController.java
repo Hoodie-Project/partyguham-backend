@@ -22,6 +22,21 @@ public class BannerController {
     private final BannerService bannerService;
     private final S3FileService s3FileService;
 
+    // 단건 조회
+    @GetMapping("/{id}")
+    public BannerResponse get(@PathVariable Long id) {
+        return bannerService.get(id);
+    }
+
+    // 목록 조회 (platform 필터 optional)
+    @GetMapping
+    public BannerListResponse list(
+            @RequestParam() BannerPlatform platform
+    ) {
+        return bannerService.list(platform);
+    }
+
+
     // 생성
     @PostMapping("/banner")
     public BannerResponse createBanner(
@@ -36,20 +51,6 @@ public class BannerController {
                 key,
                 req.getLink()
         );
-    }
-
-    // 단건 조회
-    @GetMapping("/{id}")
-    public BannerResponse get(@PathVariable Long id) {
-        return bannerService.get(id);
-    }
-
-    // 목록 조회 (platform 필터 optional)
-    @GetMapping
-    public BannerListResponse list(
-            @RequestParam(required = false) BannerPlatform platform
-    ) {
-        return bannerService.list(platform);
     }
 
     // 수정
