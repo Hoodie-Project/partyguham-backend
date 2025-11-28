@@ -3,7 +3,6 @@ package com.partyguham.party.service;
 import com.partyguham.party.dto.party.request.GetPartiesRequestDto;
 import com.partyguham.party.dto.party.request.GetPartyUsersRequestDto;
 import com.partyguham.party.dto.party.request.PartyCreateRequestDto;
-import com.partyguham.party.core.dto.party.response.*;
 import com.partyguham.party.dto.party.response.*;
 
 public interface PartyService { 

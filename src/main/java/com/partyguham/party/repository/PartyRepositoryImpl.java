@@ -3,7 +3,7 @@ package com.partyguham.party.repository;
 import com.partyguham.common.entity.Status;
 import com.partyguham.party.dto.party.request.GetPartiesRequestDto;
 import com.partyguham.party.entity.Party;
-import com.partyguham.party.core.entity.QParty;
+import com.partyguham.party.entity.QParty;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;

@@ -1,7 +1,7 @@
 package com.partyguham.recruitment.repository;
 
 import com.partyguham.recruitment.entity.PartyRecruitment;
-import com.partyguham.party.recruitment.entity.QPartyRecruitment;
+import com.partyguham.recruitment.entity.QPartyRecruitment;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;

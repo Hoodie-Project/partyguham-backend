@@ -1,7 +1,7 @@
 package com.partyguham.party.repository;
 
 import com.partyguham.party.entity.PartyUser;
-import com.partyguham.party.core.entity.QPartyUser;
+import com.partyguham.party.entity.QPartyUser;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
