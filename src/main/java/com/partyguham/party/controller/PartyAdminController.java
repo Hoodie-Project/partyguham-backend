@@ -4,6 +4,7 @@ import com.partyguham.auth.jwt.UserPrincipal;
 import com.partyguham.common.annotation.ApiV2Controller;
 import com.partyguham.party.dto.partyAdmin.request.*;
 import com.partyguham.party.dto.partyAdmin.response.*;
+import com.partyguham.party.service.PartyAccessService;
 import com.partyguham.party.service.PartyAdminService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 public class PartyAdminController {
 
     private final PartyAdminService partyAdminService;
+    private final PartyAccessService partyAccessService;
 
     // 파티 수정
     @PatchMapping("/info")
