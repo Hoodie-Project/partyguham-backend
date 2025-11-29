@@ -1,6 +1,7 @@
 package com.partyguham.party.controller;
 
 import com.partyguham.auth.jwt.UserPrincipal;
+import com.partyguham.common.annotation.ApiV2Controller;
 import com.partyguham.party.dto.party.request.GetPartiesRequestDto;
 import com.partyguham.party.dto.party.request.GetPartyUsersRequestDto;
 import com.partyguham.party.dto.party.request.PartyCreateRequestDto;
@@ -12,8 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-@RestController
-@RequestMapping("/api/parties")
+@ApiV2Controller
+@RequestMapping("/parties")
 @RequiredArgsConstructor
 public class PartyController { // create → get → search → action 순서
 
@@ -38,7 +39,7 @@ public class PartyController { // create → get → search → action 순서
     @GetMapping("/{partyId}")
     public ResponseEntity<GetPartyResponseDto> getParty( //파티 단일 조회
                                                          @PathVariable Long partyId){
-           
+
         return ResponseEntity.ok(partyService.getParty(partyId));
     }
 
@@ -69,9 +70,9 @@ public class PartyController { // create → get → search → action 순서
 
     @GetMapping("/search")
     public ResponseEntity<GetSearchResponseDto> searchParties( // 파티 / 파티 모집공고 통합 검색
-            @RequestParam int page,
-            @RequestParam int limit,
-            @RequestParam(required = false) String titleSearch) {
+                                                               @RequestParam int page,
+                                                               @RequestParam int limit,
+                                                               @RequestParam(required = false) String titleSearch) {
 
         return ResponseEntity.ok(partyService.searchParties(page, limit, titleSearch));
     }
@@ -80,9 +81,9 @@ public class PartyController { // create → get → search → action 순서
     public ResponseEntity<Void> leaveParty(
             @PathVariable Long partyId,
             @AuthenticationPrincipal UserPrincipal user) {
-                
+
         partyService.leaveParty(partyId, user.getId());
-        
+
         return ResponseEntity.noContent().build();
     }
 }

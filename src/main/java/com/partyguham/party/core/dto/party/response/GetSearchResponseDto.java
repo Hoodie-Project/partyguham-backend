@@ -1,9 +1,11 @@
-package com.partyguham.party.dto.party.response;
+package com.partyguham.party.core.dto.party.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 @Getter
 @Builder
@@ -20,7 +22,7 @@ public class GetSearchResponseDto {
     @AllArgsConstructor
     public static class PartySearchDto {
         private Long total;
-        private java.util.List<PartiesDto> parties;
+        private List<PartiesDto> parties;
     }
 
     @Getter
@@ -29,6 +31,6 @@ public class GetSearchResponseDto {
     @AllArgsConstructor
     public static class PartyRecruitmentSearchResultDto {
         private Long total;
-        private java.util.List<PartyRecruitmentSearchDto> partyRecruitments;
+        private List<PartyRecruitmentSearchDto> partyRecruitments;
     }
 }

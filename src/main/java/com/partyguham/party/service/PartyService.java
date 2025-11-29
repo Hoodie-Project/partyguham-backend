@@ -16,14 +16,11 @@ public interface PartyService {
     GetPartyUserResponseDto getPartyUsers(GetPartyUsersRequestDto request, Long partyId); // 파티원 목록 조회
 
     PartyAuthorityResponseDto getPartyAuthority(Long partyId, Long userId); //나의 파티 권한 조회
-     
-    PartyTypeResponseDto getType(); // 파티 타입 목록 조회
 
-    GetSearchResponseDto getSearch(int page, int limit, String titleSearch); //파티/파티 모집공고 통합검색
+    PartyTypeResponseDto getPartyTypes(); // 파티 타입 목록 조회
+
+    GetSearchResponseDto searchParties(int page, int limit, String titleSearch); //파티/파티 모집공고 통합검색
 
     void leaveParty(Long partyId, Long userId); // 파티 나가기
 
-    PartyTypeResponseDto getPartyTypes();
-
-    GetSearchResponseDto searchParties(int page, int limit, String titleSearch);
-}   
+}
