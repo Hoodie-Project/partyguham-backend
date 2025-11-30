@@ -54,7 +54,7 @@ public class PartyAdminController {
     }
 
     /**
-     * 파티 상태 변경 (모집중 ↔ 종료)
+     * 파티 상태 변경 (진행중 ↔ 종료)
      */
     @PatchMapping("/status")
     public ResponseEntity<UpdatePartyStatusResponseDto> updatePartyStatus(

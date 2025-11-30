@@ -140,9 +140,27 @@ public class PartyAdminService {
         return UpdatePartyStatusResponseDto.from(party);
     }
 
+    @Transactional
     public void deletePartyImage(Long partyId, Long userId) {
+        // 1) 권한 체크 (파티장/부파티장만)
         partyAccessService.checkMasterOrThrow(partyId, userId);
 
+        // 2) 파티 조회
+        Party party = partyRepository.findById(partyId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 파티입니다. id=" + partyId));
+
+        // 3) 기존 이미지 키 가져오기
+        String oldImageKey = party.getImage();
+        if (oldImageKey == null || oldImageKey.isBlank()) {
+            // 이미지가 원래 없으면 그냥 리턴
+            return;
+        }
+
+        // 4) DB에서 먼저 끊어주기 (null 세팅)
+        party.setImage(null);
+
+        // 5) S3에서 실제 파일 삭제 - 삭제 실패시 어떻게 할지는 정책에 따라 (지금은 예외 그대로 던지도록)
+        s3FileService.delete(oldImageKey);
     }
 
 
