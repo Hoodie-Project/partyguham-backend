@@ -1,5 +1,6 @@
 package com.partyguham.party.service;
 
+import com.partyguham.common.entity.Status;
 import com.partyguham.infra.s3.S3FileService;
 import com.partyguham.party.dto.partyAdmin.mapper.PartyUserAdminMapper;
 import com.partyguham.party.dto.partyAdmin.request.*;
@@ -116,13 +117,28 @@ public class PartyAdminService {
         return UpdatePartyResponseDto.from(party);
     }
 
-
-    public UpdatePartyStatusResponseDto updatePartyStatus(Long partyId, Long userId, UpdatePartyStatusRequestDto request) {
+    @Transactional
+    public UpdatePartyStatusResponseDto updatePartyStatus(
+            Long partyId,
+            Long userId,
+            UpdatePartyStatusRequestDto request
+    ) {
+        // 1) 권한 체크 (파티장/부파티장)
         partyAccessService.checkMasterOrThrow(partyId, userId);
 
-        return null;
-    }
+        // 2) 파티 조회
+        Party party = partyRepository.findById(partyId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 파티입니다. id=" + partyId));
 
+        // 3) 문자열 → 공통 Status enum 변환 (DTO에서 active/archived)
+        Status newStatus = Status.from(request.getStatus()); // ACTIVE / ARCHIVED
+
+        // 4) 상태 변경
+        party.setStatus(newStatus);
+
+        // 5) 응답 DTO로 변환
+        return UpdatePartyStatusResponseDto.from(party);
+    }
 
     public void deletePartyImage(Long partyId, Long userId) {
         partyAccessService.checkMasterOrThrow(partyId, userId);

@@ -48,7 +48,6 @@ public class PartyAdminController {
             imageKey = s3FileService.upload(image, S3Folder.PARTY);
         }
 
-
         return ResponseEntity.ok(
                 partyAdminService.updateParty(partyId, user.getId(), request, imageKey)
         );
