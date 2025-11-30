@@ -1,9 +1,14 @@
 package com.partyguham.party.service;
 
+import com.partyguham.infra.s3.S3FileService;
 import com.partyguham.party.dto.partyAdmin.mapper.PartyUserAdminMapper;
 import com.partyguham.party.dto.partyAdmin.request.*;
 import com.partyguham.party.dto.partyAdmin.response.*;
+import com.partyguham.party.entity.Party;
+import com.partyguham.party.entity.PartyType;
 import com.partyguham.party.entity.PartyUser;
+import com.partyguham.party.repository.PartyRepository;
+import com.partyguham.party.repository.PartyTypeRepository;
 import com.partyguham.party.repository.PartyUserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
@@ -19,6 +24,10 @@ public class PartyAdminService {
     private final PartyAccessService partyAccessService;
     private final PartyUserAdminMapper partyUserAdminMapper;
     private final PartyUserRepository partyUserRepository;
+    private final PartyRepository partyRepository;
+    private final PartyTypeRepository partyTypeRepository;
+    private final S3FileService s3FileService; // 이전 이미지 삭제용(옵션)
+
 
 
     /**
@@ -64,10 +73,47 @@ public class PartyAdminService {
                 .build();
     }
 
-    public UpdatePartyResponseDto updateParty(Long partyId, Long userId, UpdatePartyRequestDto request) {
+    @Transactional
+    public UpdatePartyResponseDto updateParty(
+            Long partyId,
+            Long userId,
+            UpdatePartyRequestDto request,
+            String newImageKey // 새 이미지가 없으면 null
+    ) {
+        // 1) 권한 체크
         partyAccessService.checkMasterOrThrow(partyId, userId);
 
-        return null;
+        // 2) 파티 조회
+        Party party = partyRepository.findById(partyId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 파티입니다. id=" + partyId));
+
+        // 3) 파티 타입 변경 (nullable이면 변경 안 함)
+        if (request.getPartyTypeId() != null) {
+            PartyType partyType = partyTypeRepository.findById(request.getPartyTypeId())
+                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 파티 타입입니다. id=" + request.getPartyTypeId()));
+            party.setPartyType(partyType);
+        }
+
+        // 4) 제목/내용 부분 수정 (null이면 변경 안 함)
+        if (request.getTitle() != null) {
+            party.setTitle(request.getTitle());
+        }
+        if (request.getContent() != null) {
+            party.setContent(request.getContent());
+        }
+
+        // 5) 이미지 변경 (있을 때만)
+        if (newImageKey != null) {
+            String oldKey = party.getImage();
+            party.setImage(newImageKey);
+
+            // 이전 이미지 삭제하고 싶으면
+            if (oldKey != null && !oldKey.equals(newImageKey)) {
+                s3FileService.delete(oldKey);
+            }
+        }
+
+        return UpdatePartyResponseDto.from(party);
     }
 
 
