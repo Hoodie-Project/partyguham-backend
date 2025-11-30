@@ -164,8 +164,56 @@ public class PartyAdminService {
     }
 
 
+
+    /**
+     * 파티 삭제 (소프트 삭제)
+     */
+    @Transactional
     public void deleteParty(Long partyId, Long userId) {
+        // 1) 권한 체크 (파티장만)
         partyAccessService.checkMasterOrThrow(partyId, userId);
+
+        // 2) 파티 조회
+        Party party = partyRepository.findById(partyId)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "존재하지 않는 파티입니다. id=" + partyId));
+
+        // 이미 삭제된 파티면 그냥 리턴
+        if (party.getStatus() == Status.DELETED) {
+            return;
+        }
+
+        // 3) 파티 대표 이미지 S3 삭제 (실패해도 롤백 안 되게)
+        String oldImageKey = party.getImage();
+        if (oldImageKey != null && !oldImageKey.isBlank()) {
+            s3FileService.deleteSafely(oldImageKey);
+        }
+
+        // 4) 파티 자체 삭제 처리
+        party.setStatus(Status.DELETED);
+
+        // 5) 파티 관련 모집글 전부 삭제 처리
+        if (party.getPartyRecruitments() != null) {
+            party.getPartyRecruitments()
+                    .forEach(r -> r.setStatus(Status.DELETED));
+        }
+
+        // 6) 파티원 이력도 삭제 처리
+        if (party.getPartyUsers() != null) {
+            party.getPartyUsers()
+                    .forEach(pu -> pu.setStatus(Status.DELETED));
+        }
+
+        // 7) 🆕 연관 지원내역(PartyApplication) 전체 삭제
+        //    ※ Party → Recruitment → Applications 구조라면 아래처럼 처리
+//        if (party.getPartyRecruitments() != null) {
+//            party.getPartyRecruitments().forEach(rec -> {
+//                if (rec.getApplications() != null) {
+//                    rec.getApplications()
+//                            .forEach(app -> app.setStatus(Status.DELETED));
+//                }
+//            });
+//        }
     }
 
 

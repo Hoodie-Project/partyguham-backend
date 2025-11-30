@@ -80,7 +80,7 @@ public class PartyAdminController {
     }
 
     /**
-     * 파티 자체 삭제 (주의: 전체 파티가 사라짐)
+     * 파티 삭제
      */
     @DeleteMapping
     public ResponseEntity<Void> deleteParty(
