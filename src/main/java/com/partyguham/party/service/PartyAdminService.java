@@ -6,6 +6,7 @@ import com.partyguham.party.dto.partyAdmin.mapper.PartyUserAdminMapper;
 import com.partyguham.party.dto.partyAdmin.request.*;
 import com.partyguham.party.dto.partyAdmin.response.*;
 import com.partyguham.party.entity.Party;
+import com.partyguham.party.entity.PartyAuthority;
 import com.partyguham.party.entity.PartyType;
 import com.partyguham.party.entity.PartyUser;
 import com.partyguham.party.repository.PartyRepository;
@@ -217,12 +218,51 @@ public class PartyAdminService {
     }
 
 
-    public PartyDelegationResponseDto delegateParty(Long partyId, Long userId, PartyDelegationRequestDto request) {
+    public PartyDelegationResponseDto delegateParty(Long partyId,
+                                                    Long userId,
+                                                    PartyDelegationRequestDto request) {
+
+        // 1) 요청자가 파티의 MASTER 인지 체크 (파티 삭제 때 썼던 메서드 재사용)
         partyAccessService.checkMasterOrThrow(partyId, userId);
 
-        return null;
-    }
+        // 2) 파티 존재 확인 (optional이지만 방어적으로 한 번 더)
+        Party party = partyRepository.findById(partyId)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "존재하지 않는 파티입니다. id=" + partyId));
 
+        // 3) 현재 파티장 PartyUser 찾기
+        PartyUser currentMaster = partyUserRepository
+                .findByParty_IdAndUser_IdAndStatus(partyId, userId, Status.ACTIVE)
+                .orElseThrow(() -> new IllegalStateException(
+                        "현재 파티장 정보를 찾을 수 없습니다."));
+
+        if (currentMaster.getAuthority() != PartyAuthority.MASTER) {
+            throw new IllegalStateException("파티장만 권한을 위임할 수 있습니다.");
+        }
+
+        // 4) 위임 대상 파티원 찾기
+        Long targetPartyUserId = request.getPartyUserId();
+
+        PartyUser target = partyUserRepository
+                .findByIdAndParty_IdAndStatus(targetPartyUserId, partyId, Status.ACTIVE)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "위임 대상 파티원을 찾을 수 없습니다. id=" + targetPartyUserId));
+
+        if (target.getAuthority() == PartyAuthority.MASTER) {
+            throw new IllegalStateException("이미 파티장인 멤버에게는 위임할 수 없습니다.");
+        }
+
+        if (target.getId().equals(currentMaster.getId())) {
+            throw new IllegalArgumentException("자기 자신에게 파티장 권한을 위임할 수 없습니다.");
+        }
+
+        // 5) 권한 변경 로직
+        // 지금은 DEPUTY 로직 안 쓰니까: MASTER → MEMBER, 대상 → MASTER
+        currentMaster.setAuthority(PartyAuthority.MEMBER);
+        target.setAuthority(PartyAuthority.MASTER);
+
+        return PartyDelegationResponseDto.from(party, currentMaster, target);
+    }
 
     public UpdatePartyUserResponseDto updatePartyUser(Long partyId, Long partyUserId, Long userId, UpdatePartyUserRequestDto request) {
         partyAccessService.checkMasterOrThrow(partyId, userId);

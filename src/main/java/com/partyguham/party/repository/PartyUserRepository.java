@@ -1,5 +1,6 @@
 package com.partyguham.party.repository;
 
+import com.partyguham.common.entity.Status;
 import com.partyguham.party.entity.PartyAuthority;
 import com.partyguham.party.entity.PartyUser;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -26,4 +27,14 @@ public interface PartyUserRepository extends JpaRepository<PartyUser, Long>, Par
     Page<PartyUser> findByPartyIdAndAuthorityAndUser_NicknameContainingIgnoreCase(
             Long partyId, PartyAuthority authority, String nickname, Pageable pageable
     );
+
+    // 요청자(현재 로그인 유저)의 파티 참여 정보
+    Optional<PartyUser> findByParty_IdAndUser_IdAndStatus(Long partyId,
+                                                          Long userId,
+                                                          Status status);
+
+    // 위임 대상 파티원
+    Optional<PartyUser> findByIdAndParty_IdAndStatus(Long partyUserId,
+                                                     Long partyId,
+                                                     Status status);
 }
