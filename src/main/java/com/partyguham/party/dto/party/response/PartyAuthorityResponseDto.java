@@ -1,5 +1,6 @@
 package com.partyguham.party.dto.party.response;
 
+import com.partyguham.party.entity.PartyAuthority;
 import com.partyguham.party.entity.PartyUser;
 import lombok.*;
 
@@ -10,7 +11,7 @@ import lombok.*;
 public class PartyAuthorityResponseDto {
 
     private Long id;
-    private String authority; // master / deputy / member
+    private PartyAuthority authority; // @JsonValue로 자동 직렬화 (master / deputy / member)
     private PositionDto position;
 
     @Getter
@@ -26,7 +27,7 @@ public class PartyAuthorityResponseDto {
     public static PartyAuthorityResponseDto from(PartyUser partyUser) {
         return PartyAuthorityResponseDto.builder()
                 .id(partyUser.getId())
-                .authority(partyUser.getAuthority().name().toLowerCase())
+                .authority(partyUser.getAuthority())
                 .position(
                         partyUser.getPosition() != null ?
                                 PositionDto.builder()

@@ -1,5 +1,6 @@
 package com.partyguham.party.dto.party.response;
 
+import com.partyguham.party.entity.PartyAuthority;
 import com.partyguham.party.entity.PartyUser;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -15,7 +16,7 @@ import java.util.List;
 public class PartyUserDto {
 
     private Long id;
-    private String authority; // master / deputy / member
+    private PartyAuthority authority; // @JsonValue로 자동 직렬화 (String이면 불가)
 
     private PositionDto position;
 
@@ -36,7 +37,6 @@ public class PartyUserDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class UserDto {
-        private Long id;
         private String nickname;
         private String image;
         private List<CareerDto> userCareers;
@@ -54,7 +54,7 @@ public class PartyUserDto {
     public static PartyUserDto from(PartyUser partyUser) {
         return PartyUserDto.builder()
                 .id(partyUser.getId())
-                .authority(partyUser.getAuthority().name())
+                .authority(partyUser.getAuthority())
                 .position(
                         partyUser.getPosition() != null ?
                                 PositionDto.builder()
@@ -66,7 +66,6 @@ public class PartyUserDto {
                 )
                 .user(
                         UserDto.builder()
-                                .id(partyUser.getUser().getId())
                                 .nickname(partyUser.getUser().getNickname())
                                 .image(
                                         partyUser.getUser().getProfile() != null ?
@@ -81,7 +80,7 @@ public class PartyUserDto {
     public static PartyUserDto from(PartyUser partyUser, List<com.partyguham.user.profile.entity.UserCareer> userCareers) {
         return PartyUserDto.builder()
                 .id(partyUser.getId())
-                .authority(partyUser.getAuthority().name())
+                .authority(partyUser.getAuthority())
                 .position(
                         partyUser.getPosition() != null ?
                                 PositionDto.builder()
@@ -93,7 +92,6 @@ public class PartyUserDto {
                 )
                 .user(
                         UserDto.builder()
-                                .id(partyUser.getUser().getId())
                                 .nickname(partyUser.getUser().getNickname())
                                 .image(
                                         partyUser.getUser().getProfile() != null ?

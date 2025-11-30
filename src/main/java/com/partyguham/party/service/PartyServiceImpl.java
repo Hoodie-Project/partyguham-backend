@@ -32,7 +32,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class PartyServiceImpl /*extends S3FileService*/ implements PartyService  { //TODO: 예외처리필요
+public class PartyServiceImpl /*extends S3FileService*/ implements PartyService  { //TODO: S3 이미지 업로드
 
     private final PartyRepository partyRepository;
     private final PartyTypeRepository partyTypeRepository;
@@ -173,7 +173,7 @@ public class PartyServiceImpl /*extends S3FileService*/ implements PartyService 
 
         // PartyUser 조회
         PartyUser partyUser = partyUserRepository.findByPartyIdAndUserId(partyId, userId)
-                .orElseThrow(() -> new IllegalArgumentException("파티원을 찾을 수 없습니다. 파티 ID: " + partyId + ", 사용자 ID: " + userId));
+                .orElseThrow(() -> new com.partyguham.party.exception.PartyUserNotFoundException(partyId, userId));
 
         return PartyAuthorityResponseDto.from(partyUser);
     }
