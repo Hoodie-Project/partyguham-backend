@@ -11,6 +11,12 @@ import com.partyguham.party.entity.Party;
 import com.partyguham.party.entity.PartyAuthority;
 import com.partyguham.party.entity.PartyType;
 import com.partyguham.party.entity.PartyUser;
+import com.partyguham.party.exception.PartyAccessDeniedException;
+import com.partyguham.party.exception.PartyNotFoundException;
+import com.partyguham.party.exception.PartyTypeNotFoundException;
+import com.partyguham.party.exception.PartyUserNotFoundException;
+import com.partyguham.party.exception.PositionNotFoundException;
+import com.partyguham.party.exception.UserNotFoundException;
 import com.partyguham.party.repository.PartyRepository;
 import com.partyguham.party.repository.PartyTypeRepository;
 import com.partyguham.party.repository.PartyUserRepository;
@@ -48,14 +54,14 @@ public class PartyServiceImpl /*extends S3FileService*/ implements PartyService 
     @Transactional
     public PartyResponseDto createParty(PartyCreateRequestDto request, Long userId) { // 파티 생성
         PartyType partyType = partyTypeRepository.findById(request.getPartyTypeId())
-                .orElseThrow(() -> new IllegalArgumentException("Party Type이 존재하지 않습니다: " + request.getPartyTypeId()));
+                .orElseThrow(() -> new PartyTypeNotFoundException(request.getPartyTypeId()));
 
         Position position = positionRepository.findById(request.getPositionId())
-                .orElseThrow(() -> new IllegalArgumentException("Position이 존재하지 않습니다: " + request.getPositionId()));
+                .orElseThrow(() -> new PositionNotFoundException(request.getPositionId()));
 
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User가 존재하지 않습니다: " + userId));
+                .orElseThrow(() -> new UserNotFoundException(userId));
 
         String imageUrl = null;
         if (request.getImage() != null && !request.getImage().isEmpty()) {
@@ -113,16 +119,16 @@ public class PartyServiceImpl /*extends S3FileService*/ implements PartyService 
     @Override
     public GetPartyResponseDto getParty(Long partyId) { // 파티 단일 조회
         Party party = partyRepository.findById(partyId)
-                .orElseThrow(() -> new IllegalArgumentException("파티를 찾을 수 없습니다: " + partyId));
+                .orElseThrow(() -> new PartyNotFoundException(partyId));
 
         return GetPartyResponseDto.from(party);
     }
 
     @Override
     public GetPartyUserResponseDto getPartyUsers(GetPartyUsersRequestDto request, Long partyId) { // 파티원 목록 조회
-        // 파티 존재 확인
+        
         partyRepository.findById(partyId)
-                .orElseThrow(() -> new IllegalArgumentException("파티를 찾을 수 없습니다: " + partyId));
+                .orElseThrow(() -> new PartyNotFoundException(partyId));
 
         // 기본값 적용
         request.applyDefaultValues();
@@ -152,10 +158,10 @@ public class PartyServiceImpl /*extends S3FileService*/ implements PartyService 
                 .toList();
 
         List<PartyUserDto> partyUserList = page.getContent().stream()
-                .filter(pu -> pu.getAuthority() == PartyAuthority.MEMBER)
-                .map(pu -> {
-                    var userCareers = userCareerRepository.findByUser(pu.getUser());
-                    return PartyUserDto.from(pu, userCareers);
+                .filter(partyUser -> partyUser.getAuthority() == PartyAuthority.MEMBER)
+                .map(partyUser -> {
+                    var userCareers = userCareerRepository.findByUser(partyUser.getUser());
+                    return PartyUserDto.from(partyUser, userCareers);
                 })
                 .toList();
 
@@ -167,13 +173,13 @@ public class PartyServiceImpl /*extends S3FileService*/ implements PartyService 
 
     @Override
     public PartyAuthorityResponseDto getPartyAuthority(Long partyId, Long userId) { // 나의 파티 권한 조회
-        // 파티 존재 확인
+        
         partyRepository.findById(partyId)
-                .orElseThrow(() -> new IllegalArgumentException("파티를 찾을 수 없습니다: " + partyId));
+                .orElseThrow(() -> new PartyNotFoundException(partyId));
 
         // PartyUser 조회
         PartyUser partyUser = partyUserRepository.findByPartyIdAndUserId(partyId, userId)
-                .orElseThrow(() -> new com.partyguham.party.exception.PartyUserNotFoundException(partyId, userId));
+                .orElseThrow(() -> new PartyUserNotFoundException(partyId, userId));
 
         return PartyAuthorityResponseDto.from(partyUser);
     }
@@ -190,17 +196,22 @@ public class PartyServiceImpl /*extends S3FileService*/ implements PartyService 
     public void leaveParty(Long partyId, Long userId) { // 파티 나가기
         // 파티 존재 확인
         partyRepository.findById(partyId)
-                .orElseThrow(() -> new IllegalArgumentException("파티를 찾을 수 없습니다: " + partyId));
+                .orElseThrow(() -> new PartyNotFoundException(partyId));
 
         // PartyUser 조회 및 삭제
         PartyUser partyUser = partyUserRepository.findByPartyIdAndUserId(partyId, userId)
-                .orElseThrow(() -> new IllegalArgumentException("파티원을 찾을 수 없습니다. 파티 ID: " + partyId + ", 사용자 ID: " + userId));
+                .orElseThrow(() -> new PartyUserNotFoundException(partyId, userId));
+
+        // 파티장은 파티를 나갈 수 없음
+        if (partyUser.getAuthority() == PartyAuthority.MASTER) {
+            throw new PartyAccessDeniedException("파티장은 파티를 나갈 수 없습니다.");
+        }
 
         partyUserRepository.delete(partyUser);
     }
 
     @Override
-    public GetSearchResponseDto searchParties(int page, int limit, String titleSearch) {
+    public GetSearchResponseDto searchParties(int page, int limit, String titleSearch) { // 파티/모집공고 통합검색
         Pageable pageable = PageRequest.of(page - 1, limit);
 
         // Party 검색
