@@ -40,4 +40,8 @@ public interface PartyUserRepository extends JpaRepository<PartyUser, Long>, Par
 
 
     long countByParty_IdAndStatusNot(Long partyId, Status status);
+
+    Optional<PartyUser> findByIdAndParty_IdAndStatusNot(Long partyUserId,
+                                                        Long partyId,
+                                                        Status status);
 }

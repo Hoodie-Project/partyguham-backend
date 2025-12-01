@@ -1,5 +1,7 @@
 package com.partyguham.party.service;
 
+import com.partyguham.catalog.entity.Position;
+import com.partyguham.catalog.repository.PositionRepository;
 import com.partyguham.common.entity.Status;
 import com.partyguham.infra.s3.S3FileService;
 import com.partyguham.party.dto.partyAdmin.mapper.PartyUserAdminMapper;
@@ -28,6 +30,7 @@ public class PartyAdminService {
     private final PartyUserRepository partyUserRepository;
     private final PartyRepository partyRepository;
     private final PartyTypeRepository partyTypeRepository;
+    private final PositionRepository positionRepository;
     private final S3FileService s3FileService; // 이전 이미지 삭제용(옵션)
 
 
@@ -264,10 +267,37 @@ public class PartyAdminService {
         return PartyDelegationResponseDto.from(party, currentMaster, target);
     }
 
-    public UpdatePartyUserResponseDto updatePartyUser(Long partyId, Long partyUserId, Long userId, UpdatePartyUserRequestDto request) {
-        partyAccessService.checkMasterOrThrow(partyId, userId);
+    @Transactional
+    public void updatePartyUser(Long partyId,
+                                Long partyUserId,
+                                Long userId,
+                                UpdatePartyUserRequestDto request) {
 
-        return null;
+        // 1) 관리자 권한 체크 (MASTER or DEPUTY)
+        partyAccessService.checkManagerOrThrow(partyId, userId);
+
+        // 2) 파티원 조회
+        PartyUser partyUser = partyUserRepository
+                .findByIdAndParty_IdAndStatusNot(partyUserId, partyId, Status.DELETED)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "파티원을 찾을 수 없습니다. id=" + partyUserId
+                ));
+
+        // 3) 포지션 변경 (optional)
+        if (request.getPositionId() != null) {
+            Position position = positionRepository.findById(request.getPositionId())
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "포지션이 존재하지 않습니다. id=" + request.getPositionId()
+                    ));
+            partyUser.setPosition(position);
+        }
+
+        // 4) 권한 변경 (optional)
+        if (request.getAuthority() != null) {
+            partyUser.setAuthority(request.getAuthority());
+        }
+
+        // 5) 엔티티는 JPA 영속 상태 → 자동 flush, 별도 반환 X
     }
 
 

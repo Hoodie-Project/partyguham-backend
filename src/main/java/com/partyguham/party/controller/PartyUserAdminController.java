@@ -43,18 +43,17 @@ public class PartyUserAdminController {
     }
 
     /**
-     * 파티원 정보 수정 (포지션, 권한 등)
+     * 파티원 정보 수정 (포지션 변경)
      */
     @PatchMapping("/{partyUserId}")
-    public ResponseEntity<UpdatePartyUserResponseDto> updatePartyUser(
+    public ResponseEntity<Void> updatePartyUser(
             @PathVariable Long partyId,
             @PathVariable Long partyUserId,
             @AuthenticationPrincipal UserPrincipal user,
             @RequestBody UpdatePartyUserRequestDto request
     ) {
-        return ResponseEntity.ok(
-                partyAdminService.updatePartyUser(partyId, partyUserId, user.getId(), request)
-        );
+        partyAdminService.updatePartyUser(partyId, partyUserId, user.getId(), request);
+        return ResponseEntity.noContent().build(); // 204
     }
 
     /**
