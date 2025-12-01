@@ -69,7 +69,7 @@ public class PartyAdminService {
 
         // 6) 최종 응답 조립
         return GetAdminPartyUsersResponseDto.builder()
-                .totalCount(totalCount) // 파티 전체 인원 수
+                .totalPartyUserCount(totalCount) // 파티 전체 인원 수
                 .total(total)           // 필터 + 페이징 후 인원 수
                 .partyUsers(items)
                 .build();

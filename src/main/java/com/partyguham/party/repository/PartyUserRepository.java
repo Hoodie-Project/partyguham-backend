@@ -37,4 +37,7 @@ public interface PartyUserRepository extends JpaRepository<PartyUser, Long>, Par
     Optional<PartyUser> findByIdAndParty_IdAndStatus(Long partyUserId,
                                                      Long partyId,
                                                      Status status);
+
+
+    long countByParty_IdAndStatusNot(Long partyId, Status status);
 }
