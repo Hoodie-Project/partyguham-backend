@@ -6,6 +6,7 @@ import com.partyguham.party.dto.partyAdmin.mapper.PartyUserAdminMapper;
 import com.partyguham.party.dto.partyAdmin.request.*;
 import com.partyguham.party.dto.partyAdmin.response.*;
 import com.partyguham.party.entity.Party;
+import com.partyguham.party.entity.PartyAuthority;
 import com.partyguham.party.entity.PartyType;
 import com.partyguham.party.entity.PartyUser;
 import com.partyguham.party.repository.PartyRepository;
@@ -164,17 +165,104 @@ public class PartyAdminService {
     }
 
 
+
+    /**
+     * 파티 삭제 (소프트 삭제)
+     */
+    @Transactional
     public void deleteParty(Long partyId, Long userId) {
+        // 1) 권한 체크 (파티장만)
         partyAccessService.checkMasterOrThrow(partyId, userId);
+
+        // 2) 파티 조회
+        Party party = partyRepository.findById(partyId)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "존재하지 않는 파티입니다. id=" + partyId));
+
+        // 이미 삭제된 파티면 그냥 리턴
+        if (party.getStatus() == Status.DELETED) {
+            return;
+        }
+
+        // 3) 파티 대표 이미지 S3 삭제 (실패해도 롤백 안 되게)
+        String oldImageKey = party.getImage();
+        if (oldImageKey != null && !oldImageKey.isBlank()) {
+            s3FileService.deleteSafely(oldImageKey);
+        }
+
+        // 4) 파티 자체 삭제 처리
+        party.setStatus(Status.DELETED);
+
+        // 5) 파티 관련 모집글 전부 삭제 처리
+        if (party.getPartyRecruitments() != null) {
+            party.getPartyRecruitments()
+                    .forEach(r -> r.setStatus(Status.DELETED));
+        }
+
+        // 6) 파티원 이력도 삭제 처리
+        if (party.getPartyUsers() != null) {
+            party.getPartyUsers()
+                    .forEach(pu -> pu.setStatus(Status.DELETED));
+        }
+
+        // 7) 🆕 연관 지원내역(PartyApplication) 전체 삭제
+        //    ※ Party → Recruitment → Applications 구조라면 아래처럼 처리
+//        if (party.getPartyRecruitments() != null) {
+//            party.getPartyRecruitments().forEach(rec -> {
+//                if (rec.getApplications() != null) {
+//                    rec.getApplications()
+//                            .forEach(app -> app.setStatus(Status.DELETED));
+//                }
+//            });
+//        }
     }
 
 
-    public PartyDelegationResponseDto delegateParty(Long partyId, Long userId, PartyDelegationRequestDto request) {
+    public PartyDelegationResponseDto delegateParty(Long partyId,
+                                                    Long userId,
+                                                    PartyDelegationRequestDto request) {
+
+        // 1) 요청자가 파티의 MASTER 인지 체크 (파티 삭제 때 썼던 메서드 재사용)
         partyAccessService.checkMasterOrThrow(partyId, userId);
 
-        return null;
-    }
+        // 2) 파티 존재 확인 (optional이지만 방어적으로 한 번 더)
+        Party party = partyRepository.findById(partyId)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "존재하지 않는 파티입니다. id=" + partyId));
 
+        // 3) 현재 파티장 PartyUser 찾기
+        PartyUser currentMaster = partyUserRepository
+                .findByParty_IdAndUser_IdAndStatus(partyId, userId, Status.ACTIVE)
+                .orElseThrow(() -> new IllegalStateException(
+                        "현재 파티장 정보를 찾을 수 없습니다."));
+
+        if (currentMaster.getAuthority() != PartyAuthority.MASTER) {
+            throw new IllegalStateException("파티장만 권한을 위임할 수 있습니다.");
+        }
+
+        // 4) 위임 대상 파티원 찾기
+        Long targetPartyUserId = request.getPartyUserId();
+
+        PartyUser target = partyUserRepository
+                .findByIdAndParty_IdAndStatus(targetPartyUserId, partyId, Status.ACTIVE)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "위임 대상 파티원을 찾을 수 없습니다. id=" + targetPartyUserId));
+
+        if (target.getAuthority() == PartyAuthority.MASTER) {
+            throw new IllegalStateException("이미 파티장인 멤버에게는 위임할 수 없습니다.");
+        }
+
+        if (target.getId().equals(currentMaster.getId())) {
+            throw new IllegalArgumentException("자기 자신에게 파티장 권한을 위임할 수 없습니다.");
+        }
+
+        // 5) 권한 변경 로직
+        // 지금은 DEPUTY 로직 안 쓰니까: MASTER → MEMBER, 대상 → MASTER
+        currentMaster.setAuthority(PartyAuthority.MEMBER);
+        target.setAuthority(PartyAuthority.MASTER);
+
+        return PartyDelegationResponseDto.from(party, currentMaster, target);
+    }
 
     public UpdatePartyUserResponseDto updatePartyUser(Long partyId, Long partyUserId, Long userId, UpdatePartyUserRequestDto request) {
         partyAccessService.checkMasterOrThrow(partyId, userId);

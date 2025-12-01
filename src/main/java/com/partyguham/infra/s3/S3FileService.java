@@ -1,6 +1,7 @@
 package com.partyguham.infra.s3;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -21,6 +22,7 @@ import java.util.UUID;
  * - key 는 "folder/타임스탬프-UUID.확장자" 형태로 생성
  * - 예외는 모두 S3StorageException 으로 래핑해서 바깥으로 던짐
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class S3FileService {
@@ -90,6 +92,20 @@ public class S3FileService {
             // 보통 삭제 실패는 치명적이지 않아서 로그만 찍고 넘기는 경우도 많음
             // 여기서는 일단 예외를 래핑해서 던지도록 구현
             throw new S3StorageException("S3 삭제 실패: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 롤백 방지 파일 삭제
+     *
+     * @param key S3 object key
+     */
+    public void deleteSafely(String key) {
+        try {
+            delete(key);
+        } catch (Exception e) {
+            // 여기서는 로그만 찍고 무시 (레코드 삭제는 그대로 진행)
+            log.warn("[S3] 파일 삭제 실패 key={}", key, e);
         }
     }
 
