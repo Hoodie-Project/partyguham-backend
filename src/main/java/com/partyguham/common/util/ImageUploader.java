@@ -10,7 +10,7 @@ import java.util.UUID;
 @Component
 public class ImageUploader {
 
-    private final String uploadDir = "uploads";
+    private final String uploadDir = "/Users/younggalee/Desktop/project/partyguham-backend-spring/uploads";
 
     public String upload(MultipartFile file) {
         validateImage(file);

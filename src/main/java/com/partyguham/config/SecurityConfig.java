@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -31,7 +32,7 @@ public class SecurityConfig {
     @Order(1)
     public SecurityFilterChain apiChain(HttpSecurity http) throws Exception {
         http
-                .securityMatcher("/api/**")          // 🔥 이 체인은 /api/** 만 적용
+                .securityMatcher("/api/**")          // 이 체인은 /api/** 만 적용
                 .csrf(csrf -> csrf.disable())        // REST API 이므로 CSRF OFF
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
@@ -39,8 +40,16 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/v2/auth/**",
                                 "/api/v2/banners",
-                                "/api/v2/auth/oauth/**"
+                                "/api/v2/auth/oauth/**",
+                                "/api/v2/"
                         ).permitAll()
+
+                        /* ==== 파티 관련 공개 API (인증 불필요) ==== */
+                        .requestMatchers(HttpMethod.GET, "/api/v2/parties").permitAll()                    // 파티 목록 조회
+                        .requestMatchers(HttpMethod.GET, "/api/v2/parties/{partyId}").permitAll()         // 파티 단일 조회
+                        .requestMatchers(HttpMethod.GET, "/api/v2/parties/{partyId}/users").permitAll()   // 파티원 목록 조회
+                        .requestMatchers(HttpMethod.GET, "/api/v2/parties/types").permitAll()             // 파티 타입 목록 조회
+                        .requestMatchers(HttpMethod.GET, "/api/v2/parties/search").permitAll()            // 파티 검색
 
                         // OTT로 보호할 엔드포인트
                         .requestMatchers("/api/v2/users/recover/**")
