@@ -34,7 +34,6 @@ public class PartyAdminService {
     private final S3FileService s3FileService; // 이전 이미지 삭제용(옵션)
 
 
-
     /**
      * 관리자용 파티원 목록 조회
      * - 파티장/부파티장 권한 필요
@@ -168,7 +167,6 @@ public class PartyAdminService {
     }
 
 
-
     /**
      * 파티 삭제 (소프트 삭제)
      */
@@ -291,22 +289,63 @@ public class PartyAdminService {
                     ));
             partyUser.setPosition(position);
         }
+    }
 
-        // 4) 권한 변경 (optional)
-        if (request.getAuthority() != null) {
-            partyUser.setAuthority(request.getAuthority());
+
+    public void deletePartyUser(Long partyId,
+                                Long partyUserId,
+                                Long userId) {
+
+        // 1) 관리자 권한 체크 (파티장/부파티장)
+        partyAccessService.checkManagerOrThrow(partyId, userId);
+
+        // 2) 파티원 조회 (DELETED 제외)
+        PartyUser target = partyUserRepository
+                .findByIdAndParty_IdAndStatusNot(partyUserId, partyId, Status.DELETED)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "파티원을 찾을 수 없습니다. id=" + partyUserId
+                ));
+
+        // 3) 파티장 강퇴 방지 (규칙: MASTER는 이 API로 못 내보냄)
+        if (target.getAuthority() == PartyAuthority.MASTER) {
+            throw new IllegalStateException("파티장은 강제 퇴장시킬 수 없습니다.");
         }
 
-        // 5) 엔티티는 JPA 영속 상태 → 자동 flush, 별도 반환 X
+        // 4) 소프트 삭제
+        target.setStatus(Status.DELETED);
     }
 
 
-    public void deletePartyUser(Long partyId, Long partyUserId, Long userId) {
-        partyAccessService.checkMasterOrThrow(partyId, userId);
-    }
+    @Transactional
+    public void deletePartyUserBatch(Long partyId,
+                                     Long userId,
+                                     DeletePartyUsersBodyRequestDto request) {
 
+        // 1) 관리자 권한 체크
+        partyAccessService.checkManagerOrThrow(partyId, userId);
 
-    public void deletePartyUserBatch(Long partyId, Long userId, DeletePartyUsersBodyRequestDto request) {
-        partyAccessService.checkMasterOrThrow(partyId, userId);
+        List<Long> ids = request.getPartyUserIds();
+        if (ids == null || ids.isEmpty()) {
+            return; // 혹은 IllegalArgumentException 던져도 됨
+        }
+
+        // 2) 해당 파티 + 아직 삭제 안 된 파티원들 조회
+        List<PartyUser> partyUsers = partyUserRepository
+                .findByParty_IdAndIdInAndStatusNot(partyId, ids, Status.DELETED);
+
+        if (partyUsers.isEmpty()) {
+            return;
+        }
+
+        // 3) 파티장 포함 여부 체크
+        boolean hasMaster = partyUsers.stream()
+                .anyMatch(pu -> pu.getAuthority() == PartyAuthority.MASTER);
+
+        if (hasMaster) {
+            throw new IllegalStateException("파티장은 배치 강제 퇴장시킬 수 없습니다.");
+        }
+
+        // 4) 모두 소프트 삭제
+        partyUsers.forEach(pu -> pu.setStatus(Status.DELETED));
     }
 }
