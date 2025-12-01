@@ -1,0 +1,22 @@
+package com.partyguham.party.repository;
+
+import com.partyguham.party.dto.partyAdmin.request.GetAdminPartyUsersRequestDto;
+import com.partyguham.party.entity.PartyUser;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
+public interface PartyUserQueryRepository {
+
+    /**
+     * 삭제되지 않은 파티원의 전체 수
+     * - 필터와 상관없이 "이 파티에 몇 명 있냐?"를 위해 사용
+     */
+    long countAllByPartyIdNotDeleted(Long partyId);
+
+    /**
+     * 관리자용 파티원 목록 조회 (필터 + 페이징)
+     */
+    Page<PartyUser> searchAdminPartyUsers(Long partyId,
+                                          GetAdminPartyUsersRequestDto req,
+                                          Pageable pageable);
+}

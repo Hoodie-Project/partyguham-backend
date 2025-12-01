@@ -57,7 +57,7 @@ public class S3FileService {
                     RequestBody.fromInputStream(is, file.getSize())
             );
 
-            return key; // DB에는 이 key 를 저장해두고 사용
+            return key; // DB에는 key를 저장해두고 사용
 
         } catch (IOException e) {
             // 파일 스트림 관련 문제

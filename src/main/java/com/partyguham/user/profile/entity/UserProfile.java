@@ -36,6 +36,4 @@ public class UserProfile {
     @JoinColumn(name="user_id", nullable=false, unique=true)
     private User user;
 
-    // 예: region/career/trait FK/조인테이블은 여기로 이동
-
 }

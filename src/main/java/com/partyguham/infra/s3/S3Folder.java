@@ -2,8 +2,8 @@ package com.partyguham.infra.s3;
 
 public enum S3Folder {
     BANNER("images/banners"),
-    USER_PROFILE("images/profiles"),
-    PARTY("images/party");
+    USER_PROFILE("images/user-profiles"),
+    PARTY("images/parties");
 
     private final String path;
 
