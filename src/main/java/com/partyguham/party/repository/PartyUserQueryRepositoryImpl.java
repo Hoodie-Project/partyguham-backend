@@ -5,6 +5,10 @@ import com.partyguham.party.entity.PartyUser;
 import com.partyguham.party.entity.PartyAuthority;
 import com.partyguham.common.entity.Status;
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.Order;
+import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
@@ -94,5 +98,94 @@ public class PartyUserQueryRepositoryImpl implements PartyUserQueryRepository {
         }
 
         return where;
+    }
+
+    @Override
+    public Page<PartyUser> searchAdminPartyUsers(Long partyId,
+                                                 String main,
+                                                 PartyAuthority authority,
+                                                 String nickname,
+                                                 String sort,
+                                                 String order,
+                                                 Pageable pageable) {
+
+        // 기본 where 조건
+        BooleanExpression baseCondition =
+                partyUser.party.id.eq(partyId)
+                        .and(partyUser.status.ne(Status.DELETED));
+
+        BooleanExpression authorityCond = authorityEq(authority);
+        BooleanExpression nicknameCond = nicknameContains(nickname);
+        BooleanExpression mainCond = mainEq(main);
+
+        // 조회 쿼리
+        JPAQuery<PartyUser> contentQuery = queryFactory
+                .selectFrom(partyUser)
+                .leftJoin(partyUser.user, user).fetchJoin()
+                .leftJoin(user.profile, userProfile).fetchJoin()
+                .leftJoin(partyUser.position, position).fetchJoin()
+                .where(
+                        baseCondition,
+                        authorityCond,
+                        nicknameCond,
+                        mainCond
+                );
+
+        // 정렬 적용
+        OrderSpecifier<?> orderSpecifier = toOrderSpecifier(sort, order);
+        if (orderSpecifier != null) {
+            contentQuery.orderBy(orderSpecifier);
+        }
+
+        // 페이징 적용
+        List<PartyUser> content = contentQuery
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        // 카운트 쿼리 (fetchJoin 제거)
+        JPAQuery<Long> countQuery = queryFactory
+                .select(partyUser.count())
+                .from(partyUser)
+                .leftJoin(partyUser.user, user)
+                .leftJoin(partyUser.position, position)
+                .where(
+                        baseCondition,
+                        authorityCond,
+                        nicknameCond,
+                        mainCond
+                );
+
+        long total = countQuery.fetchOne() != null ? countQuery.fetchOne() : 0L;
+
+        return new PageImpl<>(content, pageable, total);
+    }
+
+    private BooleanExpression authorityEq(PartyAuthority authority) {
+        return authority != null ? partyUser.authority.eq(authority) : null;
+    }
+
+    private BooleanExpression nicknameContains(String nickname) {
+        return (nickname != null && !nickname.isBlank())
+                ? user.nickname.containsIgnoreCase(nickname)
+                : null;
+    }
+
+    private BooleanExpression mainEq(String main) {
+        return (main != null && !main.isBlank())
+                ? position.main.eq(main)
+                : null;
+    }
+
+    private OrderSpecifier<?> toOrderSpecifier(String sort, String order) {
+        Order direction = "asc".equalsIgnoreCase(order) ? Order.ASC : Order.DESC;
+
+        String safeSort = (sort != null) ? sort : "id";
+
+        return switch (safeSort) {
+            case "createdAt" -> new OrderSpecifier<>(direction, partyUser.createdAt);
+            case "updatedAt" -> new OrderSpecifier<>(direction, partyUser.updatedAt);
+            default -> new OrderSpecifier<>(direction, partyUser.id);
+        };
     }
 }

@@ -1,6 +1,7 @@
 package com.partyguham.party.repository;
 
 import com.partyguham.party.dto.partyAdmin.request.GetAdminPartyUsersRequestDto;
+import com.partyguham.party.entity.PartyAuthority;
 import com.partyguham.party.entity.PartyUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,5 +19,13 @@ public interface PartyUserQueryRepository {
      */
     Page<PartyUser> searchAdminPartyUsers(Long partyId,
                                           GetAdminPartyUsersRequestDto req,
+                                          Pageable pageable);
+
+    Page<PartyUser> searchAdminPartyUsers(Long partyId,
+                                          String main,              // position.main
+                                          PartyAuthority authority,
+                                          String nickname,
+                                          String sort,
+                                          String order,
                                           Pageable pageable);
 }
