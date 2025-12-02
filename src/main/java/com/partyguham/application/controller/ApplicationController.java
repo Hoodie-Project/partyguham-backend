@@ -1,49 +1,55 @@
-//package com.partyguham.party.application.controller;
+package com.partyguham.application.controller;
+
+import com.partyguham.application.dto.req.CreatePartyApplicationRequestDto;
+import com.partyguham.application.service.PartyApplicationService;
+import com.partyguham.auth.jwt.UserPrincipal;
+import com.partyguham.common.annotation.ApiV2Controller;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
+
+@ApiV2Controller
+@RequiredArgsConstructor
+@RequestMapping("/parties/{partyId}")
+public class ApplicationController {
+
+    final private PartyApplicationService partyApplicationService;
+
+    // 모집 지원
+    @PostMapping("/recruitments/{partyRecruitmentId}/applications")
+    public ResponseEntity<Void> createPartyApplication(
+            @PathVariable Long partyId,
+            @PathVariable Long partyRecruitmentId,
+            @AuthenticationPrincipal UserPrincipal user,
+            @RequestBody CreatePartyApplicationRequestDto request
+    ) {
+        partyApplicationService.applyToRecruitment(partyId, partyRecruitmentId, user.getId(), request);
+        return ResponseEntity.noContent().build(); // 204
+    }
 //
-//
-//import com.partyguham.auth.jwt.UserPrincipal;
-//import com.partyguham.recruitment.dto.request.CreatePartyApplicationRequestDto;
-//import com.partyguham.recruitment.dto.request.PartyApplicantSearchRequestDto;
-//import com.partyguham.recruitment.dto.response.CreatePartyApplicationResponseDto;
-//import com.partyguham.recruitment.dto.response.PartyApplicationMeResponseDto;
-//import com.partyguham.recruitment.dto.response.PartyApplicationsResponseDto;
-//import org.springframework.http.ResponseEntity;
-//import org.springframework.security.core.annotation.AuthenticationPrincipal;
-//import org.springframework.web.bind.annotation.*;
-//
-//@RestController
-//@RequestMapping("/api/parties")
-//public class ApplicationController {
-//    @PostMapping("/{partyId}/applications/{partyApplicationId}/approval")
+//    @PostMapping("/applications/{partyApplicationId}/approval")
 //    public ResponseEntity<MessageResponseDto> approvePartyApplication(
 //            @PathVariable Long partyId,
 //            @PathVariable Long partyApplicationId,
 //            @RequestHeader("Authorization") String authorization
 //    ) {}
 //
-//    @PostMapping("/{partyId}/applications/{partyApplicationId}/rejection")
+//    @PostMapping("/applications/{partyApplicationId}/rejection")
 //    public ResponseEntity<MessageResponseDto> rejectPartyApplication(
 //            @PathVariable Long partyId,
 //            @PathVariable Long partyApplicationId,
 //            @RequestHeader("Authorization") String authorization
 //    ) {}
 //
-//    @DeleteMapping("/{partyId}/applications/{partyApplicationId}")
+//    @DeleteMapping("/applications/{partyApplicationId}")
 //    public ResponseEntity<Void> deletePartyApplication(
 //            @PathVariable Long partyId,
 //            @PathVariable Long partyApplicationId,
 //            @RequestHeader("Authorization") String authorization
 //    ) {}
 //
-//    @PostMapping("/{partyId}/recruitments/{partyRecruitmentId}/applications")
-//    public ResponseEntity<CreatePartyApplicationResponseDto> createPartyApplication(
-//            @PathVariable Long partyId,
-//            @PathVariable Long partyRecruitmentId,
-//            @AuthenticationPrincipal UserPrincipal user,
-//            @RequestBody CreatePartyApplicationRequestDto request
-//    ) {}
-//
-//    @GetMapping("/{partyId}/recruitments/{partyRecruitmentId}/applications")
+//    @GetMapping("/recruitments/{partyRecruitmentId}/applications")
 //    public ResponseEntity<PartyApplicationsResponseDto> getPartyApplications(
 //            @PathVariable Long partyId,
 //            @PathVariable Long partyRecruitmentId,
@@ -51,10 +57,10 @@
 //            @ModelAttribute PartyApplicantSearchRequestDto request
 //    ) {}
 //
-//    @GetMapping("/{partyId}/recruitments/{partyRecruitmentId}/applications/me")
+//    @GetMapping("/recruitments/{partyRecruitmentId}/applications/me")
 //    public ResponseEntity<PartyApplicationMeResponseDto> getMyPartyApplication(
 //            @PathVariable Long partyId,
 //            @PathVariable Long partyRecruitmentId,
 //            @AuthenticationPrincipal UserPrincipal user
 //    ) {}
-//}
+}

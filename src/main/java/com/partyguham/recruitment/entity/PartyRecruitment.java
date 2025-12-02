@@ -14,7 +14,7 @@ import lombok.experimental.SuperBuilder;
 import java.util.List;
 
 @Entity
-@Table(name = "party_recruitment")
+@Table(name = "party_recruitments")
 @Getter
 @Setter
 @SuperBuilder

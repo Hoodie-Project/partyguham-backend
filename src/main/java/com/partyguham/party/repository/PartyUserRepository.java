@@ -29,6 +29,10 @@ public interface PartyUserRepository extends JpaRepository<PartyUser, Long>, Par
             Long partyId, PartyAuthority authority, String nickname, Pageable pageable
     );
 
+    Optional<PartyUser> findByParty_IdAndUser_IdAndStatusNot(Long partyId,
+                                                             Long userId,
+                                                             Status status);
+
     // 요청자(현재 로그인 유저)의 파티 참여 정보
     Optional<PartyUser> findByParty_IdAndUser_IdAndStatus(Long partyId,
                                                           Long userId,

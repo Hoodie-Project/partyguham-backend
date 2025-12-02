@@ -12,7 +12,7 @@ import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
 @Entity
-@Table(name = "party_application")
+@Table(name = "party_applications")
 @Getter
 @Setter
 @SuperBuilder
