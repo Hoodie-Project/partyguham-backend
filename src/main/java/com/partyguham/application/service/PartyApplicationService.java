@@ -1,7 +1,9 @@
 package com.partyguham.application.service;
 
 import com.partyguham.application.dto.req.CreatePartyApplicationRequestDto;
+import com.partyguham.application.dto.res.PartyApplicationMeResponseDto;
 import com.partyguham.application.entity.PartyApplication;
+import com.partyguham.application.entity.PartyApplicationStatus;
 import com.partyguham.application.repostiory.PartyApplicationRepository;
 import com.partyguham.common.entity.Status;
 import com.partyguham.party.entity.PartyUser;
@@ -64,5 +66,52 @@ public class PartyApplicationService {
                 .build(); // BaseEntity.status = ACTIVE 기본값
 
         partyApplicationRepository.save(application);
+    }
+
+    public PartyApplicationMeResponseDto getMyApplication(Long partyId,
+                                                          Long recruitmentId,
+                                                          Long userId) {
+
+        PartyApplication app = partyApplicationRepository
+                .findByPartyRecruitment_IdAndPartyRecruitment_Party_IdAndPartyUser_User_Id(
+                        recruitmentId, partyId, userId
+                )
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "해당 모집에 대한 나의 지원 내역이 없습니다."
+                ));
+
+        return PartyApplicationMeResponseDto.from(app);
+    }
+
+    @Transactional
+    public void deleteApplication(Long partyId,
+                                  Long applicationId,
+                                  Long userId) {
+
+        // 1) 지원 조회
+        PartyApplication application = partyApplicationRepository
+                .findById(applicationId)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "존재하지 않는 지원입니다. id=" + applicationId
+                ));
+
+        // 2) 파티 일치 여부 검사
+        if (!application.getPartyRecruitment().getParty().getId().equals(partyId)) {
+            throw new IllegalArgumentException("해당 파티의 지원이 아닙니다.");
+        }
+
+        // 3) 지원자 본인 확인
+        Long ownerUserId = application.getPartyUser().getUser().getId();
+        if (!ownerUserId.equals(userId)) {
+            throw new IllegalStateException("본인이 제출한 지원만 삭제할 수 있습니다.");
+        }
+
+        // 4) 상태 체크: PENDING일 때만 삭제 가능
+        if (application.getApplicationStatus() != PartyApplicationStatus.PENDING) {
+            throw new IllegalStateException("검토중(pending) 상태만 취소가 가능합니다.");
+        }
+
+        // 5) 하드 삭제
+        partyApplicationRepository.delete(application);
     }
 }
