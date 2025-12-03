@@ -97,12 +97,16 @@ tasks.named('test') {
     useJUnitPlatform()
 }
 
-def querydslDir = "$buildDir/generated/querydsl"
+sourceSets {
+    main {
+        java {
+            // annotationProcessor 기본 출력 경로를 소스로 등록
+            srcDir(layout.buildDirectory.dir("generated/sources/annotationProcessor/java/main"))
+        }
+    }
+}
 
 tasks.withType(JavaCompile).configureEach {
     options.annotationProcessorPath = configurations.annotationProcessor
 }
 
-sourceSets {
-    main.java.srcDir querydslDir
-}

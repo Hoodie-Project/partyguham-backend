@@ -48,9 +48,11 @@ public class Notification {
     @Column(length = 255)
     private String link;
 
+    @Builder.Default
     @Column(nullable = false)
     private boolean isRead = false;    // 실제 읽음
 
+    @Builder.Default
     @Column(nullable = false)
     private boolean isChecked = false; // 리스트 노출 여부
 

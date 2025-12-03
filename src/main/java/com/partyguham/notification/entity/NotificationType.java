@@ -35,6 +35,7 @@ public class NotificationType {
     @Column(nullable = false, length = 100)
     private String label;
 
+    @Builder.Default
     @OneToMany(mappedBy = "notificationType")
     private List<Notification> notifications = new ArrayList<>();
 }

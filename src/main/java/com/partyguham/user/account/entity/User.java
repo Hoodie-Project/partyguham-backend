@@ -35,6 +35,7 @@ public class User extends BaseEntity {
     @OneToOne(mappedBy="user", cascade=CascadeType.ALL, orphanRemoval=true, fetch=FetchType.LAZY)
     private UserProfile profile;
 
+    @Builder.Default
     @OneToMany(mappedBy="user", cascade=CascadeType.REMOVE, orphanRemoval=true)
     private List<OauthAccount> oauths = new ArrayList<>();
 
