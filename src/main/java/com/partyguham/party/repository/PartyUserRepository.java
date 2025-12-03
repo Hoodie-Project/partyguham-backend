@@ -54,5 +54,20 @@ public interface PartyUserRepository extends JpaRepository<PartyUser, Long>, Par
                                                       List<Long> ids,
                                                       Status status);
 
+    /**
+     * 특정 파티에 특정 유저가 속해있는지 확인하는 메서드
+     * (단, 삭제된 멤버는 제외)
+     *
+     * - party.id = :partyId
+     * - user.id = :userId
+     * - status != :excludedStatus
+     *
+     * 사용 예:
+     * existsByParty_IdAndUser_IdAndStatusNot(partyId, userId, Status.DELETED)
+     *
+     * → 해당 유저가 파티 멤버인지 여부를 boolean 으로 바로 알 수 있음.
+     */
+    boolean existsByParty_IdAndUser_IdAndStatusNot(Long partyId, Long userId, Status excludedStatus);
+
 
 }

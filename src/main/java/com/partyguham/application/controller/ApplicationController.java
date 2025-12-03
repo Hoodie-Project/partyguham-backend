@@ -1,6 +1,7 @@
 package com.partyguham.application.controller;
 
 import com.partyguham.application.dto.req.CreatePartyApplicationRequestDto;
+import com.partyguham.application.dto.res.MessageResponseDto;
 import com.partyguham.application.dto.res.PartyApplicationMeResponseDto;
 import com.partyguham.application.service.PartyApplicationService;
 import com.partyguham.auth.jwt.UserPrincipal;
@@ -54,5 +55,27 @@ public class ApplicationController {
     ) {
         partyApplicationService.deleteApplication(partyId, partyApplicationId, user.getId());
         return ResponseEntity.noContent().build();
+    }
+
+    // 지원자 최종 수락: PROCESSING -> APPROVED (+ 파티 합류)
+    @PostMapping("/applications/{partyApplicationId}/approval/me")
+    public ResponseEntity<MessageResponseDto> approveMyApplication(
+            @PathVariable Long partyId,
+            @PathVariable Long partyApplicationId,
+            @AuthenticationPrincipal UserPrincipal user
+    ) {
+        partyApplicationService.approveByApplicant(partyId, partyApplicationId, user.getId());
+        return ResponseEntity.ok(MessageResponseDto.of("파티 합류에 동의했습니다."));
+    }
+
+    // 지원자 최종 거절: PROCESSING -> REJECTED
+    @PostMapping("/applications/{partyApplicationId}/rejection/me")
+    public ResponseEntity<MessageResponseDto> rejectMyApplication(
+            @PathVariable Long partyId,
+            @PathVariable Long partyApplicationId,
+            @AuthenticationPrincipal UserPrincipal user
+    ) {
+        partyApplicationService.rejectByApplicant(partyId, partyApplicationId, user.getId());
+        return ResponseEntity.ok(MessageResponseDto.of("참여를 거절했습니다."));
     }
 }

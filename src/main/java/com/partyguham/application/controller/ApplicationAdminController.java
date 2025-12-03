@@ -1,6 +1,7 @@
-package com.partyguham.party.application.controller;
+package com.partyguham.application.controller;
 
 import com.partyguham.application.dto.req.PartyApplicantSearchRequestDto;
+import com.partyguham.application.dto.res.MessageResponseDto;
 import com.partyguham.application.dto.res.PartyApplicationsResponseDto;
 import com.partyguham.application.service.PartyApplicationService;
 import com.partyguham.auth.jwt.UserPrincipal;
@@ -35,26 +36,25 @@ public class ApplicationAdminController {
         );
     }
 
-//    PENDING,      // 검토중
-//    PROCESSING,   // 응답대기
-//    APPROVED,     // 수락
-//    REJECTED;     // 거절
+    // 파티장 지원자 수락: PENDING -> PROCESSING
+    @PostMapping("/applications/{partyApplicationId}/approval")
+    public ResponseEntity<MessageResponseDto> approvePartyApplication(
+            @PathVariable Long partyId,
+            @PathVariable Long partyApplicationId,
+            @AuthenticationPrincipal UserPrincipal user
+    ) {
+        partyApplicationService.approveByManager(partyId, partyApplicationId, user.getId());
+        return ResponseEntity.ok(MessageResponseDto.of("지원 요청을 승인했습니다."));
+    }
 
-//    // 파티장 지원자 수락
-//    @PostMapping("/applications/{partyApplicationId}/approval")
-//    public ResponseEntity<MessageResponseDto> approvePartyApplication(
-//            @PathVariable Long partyId,
-//            @PathVariable Long partyApplicationId,
-//            @RequestHeader("Authorization") String authorization
-//    ) {
-//    }
-//
-//    // 파티장 지원자 거절
-//    @PostMapping("/applications/{partyApplicationId}/rejection")
-//    public ResponseEntity<MessageResponseDto> rejectPartyApplication(
-//            @PathVariable Long partyId,
-//            @PathVariable Long partyApplicationId,
-//            @RequestHeader("Authorization") String authorization
-//    ) {
-//    }
+    // 파티장 지원자 거절: PENDING -> REJECTED
+    @PostMapping("/applications/{partyApplicationId}/rejection")
+    public ResponseEntity<MessageResponseDto> rejectPartyApplication(
+            @PathVariable Long partyId,
+            @PathVariable Long partyApplicationId,
+            @AuthenticationPrincipal UserPrincipal user
+    ) {
+        partyApplicationService.rejectByManager(partyId, partyApplicationId, user.getId());
+        return ResponseEntity.ok(MessageResponseDto.of("지원 요청을 거절했습니다."));
+    }
 }
