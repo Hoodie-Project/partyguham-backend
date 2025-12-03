@@ -4,15 +4,11 @@ import com.partyguham.common.entity.BaseEntity;
 import com.partyguham.party.entity.PartyUser;
 import com.partyguham.recruitment.entity.PartyRecruitment;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 @Entity
-@Table(name = "party_application")
+@Table(name = "party_applications")
 @Getter
 @Setter
 @SuperBuilder
@@ -40,4 +36,9 @@ public class PartyApplication extends BaseEntity {
 
     @Column(columnDefinition = "text")
     private String message;
+
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    @Column(name = "application_status", nullable = false)
+    private PartyApplicationStatus applicationStatus = PartyApplicationStatus.PENDING;
 }

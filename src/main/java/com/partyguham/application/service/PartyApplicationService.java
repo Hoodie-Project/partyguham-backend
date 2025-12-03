@@ -1,0 +1,314 @@
+package com.partyguham.application.service;
+
+import com.partyguham.application.dto.req.CreatePartyApplicationRequestDto;
+import com.partyguham.application.dto.req.PartyApplicantSearchRequestDto;
+import com.partyguham.application.dto.res.PartyApplicationMeResponseDto;
+import com.partyguham.application.dto.res.PartyApplicationsResponseDto;
+import com.partyguham.application.entity.PartyApplication;
+import com.partyguham.application.entity.PartyApplicationStatus;
+import com.partyguham.application.repostiory.PartyApplicationQueryRepository;
+import com.partyguham.application.repostiory.PartyApplicationRepository;
+import com.partyguham.common.entity.Status;
+import com.partyguham.party.entity.Party;
+import com.partyguham.party.entity.PartyAuthority;
+import com.partyguham.party.entity.PartyUser;
+import com.partyguham.party.repository.PartyUserRepository;
+import com.partyguham.party.service.PartyAccessService;
+import com.partyguham.recruitment.entity.PartyRecruitment;
+import com.partyguham.recruitment.repository.PartyRecruitmentRepository;
+import com.partyguham.user.account.entity.User;
+import com.partyguham.user.account.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+@RequiredArgsConstructor
+@Transactional
+public class PartyApplicationService {
+
+    private final PartyAccessService partyAccessService;
+    private final PartyUserRepository partyUserRepository;
+    private final UserRepository userRepository;
+    private final PartyRecruitmentRepository partyRecruitmentRepository;
+    private final PartyApplicationRepository partyApplicationRepository;
+    private final PartyApplicationQueryRepository partyApplicationQueryRepository;
+
+    /**
+     * 모집 지원 생성
+     * - 파티원인지 확인
+     * - 모집공고 유효성 확인
+     * - 중복 지원 방지
+     */
+    public void applyToRecruitment(Long partyId,
+                                   Long recruitmentId,
+                                   Long userId,
+                                   CreatePartyApplicationRequestDto request) {
+
+        // 1) 유저가 해당 파티의 파티원인지 확인 (DELETED 제외)
+        PartyUser partyUser = partyUserRepository
+                .findByParty_IdAndUser_IdAndStatusNot(partyId, userId, Status.DELETED)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "파티원이 아닙니다. partyId=" + partyId + ", userId=" + userId
+                ));
+
+        // 2) 모집공고 조회
+        PartyRecruitment recruitment = partyRecruitmentRepository
+                .findById(recruitmentId)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "존재하지 않는 모집공고입니다. id=" + recruitmentId
+                ));
+
+        // 3) 중복 지원 방지
+        boolean exists = partyApplicationRepository
+                .existsByPartyUser_IdAndPartyRecruitment_Id(
+                        partyUser.getId(), recruitmentId
+                );
+
+        if (exists) {
+            throw new IllegalStateException("이미 이 모집에 지원한 사용자입니다.");
+        }
+
+        // 4) 지원 생성
+        PartyApplication application = PartyApplication.builder()
+                .partyUser(partyUser)
+                .partyRecruitment(recruitment)
+                .message(request.getMessage())
+                .build(); // BaseEntity.status = ACTIVE 기본값
+
+        partyApplicationRepository.save(application);
+    }
+
+    public PartyApplicationMeResponseDto getMyApplication(Long partyId,
+                                                          Long recruitmentId,
+                                                          Long userId) {
+
+        PartyApplication app = partyApplicationRepository
+                .findByPartyRecruitment_IdAndPartyRecruitment_Party_IdAndPartyUser_User_Id(
+                        recruitmentId, partyId, userId
+                )
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "해당 모집에 대한 나의 지원 내역이 없습니다."
+                ));
+
+        return PartyApplicationMeResponseDto.from(app);
+    }
+
+    @Transactional
+    public void deleteApplication(Long partyId,
+                                  Long applicationId,
+                                  Long userId) {
+
+        // 1) 지원 조회
+        PartyApplication application = partyApplicationRepository
+                .findById(applicationId)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "존재하지 않는 지원입니다. id=" + applicationId
+                ));
+
+        // 2) 파티 일치 여부 검사
+        if (!application.getPartyRecruitment().getParty().getId().equals(partyId)) {
+            throw new IllegalArgumentException("해당 파티의 지원이 아닙니다.");
+        }
+
+        // 3) 지원자 본인 확인
+        Long ownerUserId = application.getPartyUser().getUser().getId();
+        if (!ownerUserId.equals(userId)) {
+            throw new IllegalStateException("본인이 제출한 지원만 삭제할 수 있습니다.");
+        }
+
+        // 4) 상태 체크: PENDING일 때만 삭제 가능
+        if (application.getApplicationStatus() != PartyApplicationStatus.PENDING) {
+            throw new IllegalStateException("검토중(pending) 상태만 취소가 가능합니다.");
+        }
+
+        // 5) 하드 삭제
+        partyApplicationRepository.delete(application);
+    }
+
+    @Transactional(readOnly = true)
+    public PartyApplicationsResponseDto getPartyApplications(Long partyId,
+                                                             Long partyRecruitmentId,
+                                                             Long userId,
+                                                             PartyApplicantSearchRequestDto request) {
+
+        // 1) 권한 체크 (파티장/부파티장)
+        partyAccessService.checkManagerOrThrow(partyId, userId);
+
+        // 2) 페이징 변환 (page는 1부터 들어온다고 가정)
+        int page = (request.getPage() != null ? request.getPage() : 1) - 1;
+        int size = request.getLimit() != null ? request.getLimit() : 20;
+        Pageable pageable = PageRequest.of(page, size);
+
+        // 3) QueryDSL 조회
+        var pageResult = partyApplicationQueryRepository
+                .searchApplicants(partyId, partyRecruitmentId, request, pageable);
+
+        // 4) DTO 변환
+        return PartyApplicationsResponseDto.fromEntities(
+                pageResult.getContent(),
+                pageResult.getTotalElements()
+        );
+    }
+
+
+    /**
+     * 파티장 지원 승인 (PENDING -> PROCESSING)
+     */
+    @Transactional
+    public void approveByManager(Long partyId, Long applicationId, Long managerUserId) {
+        // 1) 파티장/부파티장 권한 체크
+        partyAccessService.checkManagerOrThrow(partyId, managerUserId);
+
+        // 2) 지원 엔티티 조회 + 소속 파티 검증
+        PartyApplication app = getApplicationForPartyOrThrow(partyId, applicationId);
+
+        // 3) 상태 검증
+        if (app.getApplicationStatus() != PartyApplicationStatus.PENDING) {
+            throw new IllegalStateException("PENDING 상태의 지원만 승인할 수 있습니다.");
+        }
+
+        // 4) 상태 변경 (응답 대기 상태)
+        app.setApplicationStatus(PartyApplicationStatus.PROCESSING);
+    }
+
+    /**
+     * 파티장 지원 거절 (PENDING -> REJECTED)
+     */
+    @Transactional
+    public void rejectByManager(Long partyId, Long applicationId, Long managerUserId) {
+        // 1) 권한 체크
+        partyAccessService.checkManagerOrThrow(partyId, managerUserId);
+
+        // 2) 지원 엔티티 조회 + 소속 파티 검증
+        PartyApplication app = getApplicationForPartyOrThrow(partyId, applicationId);
+
+        // 3) 상태 검증
+        if (app.getApplicationStatus() != PartyApplicationStatus.PENDING) {
+            throw new IllegalStateException("PENDING 상태의 지원만 거절할 수 있습니다.");
+        }
+
+        // 4) 상태 변경
+        app.setApplicationStatus(PartyApplicationStatus.REJECTED);
+    }
+
+    /**
+     * 공통: 지원 엔티티 조회 + 파티 일치 여부 검증
+     */
+    private PartyApplication getApplicationForPartyOrThrow(Long partyId, Long applicationId) {
+        PartyApplication app = partyApplicationRepository.findById(applicationId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 지원입니다. id=" + applicationId));
+
+        // BaseEntity.status 가 DELETED 인 경우 방어
+        if (app.getStatus() == Status.DELETED) {
+            throw new IllegalStateException("삭제된 지원입니다.");
+        }
+
+        Long appPartyId = app.getPartyRecruitment().getParty().getId();
+        if (!appPartyId.equals(partyId)) {
+            throw new IllegalArgumentException("해당 파티의 지원이 아닙니다.");
+        }
+
+        return app;
+    }
+
+    /**
+     * 지원자 최종 수락: PROCESSING -> APPROVED
+     * + 여기서 파티 합류 처리
+     */
+    @Transactional
+    public void approveByApplicant(Long partyId, Long applicationId, Long applicantUserId) {
+        // 1) 지원 조회 + 파티 일치 여부 검증
+        PartyApplication app = getApplicationForPartyOrThrow(partyId, applicationId);
+
+        // 2) 이 지원이 "내 것"인지 확인
+        Long appUserId = app.getPartyUser().getUser().getId(); // PartyUser → User
+        if (!appUserId.equals(applicantUserId)) {
+            throw new IllegalStateException("본인 지원만 처리할 수 있습니다.");
+        }
+
+        // 3) 상태 검증: 파티장이 승인한 상태여야 함
+        if (app.getApplicationStatus() != PartyApplicationStatus.PROCESSING) {
+            throw new IllegalStateException("PROCESSING 상태의 지원만 최종 승인할 수 있습니다.");
+        }
+
+        // 4) 모집 정보 가져오기
+        PartyRecruitment recruitment = app.getPartyRecruitment();
+        if (Boolean.TRUE.equals(recruitment.getIsCompleted())) {
+            throw new IllegalStateException("이미 마감된 모집입니다.");
+        }
+
+        int current = recruitment.getCurrentParticipants();
+        int max = recruitment.getMaxParticipants();
+
+        if (current >= max) {
+            // 이미 정원 찼으면 방어
+            recruitment.setIsCompleted(true);
+            throw new IllegalStateException("모집 정원이 이미 찼습니다.");
+        }
+
+        // 5) 파티 합류 처리
+        Party party = recruitment.getParty();
+
+        // 이미 해당 파티의 멤버인지 한 번 더 방어
+        boolean alreadyMember = partyUserRepository
+                .existsByParty_IdAndUser_IdAndStatusNot(party.getId(), applicantUserId, Status.DELETED);
+
+        if (!alreadyMember) {
+            // PartyUser 가 이미 app에 연결되어 있다면 그걸 정식 멤버로 쓸 수도 있고,
+            // 구조에 따라 새로 만드는 것도 가능함.
+            PartyUser partyUser = app.getPartyUser();
+
+            if (partyUser == null) {
+                // 혹시 null 케이스도 대비
+                User user = userRepository.findById(applicantUserId)
+                        .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다. id=" + applicantUserId));
+
+                partyUser = PartyUser.builder()
+                        .party(party)
+                        .user(user)
+                        .authority(PartyAuthority.MEMBER) // 기본은 MEMBER
+                        .build();
+
+                partyUserRepository.save(partyUser);
+                app.setPartyUser(partyUser); // 필요하면 연결
+            } else {
+                // 존재하는 PartyUser가 "대기" 개념이라면 여기서 status/authority 변경 가능
+                partyUser.setAuthority(PartyAuthority.MEMBER);
+                partyUser.setStatus(Status.ACTIVE);
+            }
+        }
+
+        // 6) 모집 인원 카운트 증가
+        recruitment.setCurrentParticipants(current + 1);
+
+        // 7) 정원 찼으면 모집 완료 처리
+        if (recruitment.getCurrentParticipants() >= max) {
+            recruitment.setIsCompleted(true); // 나중에 completed 라는 이름으로 변경 예정이면 그에 맞춰 수정
+        }
+
+        // 8) 지원 상태 최종 승인 처리
+        app.setApplicationStatus(PartyApplicationStatus.APPROVED);
+    }
+
+    /**
+     * 지원자 최종 거절: PROCESSING -> REJECTED
+     */
+    @Transactional
+    public void rejectByApplicant(Long partyId, Long applicationId, Long applicantUserId) {
+        PartyApplication app = getApplicationForPartyOrThrow(partyId, applicationId);
+
+        Long appUserId = app.getPartyUser().getUser().getId(); // 구조에 맞게 수정
+        if (!appUserId.equals(applicantUserId)) {
+            throw new IllegalStateException("본인 지원만 처리할 수 있습니다.");
+        }
+
+        if (app.getApplicationStatus() != PartyApplicationStatus.PROCESSING) {
+            throw new IllegalStateException("PROCESSING 상태의 지원만 거절할 수 있습니다.");
+        }
+
+        app.setApplicationStatus(PartyApplicationStatus.REJECTED);
+    }
+}
