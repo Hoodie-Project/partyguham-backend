@@ -1,27 +1,26 @@
 package com.partyguham.recruitment.controller;
 
-
 import com.partyguham.auth.jwt.UserPrincipal;
-import com.partyguham.party.service.PartyService;
+import com.partyguham.common.annotation.ApiV2Controller;
 import com.partyguham.recruitment.dto.request.*;
 import com.partyguham.recruitment.dto.response.*;
-import com.partyguham.recruitment.entity.PartyRecruitment;
 import com.partyguham.recruitment.service.PartyRecruitmentService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-@RestController
-@RequestMapping("/api/parties")
+@ApiV2Controller
+@RequestMapping("/parties")
+@RequiredArgsConstructor
 public class RecruitmentController {
 
-    private PartyRecruitmentService partyRecruitmentService;
-
+    private final PartyRecruitmentService partyRecruitmentService;
 
     @GetMapping("/{partyId}/recruitments")
-    public ResponseEntity<GetPartyRecruitmentsResponseDto> getRecruitments(
+    public ResponseEntity<PartyRecruitmentsResponseDto> getPartyRecruitments(
             @PathVariable Long partyId,
-            @ModelAttribute GetPartyRecruitmentsRequestDto request) {
+            @ModelAttribute PartyRecruitmentsRequestDto request) {
         
         return ResponseEntity.ok(partyRecruitmentService.getPartyRecruitments(partyId, request));
     }

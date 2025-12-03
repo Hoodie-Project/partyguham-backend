@@ -1,6 +1,7 @@
 package com.partyguham.recruitment.dto.request;
 
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
@@ -16,16 +17,18 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class GetPartyRecruitmentsRequestDto {
+public class PartyRecruitmentsRequestDto {
 
     @Builder.Default
     private String sort = "createdAt";
 
     @Builder.Default
     private String order = "ASC";
-    
-    private String status;
+
     private String main;
+
+    private boolean completed; // 프론트 변경요청
+
 }
 
 
