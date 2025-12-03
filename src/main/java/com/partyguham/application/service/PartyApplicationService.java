@@ -1,16 +1,22 @@
 package com.partyguham.application.service;
 
 import com.partyguham.application.dto.req.CreatePartyApplicationRequestDto;
+import com.partyguham.application.dto.req.PartyApplicantSearchRequestDto;
 import com.partyguham.application.dto.res.PartyApplicationMeResponseDto;
+import com.partyguham.application.dto.res.PartyApplicationsResponseDto;
 import com.partyguham.application.entity.PartyApplication;
 import com.partyguham.application.entity.PartyApplicationStatus;
+import com.partyguham.application.repostiory.PartyApplicationQueryRepository;
 import com.partyguham.application.repostiory.PartyApplicationRepository;
 import com.partyguham.common.entity.Status;
 import com.partyguham.party.entity.PartyUser;
 import com.partyguham.party.repository.PartyUserRepository;
+import com.partyguham.party.service.PartyAccessService;
 import com.partyguham.recruitment.entity.PartyRecruitment;
 import com.partyguham.recruitment.repository.PartyRecruitmentRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,9 +25,11 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class PartyApplicationService {
 
+    private final PartyAccessService partyAccessService;
     private final PartyUserRepository partyUserRepository;
     private final PartyRecruitmentRepository partyRecruitmentRepository;
     private final PartyApplicationRepository partyApplicationRepository;
+    private final PartyApplicationQueryRepository partyApplicationQueryRepository;
 
     /**
      * 모집 지원 생성
@@ -113,5 +121,30 @@ public class PartyApplicationService {
 
         // 5) 하드 삭제
         partyApplicationRepository.delete(application);
+    }
+
+    @Transactional(readOnly = true)
+    public PartyApplicationsResponseDto getPartyApplications(Long partyId,
+                                                             Long partyRecruitmentId,
+                                                             Long userId,
+                                                             PartyApplicantSearchRequestDto request) {
+
+        // 1) 권한 체크 (파티장/부파티장)
+        partyAccessService.checkManagerOrThrow(partyId, userId);
+
+        // 2) 페이징 변환 (page는 1부터 들어온다고 가정)
+        int page = (request.getPage() != null ? request.getPage() : 1) - 1;
+        int size = request.getLimit() != null ? request.getLimit() : 20;
+        Pageable pageable = PageRequest.of(page, size);
+
+        // 3) QueryDSL 조회
+        var pageResult = partyApplicationQueryRepository
+                .searchApplicants(partyId, partyRecruitmentId, request, pageable);
+
+        // 4) DTO 변환
+        return PartyApplicationsResponseDto.fromEntities(
+                pageResult.getContent(),
+                pageResult.getTotalElements()
+        );
     }
 }
