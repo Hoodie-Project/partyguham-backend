@@ -9,6 +9,7 @@ import com.partyguham.application.entity.PartyApplicationStatus;
 import com.partyguham.application.repostiory.PartyApplicationQueryRepository;
 import com.partyguham.application.repostiory.PartyApplicationRepository;
 import com.partyguham.common.entity.Status;
+import com.partyguham.common.exception.NotFoundException;
 import com.partyguham.party.entity.Party;
 import com.partyguham.party.entity.PartyAuthority;
 import com.partyguham.party.entity.PartyUser;
@@ -89,7 +90,7 @@ public class PartyApplicationService {
                 .findByPartyRecruitment_IdAndPartyRecruitment_Party_IdAndPartyUser_User_Id(
                         recruitmentId, partyId, userId
                 )
-                .orElseThrow(() -> new IllegalArgumentException(
+                .orElseThrow(() -> new NotFoundException(
                         "해당 모집에 대한 나의 지원 내역이 없습니다."
                 ));
 

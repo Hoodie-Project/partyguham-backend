@@ -18,7 +18,7 @@ public class ApplicationController {
 
     final private PartyApplicationService partyApplicationService;
 
-    /** 나의 지원 내역 조회 */
+    /** 지원하기 */
     @PostMapping("/recruitments/{partyRecruitmentId}/applications")
     public ResponseEntity<Void> createPartyApplication(
             @PathVariable Long partyId,
