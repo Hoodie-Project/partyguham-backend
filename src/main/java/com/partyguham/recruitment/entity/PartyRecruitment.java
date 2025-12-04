@@ -1,5 +1,6 @@
 package com.partyguham.recruitment.entity;
 
+import com.partyguham.catalog.entity.Position;
 import com.partyguham.common.entity.BaseEntity;
 import com.partyguham.application.entity.PartyApplication;
 import com.partyguham.party.entity.Party;
@@ -49,7 +50,11 @@ public class PartyRecruitment extends BaseEntity {
     private Integer currentParticipants;
 
     @Column(nullable = false)
-    private Boolean isCompleted;
+    private boolean completed;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "position_id", nullable = false)
+    private Position position;
 
     @OneToMany(mappedBy = "partyRecruitment", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PartyApplication> partyApplications;
