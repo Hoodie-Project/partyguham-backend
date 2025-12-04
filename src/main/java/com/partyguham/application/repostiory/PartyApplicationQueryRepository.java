@@ -9,7 +9,8 @@ import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Repository;
 
@@ -17,7 +18,6 @@ import java.util.List;
 
 import static com.partyguham.application.entity.QPartyApplication.partyApplication;
 import static com.partyguham.recruitment.entity.QPartyRecruitment.partyRecruitment;
-import static com.partyguham.party.entity.QPartyUser.partyUser;
 import static com.partyguham.user.account.entity.QUser.user;
 import static com.partyguham.user.profile.entity.QUserProfile.userProfile;
 
@@ -51,12 +51,11 @@ public class PartyApplicationQueryRepository {
             statusFilter = PartyApplicationStatus.valueOf(request.getStatus().toUpperCase());
         }
 
-        // 본문 쿼리
+        // ===== 본문 쿼리 =====
         JPAQuery<PartyApplication> baseQuery = queryFactory
                 .selectFrom(partyApplication)
                 .join(partyApplication.partyRecruitment, partyRecruitment)
-                .join(partyApplication.partyUser, partyUser).fetchJoin()
-                .join(partyUser.user, user).fetchJoin()
+                .join(partyApplication.user, user).fetchJoin()           // ✅ partyUser → user
                 .leftJoin(user.profile, userProfile).fetchJoin()
                 .where(
                         partyRecruitment.id.eq(recruitmentId),
@@ -68,13 +67,13 @@ public class PartyApplicationQueryRepository {
                 )
                 .orderBy(orderSpec);
 
-        // 페이징 + 결과
+        // 페이징 결과
         List<PartyApplication> content = baseQuery
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
 
-        // 카운트 쿼리
+        // ===== 카운트 쿼리 =====
         JPAQuery<Long> countQuery = queryFactory
                 .select(partyApplication.count())
                 .from(partyApplication)

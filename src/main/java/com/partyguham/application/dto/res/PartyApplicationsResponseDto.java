@@ -55,9 +55,8 @@ public class PartyApplicationsResponseDto {
     }
 
     private static PartyApplicationUserDto toUserDto(PartyApplication app) {
-        var partyUser = app.getPartyUser();
-        var user = partyUser.getUser();
-        var profile = user.getProfile(); // User -> UserProfile 연관관계 있다고 가정
+        var user = app.getUser();
+        var profile = user.getProfile();
 
         return PartyApplicationUserDto.builder()
                 .id(app.getId())
