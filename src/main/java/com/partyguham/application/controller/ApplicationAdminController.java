@@ -18,7 +18,7 @@ public class ApplicationAdminController {
 
     final private PartyApplicationService partyApplicationService;
 
-    //     지원자 목록 확인
+    /** 지원자 목록 확인 */
     @GetMapping("/recruitments/{partyRecruitmentId}/applications")
     public ResponseEntity<PartyApplicationsResponseDto> getPartyApplications(
             @PathVariable Long partyId,
@@ -36,7 +36,7 @@ public class ApplicationAdminController {
         );
     }
 
-    // 파티장 지원자 수락: PENDING -> PROCESSING
+    /** 파티장 지원자 수락: PENDING -> PROCESSING */
     @PostMapping("/applications/{partyApplicationId}/approval")
     public ResponseEntity<MessageResponseDto> approvePartyApplication(
             @PathVariable Long partyId,
@@ -47,7 +47,7 @@ public class ApplicationAdminController {
         return ResponseEntity.ok(MessageResponseDto.of("지원 요청을 승인했습니다."));
     }
 
-    // 파티장 지원자 거절: PENDING -> REJECTED
+    /** 파티장 지원자 거절: PENDING -> REJECTED */
     @PostMapping("/applications/{partyApplicationId}/rejection")
     public ResponseEntity<MessageResponseDto> rejectPartyApplication(
             @PathVariable Long partyId,
