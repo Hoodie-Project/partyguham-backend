@@ -18,18 +18,12 @@ public abstract class BusinessException extends RuntimeException {
         this.httpStatus = status;
     }
 
-    // 예외 원인 추가 - 외부 API 오류 (S3, SMTP, 외부 결제 등), JPA/DB 오류 래핑, 예외 재변환(wrapping)
+    /**  예외 원인 추가 - 외부 API 오류 (S3, SMTP, 외부 결제 등), JPA/DB 오류 래핑, 예외 재변환(wrapping) */
     protected BusinessException(String message, String code, HttpStatus status, Throwable cause) {
         super(message, cause);
         this.code = code;
         this.httpStatus = status;
     }
-    // 사용 예시
-    //    try {
-    //        s3Client.putObject(...);
-    //    } catch (S3Exception e) {
-    //        throw new StorageException("S3 업로드 실패", "S3_UPLOAD_FAIL", HttpStatus.INTERNAL_SERVER_ERROR, e);
-    //    }
 
     public String getCode() {
         return code;
