@@ -11,9 +11,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-@RequiredArgsConstructor
 @ApiV2Controller
-@RequestMapping("/api/parties/{partyId}/admin")
+@RequiredArgsConstructor
+@RequestMapping("/parties/{partyId}/admin")
 public class ApplicationAdminController {
 
     final private PartyApplicationService partyApplicationService;
