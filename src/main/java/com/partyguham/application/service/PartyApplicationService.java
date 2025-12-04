@@ -139,7 +139,7 @@ public class PartyApplicationService {
 
         // 2) 페이징 변환 (page는 1부터 들어온다고 가정)
         int page = (request.getPage() != null ? request.getPage() : 1) - 1;
-        int size = request.getLimit() != null ? request.getLimit() : 20;
+        int size = request.getSize() != null ? request.getSize() : 20;
         Pageable pageable = PageRequest.of(page, size);
 
         // 3) QueryDSL 조회

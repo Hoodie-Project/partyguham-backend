@@ -24,7 +24,7 @@ public class PartyApplicantSearchRequestDto {
      */
     @Min(1)
     @Max(100)
-    private Integer limit = 20;
+    private Integer size = 20;
 
     /**
      * 정렬 기준 필드
