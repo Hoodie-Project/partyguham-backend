@@ -4,7 +4,7 @@ import com.partyguham.auth.jwt.UserPrincipal;
 import com.partyguham.common.annotation.ApiV2Controller;
 import com.partyguham.recruitment.dto.request.*;
 import com.partyguham.recruitment.dto.response.*;
-import com.partyguham.recruitment.service.PartyRecruitmentService;
+import com.partyguham.recruitment.service.RecruitmentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -17,7 +17,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RecruitmentController {
 
-    private final PartyRecruitmentService partyRecruitmentService;
+    private final RecruitmentService partyRecruitmentService;
 
     @GetMapping("/{partyId}/recruitments") //파티 모집 목록 조회
     public ResponseEntity<PartyRecruitmentsResponseDto> getPartyRecruitments(
@@ -49,10 +49,5 @@ public class RecruitmentController {
             @AuthenticationPrincipal UserPrincipal user) {
                 return ResponseEntity.ok(partyRecruitmentService.getPartyRecruitment(partyRecruitmentId, user.getId()));
             }
-
-
-
-
-
 
 }

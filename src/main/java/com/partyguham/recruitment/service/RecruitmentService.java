@@ -28,7 +28,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class PartyRecruitmentService {
+public class RecruitmentService {
 
     private final PartyRecruitmentRepository partyRecruitmentRepository;
     private final PartyRepository partyRepository;
