@@ -22,17 +22,16 @@ import org.springframework.web.multipart.MultipartFile;
 public class PartyController { // create → get → search → action 순서
 
     private final PartyService partyService;
-    private final S3FileService s3FileService;
 
-    @PostMapping() // 파티생성
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<PartyResponseDto> createParty(
-            @RequestPart MultipartFile image,
+            @RequestPart(required = false) MultipartFile image,
             @ModelAttribute PartyCreateRequestDto request,
-            @AuthenticationPrincipal UserPrincipal user) {
-
-        String key = s3FileService.upload(image, S3Folder.PARTY);
-
-        return ResponseEntity.ok(partyService.createParty(request, user.getId(), key));
+            @AuthenticationPrincipal UserPrincipal user
+    ) {
+        return ResponseEntity.ok(
+                partyService.createParty(request, user.getId(), image)
+        );
     }
 
     @GetMapping

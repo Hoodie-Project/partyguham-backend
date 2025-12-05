@@ -4,10 +4,11 @@ import com.partyguham.party.dto.party.request.GetPartiesRequestDto;
 import com.partyguham.party.dto.party.request.GetPartyUsersRequestDto;
 import com.partyguham.party.dto.party.request.PartyCreateRequestDto;
 import com.partyguham.party.dto.party.response.*;
+import org.springframework.web.multipart.MultipartFile;
 
 public interface PartyService { 
    
-    PartyResponseDto createParty(PartyCreateRequestDto request, Long userId, String imageKey); //파티 생성
+    PartyResponseDto createParty(PartyCreateRequestDto request, Long userId, MultipartFile image); //파티 생성
     
     GetPartiesResponseDto getParties(GetPartiesRequestDto request); //파티 목록 조회
     

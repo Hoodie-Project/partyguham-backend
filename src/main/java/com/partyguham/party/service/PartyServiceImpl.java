@@ -2,7 +2,8 @@ package com.partyguham.party.service;
 
 import com.partyguham.catalog.entity.Position;
 import com.partyguham.catalog.repository.PositionRepository;
-import com.partyguham.common.util.ImageUploader;
+import com.partyguham.infra.s3.S3FileService;
+import com.partyguham.infra.s3.S3Folder;
 import com.partyguham.party.dto.party.request.GetPartiesRequestDto;
 import com.partyguham.party.dto.party.request.GetPartyUsersRequestDto;
 import com.partyguham.party.dto.party.request.PartyCreateRequestDto;
@@ -32,13 +33,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class PartyServiceImpl /*extends S3FileService*/ implements PartyService  { //TODO: S3 이미지 업로드
+public class PartyServiceImpl implements PartyService  { //TODO: S3 이미지 업로드
 
     private final PartyRepository partyRepository;
     private final PartyTypeRepository partyTypeRepository;
@@ -47,22 +49,31 @@ public class PartyServiceImpl /*extends S3FileService*/ implements PartyService 
     private final PartyUserRepository partyUserRepository;
     private final UserCareerRepository userCareerRepository;
     private final PartyRecruitmentRepository partyRecruitmentRepository;
-    private final ImageUploader imageUploader;
-    //private final S3FileService s3FileService;
+    private final S3FileService s3FileService;
 
     @Override
     @Transactional
-    public PartyResponseDto createParty(PartyCreateRequestDto request, Long userId, String imageKey) { // 파티 생성
+    public PartyResponseDto createParty(PartyCreateRequestDto request, Long userId, MultipartFile image) {
+
+        // 1) 파티 타입 조회 (존재 여부 확인)
         PartyType partyType = partyTypeRepository.findById(request.getPartyTypeId())
                 .orElseThrow(() -> new PartyTypeNotFoundException(request.getPartyTypeId()));
 
-        Position position = positionRepository.findById(request.getPositionId())
-                .orElseThrow(() -> new PositionNotFoundException(request.getPositionId()));
-
-
+        // 2) 파티장 역할을 맡을 유저 조회
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId));
 
+        // 3) 파티장 기본 포지션 조회
+        Position position = positionRepository.findById(request.getPositionId())
+                .orElseThrow(() -> new PositionNotFoundException(request.getPositionId()));
+
+        // 4) 이미지가 있으면 업로드 후 키 저장
+        String imageKey = null;
+        if (image != null && !image.isEmpty()) {
+            imageKey = s3FileService.upload(image, S3Folder.PARTY);
+        }
+
+        // 5) 파티 엔티티 생성
         Party party = Party.builder()
                 .title(request.getTitle())
                 .content(request.getContent())
@@ -72,6 +83,7 @@ public class PartyServiceImpl /*extends S3FileService*/ implements PartyService 
 
         partyRepository.save(party);
 
+        // 6) 파티장 PartyUser 생성
         PartyUser masterUser = PartyUser.builder()
                 .party(party)
                 .user(user)
@@ -81,6 +93,7 @@ public class PartyServiceImpl /*extends S3FileService*/ implements PartyService 
 
         partyUserRepository.save(masterUser);
 
+        // 7) 결과 반환
         return PartyResponseDto.of(party);
     }
 
