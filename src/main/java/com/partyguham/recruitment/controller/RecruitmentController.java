@@ -5,6 +5,7 @@ import com.partyguham.common.annotation.ApiV2Controller;
 import com.partyguham.recruitment.dto.request.*;
 import com.partyguham.recruitment.dto.response.*;
 import com.partyguham.recruitment.service.RecruitmentService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -19,21 +20,24 @@ public class RecruitmentController {
 
     private final RecruitmentService partyRecruitmentService;
 
-    @GetMapping("/{partyId}/recruitments") //파티 모집 목록 조회
-    public ResponseEntity<PartyRecruitmentsResponseDto> getPartyRecruitments(
+    /**
+     * 파티 모집 목록 조회 API
+     */
+    @GetMapping("/{partyId}/recruitments")
+    public ResponseEntity<List<PartyRecruitmentsResponseDto.PartyRecruitmentDto>> getPartyRecruitments(
             @PathVariable Long partyId,
             @ModelAttribute PartyRecruitmentsRequestDto request) {
         
         return ResponseEntity.ok(partyRecruitmentService.getPartyRecruitments(partyId, request));
     }
 
-    @PostMapping("/{partyId}/recruitments") // 단일포지션만 모집공고 생성가능한 형태
-    public ResponseEntity<CreatePartyRecruitmentsResponseDto> createPartyRecruitment( // 파티 모집 생성하기
-                                                                                      @PathVariable Long partyId,
-                                                                                      @AuthenticationPrincipal UserPrincipal user,
-                                                                                      @RequestBody CreatePartyRecruitmentRequestDto request) {
+    @PostMapping("/{partyId}/recruitments") // 다중 포지션 모집공고 생성
+    public ResponseEntity<List<CreatePartyRecruitmentsResponseDto>> createPartyRecruitment(
+            @PathVariable Long partyId,
+            @AuthenticationPrincipal UserPrincipal user,
+            @RequestBody @Valid List<CreatePartyRecruitmentRequestDto> requests) {
 
-        return ResponseEntity.ok(partyRecruitmentService.createPartyRecruitment(partyId, user.getId(), request));
+        return ResponseEntity.ok(partyRecruitmentService.createPartyRecruitment(partyId, user.getId(), requests));
     }
 
 //    @GetMapping("/recruitments/personalized")
