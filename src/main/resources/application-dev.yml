@@ -20,6 +20,10 @@ app:
   domain:
     base: ${DEV_DOMAIN_BASE}
 
+jwt:
+  access-exp: 2592000000
+  refresh-exp: 2592000000  # 30일
+
 logging:
   level:
     root: debug

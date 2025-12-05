@@ -20,6 +20,10 @@ app:
   domain:
     base: ${PROD_DOMAIN_BASE}
 
+jwt:
+  access-exp: 900000
+  refresh-exp: 1209600000  # 14일
+
 logging:
   level:
     root: info
