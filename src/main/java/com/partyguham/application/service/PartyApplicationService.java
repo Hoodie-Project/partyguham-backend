@@ -9,6 +9,7 @@ import com.partyguham.application.entity.PartyApplicationStatus;
 import com.partyguham.application.repostiory.PartyApplicationQueryRepository;
 import com.partyguham.application.repostiory.PartyApplicationRepository;
 import com.partyguham.common.entity.Status;
+import com.partyguham.common.exception.NotFoundException;
 import com.partyguham.party.entity.Party;
 import com.partyguham.party.entity.PartyAuthority;
 import com.partyguham.party.entity.PartyUser;
@@ -42,41 +43,48 @@ public class PartyApplicationService {
      * - 모집공고 유효성 확인
      * - 중복 지원 방지
      */
+    @Transactional
     public void applyToRecruitment(Long partyId,
                                    Long recruitmentId,
                                    Long userId,
                                    CreatePartyApplicationRequestDto request) {
+        // 1) 유저 조회 (기본 방어)
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저입니다. id=" + userId));
 
-        // 1) 유저가 해당 파티의 파티원인지 확인 (DELETED 제외)
-        PartyUser partyUser = partyUserRepository
-                .findByParty_IdAndUser_IdAndStatusNot(partyId, userId, Status.DELETED)
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "파티원이 아닙니다. partyId=" + partyId + ", userId=" + userId
-                ));
+        // 2) 이미 파티 멤버인지 체크 (멤버면 지원 불가)
+        boolean alreadyMember = partyUserRepository
+                .existsByParty_IdAndUser_IdAndStatusNot(partyId, userId, Status.DELETED);
 
-        // 2) 모집공고 조회
-        PartyRecruitment recruitment = partyRecruitmentRepository
-                .findById(recruitmentId)
+        if (alreadyMember) {
+            throw new IllegalStateException("이미 해당 파티의 멤버입니다. 지원할 수 없습니다.");
+        }
+
+        // 3) 모집공고 조회
+        PartyRecruitment recruitment = partyRecruitmentRepository.findById(recruitmentId)
                 .orElseThrow(() -> new IllegalArgumentException(
                         "존재하지 않는 모집공고입니다. id=" + recruitmentId
                 ));
 
-        // 3) 중복 지원 방지
-        boolean exists = partyApplicationRepository
-                .existsByPartyUser_IdAndPartyRecruitment_Id(
-                        partyUser.getId(), recruitmentId
-                );
+        // 모집이 이미 종료된 경우 막기
+        if (Boolean.TRUE.equals(recruitment.getIsCompleted())) {
+            throw new IllegalStateException("이미 마감된 모집입니다.");
+        }
 
-        if (exists) {
+        // 4) 중복 지원 방지
+        boolean alreadyApplied = partyApplicationRepository
+                .existsByUser_IdAndPartyRecruitment_Id(userId, recruitmentId);
+
+        if (alreadyApplied) {
             throw new IllegalStateException("이미 이 모집에 지원한 사용자입니다.");
         }
 
-        // 4) 지원 생성
+        // 5) 지원 생성
         PartyApplication application = PartyApplication.builder()
-                .partyUser(partyUser)
+                .user(user)
                 .partyRecruitment(recruitment)
                 .message(request.getMessage())
-                .build(); // BaseEntity.status = ACTIVE 기본값
+                .build();
 
         partyApplicationRepository.save(application);
     }
@@ -86,10 +94,10 @@ public class PartyApplicationService {
                                                           Long userId) {
 
         PartyApplication app = partyApplicationRepository
-                .findByPartyRecruitment_IdAndPartyRecruitment_Party_IdAndPartyUser_User_Id(
+                .findByPartyRecruitment_IdAndPartyRecruitment_Party_IdAndUser_Id(
                         recruitmentId, partyId, userId
                 )
-                .orElseThrow(() -> new IllegalArgumentException(
+                .orElseThrow(() -> new NotFoundException(
                         "해당 모집에 대한 나의 지원 내역이 없습니다."
                 ));
 
@@ -114,7 +122,7 @@ public class PartyApplicationService {
         }
 
         // 3) 지원자 본인 확인
-        Long ownerUserId = application.getPartyUser().getUser().getId();
+        Long ownerUserId = application.getUser().getId();
         if (!ownerUserId.equals(userId)) {
             throw new IllegalStateException("본인이 제출한 지원만 삭제할 수 있습니다.");
         }
@@ -139,7 +147,7 @@ public class PartyApplicationService {
 
         // 2) 페이징 변환 (page는 1부터 들어온다고 가정)
         int page = (request.getPage() != null ? request.getPage() : 1) - 1;
-        int size = request.getLimit() != null ? request.getLimit() : 20;
+        int size = request.getSize() != null ? request.getSize() : 20;
         Pageable pageable = PageRequest.of(page, size);
 
         // 3) QueryDSL 조회
@@ -224,7 +232,7 @@ public class PartyApplicationService {
         PartyApplication app = getApplicationForPartyOrThrow(partyId, applicationId);
 
         // 2) 이 지원이 "내 것"인지 확인
-        Long appUserId = app.getPartyUser().getUser().getId(); // PartyUser → User
+        Long appUserId = app.getUser().getId();
         if (!appUserId.equals(applicantUserId)) {
             throw new IllegalStateException("본인 지원만 처리할 수 있습니다.");
         }
@@ -244,7 +252,6 @@ public class PartyApplicationService {
         int max = recruitment.getMaxParticipants();
 
         if (current >= max) {
-            // 이미 정원 찼으면 방어
             recruitment.setIsCompleted(true);
             throw new IllegalStateException("모집 정원이 이미 찼습니다.");
         }
@@ -252,33 +259,25 @@ public class PartyApplicationService {
         // 5) 파티 합류 처리
         Party party = recruitment.getParty();
 
-        // 이미 해당 파티의 멤버인지 한 번 더 방어
         boolean alreadyMember = partyUserRepository
-                .existsByParty_IdAndUser_IdAndStatusNot(party.getId(), applicantUserId, Status.DELETED);
+                .existsByParty_IdAndUser_IdAndStatusNot(
+                        party.getId(),
+                        applicantUserId,
+                        Status.DELETED
+                );
 
         if (!alreadyMember) {
-            // PartyUser 가 이미 app에 연결되어 있다면 그걸 정식 멤버로 쓸 수도 있고,
-            // 구조에 따라 새로 만드는 것도 가능함.
-            PartyUser partyUser = app.getPartyUser();
+            // 아직 파티 멤버가 아니면 PartyUser 새로 생성
+            User user = app.getUser(); // 이미 로딩된 유저
 
-            if (partyUser == null) {
-                // 혹시 null 케이스도 대비
-                User user = userRepository.findById(applicantUserId)
-                        .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다. id=" + applicantUserId));
+            PartyUser partyUser = PartyUser.builder()
+                    .party(party)
+                    .user(user)
+//                    .position(recruitment.get)
+                    .authority(PartyAuthority.MEMBER) // 기본 MEMBER
+                    .build();
 
-                partyUser = PartyUser.builder()
-                        .party(party)
-                        .user(user)
-                        .authority(PartyAuthority.MEMBER) // 기본은 MEMBER
-                        .build();
-
-                partyUserRepository.save(partyUser);
-                app.setPartyUser(partyUser); // 필요하면 연결
-            } else {
-                // 존재하는 PartyUser가 "대기" 개념이라면 여기서 status/authority 변경 가능
-                partyUser.setAuthority(PartyAuthority.MEMBER);
-                partyUser.setStatus(Status.ACTIVE);
-            }
+            partyUserRepository.save(partyUser);
         }
 
         // 6) 모집 인원 카운트 증가
@@ -286,7 +285,7 @@ public class PartyApplicationService {
 
         // 7) 정원 찼으면 모집 완료 처리
         if (recruitment.getCurrentParticipants() >= max) {
-            recruitment.setIsCompleted(true); // 나중에 completed 라는 이름으로 변경 예정이면 그에 맞춰 수정
+            recruitment.setIsCompleted(true);
         }
 
         // 8) 지원 상태 최종 승인 처리
@@ -300,7 +299,7 @@ public class PartyApplicationService {
     public void rejectByApplicant(Long partyId, Long applicationId, Long applicantUserId) {
         PartyApplication app = getApplicationForPartyOrThrow(partyId, applicationId);
 
-        Long appUserId = app.getPartyUser().getUser().getId(); // 구조에 맞게 수정
+        Long appUserId = app.getUser().getId(); // 구조에 맞게 수정
         if (!appUserId.equals(applicantUserId)) {
             throw new IllegalStateException("본인 지원만 처리할 수 있습니다.");
         }

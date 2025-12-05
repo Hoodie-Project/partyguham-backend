@@ -18,7 +18,7 @@ public class ApplicationController {
 
     final private PartyApplicationService partyApplicationService;
 
-    // 모집 지원
+    /** 지원하기 */
     @PostMapping("/recruitments/{partyRecruitmentId}/applications")
     public ResponseEntity<Void> createPartyApplication(
             @PathVariable Long partyId,
@@ -30,7 +30,7 @@ public class ApplicationController {
         return ResponseEntity.noContent().build(); // 204
     }
 
-    // 특정 모집에 대한 나의 지원 확인
+    /** 모집에 대한 나의 지원 내역 조회 */
     @GetMapping("/recruitments/{partyRecruitmentId}/applications/me")
     public ResponseEntity<PartyApplicationMeResponseDto> getMyPartyApplication(
             @PathVariable Long partyId,
@@ -46,7 +46,7 @@ public class ApplicationController {
         );
     }
 
-    // 지원 취소
+    /** 지원 취소 */
     @DeleteMapping("/applications/{partyApplicationId}")
     public ResponseEntity<Void> deletePartyApplication(
             @PathVariable Long partyId,
@@ -57,8 +57,8 @@ public class ApplicationController {
         return ResponseEntity.noContent().build();
     }
 
-    // 지원자 최종 수락: PROCESSING -> APPROVED (+ 파티 합류)
-    @PostMapping("/applications/{partyApplicationId}/approval/me")
+    /** 지원자 최종 수락: PROCESSING -> APPROVED (+ 파티 합류) */
+    @PostMapping("/applications/{partyApplicationId}/approval")
     public ResponseEntity<MessageResponseDto> approveMyApplication(
             @PathVariable Long partyId,
             @PathVariable Long partyApplicationId,
@@ -68,8 +68,8 @@ public class ApplicationController {
         return ResponseEntity.ok(MessageResponseDto.of("파티 합류에 동의했습니다."));
     }
 
-    // 지원자 최종 거절: PROCESSING -> REJECTED
-    @PostMapping("/applications/{partyApplicationId}/rejection/me")
+    /** 지원자 최종 거절: PROCESSING -> REJECTED */
+    @PostMapping("/applications/{partyApplicationId}/rejection")
     public ResponseEntity<MessageResponseDto> rejectMyApplication(
             @PathVariable Long partyId,
             @PathVariable Long partyApplicationId,
