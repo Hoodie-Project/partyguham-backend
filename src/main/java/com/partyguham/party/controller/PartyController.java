@@ -2,6 +2,8 @@ package com.partyguham.party.controller;
 
 import com.partyguham.auth.jwt.UserPrincipal;
 import com.partyguham.common.annotation.ApiV2Controller;
+import com.partyguham.infra.s3.S3FileService;
+import com.partyguham.infra.s3.S3Folder;
 import com.partyguham.party.dto.party.request.GetPartiesRequestDto;
 import com.partyguham.party.dto.party.request.GetPartyUsersRequestDto;
 import com.partyguham.party.dto.party.request.PartyCreateRequestDto;
@@ -12,6 +14,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @ApiV2Controller
 @RequestMapping("/parties")
@@ -19,14 +22,17 @@ import org.springframework.web.bind.annotation.*;
 public class PartyController { // create → get → search → action 순서
 
     private final PartyService partyService;
+    private final S3FileService s3FileService;
 
-    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE) // 파티생성
+    @PostMapping() // 파티생성
     public ResponseEntity<PartyResponseDto> createParty(
+            @RequestPart MultipartFile image,
             @ModelAttribute PartyCreateRequestDto request,
             @AuthenticationPrincipal UserPrincipal user) {
 
+        String key = s3FileService.upload(image, S3Folder.PARTY);
 
-        return ResponseEntity.ok(partyService.createParty(request, user.getId()));
+        return ResponseEntity.ok(partyService.createParty(request, user.getId(), key));
     }
 
     @GetMapping

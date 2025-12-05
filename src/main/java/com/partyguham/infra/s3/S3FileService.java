@@ -36,7 +36,7 @@ public class S3FileService {
      * @param file   업로드할 MultipartFile
      * @param folder 논리 폴더 (예: "banner", "user/profile")
      *               null/blank 이면 yml에 설정한 base-folder 사용
-     * @return S3 object key (예: banner/1731480000000-uuid.jpg)
+     * @return S3 object key (예: images/banner/1731480000000-uuid.jpg)
      */
     public String upload(MultipartFile file, S3Folder folder) {
         if (file == null || file.isEmpty()) {
@@ -127,13 +127,17 @@ public class S3FileService {
 
     /**
      * 업로드용 Object Key 생성 헬퍼
-     * - folder/타임스탬프-UUID.ext
+     * images/1738137438123-a3bd42f918a84e0fac8a6e0e9e1c8c4f.jpg
      */
     private String buildObjectKey(String folder, String originalFilename) {
         String cleanFolder = folder.replaceAll("^/+", "").replaceAll("/+$", "");
 
         String ext = extractExtension(originalFilename);
-        String randomName = System.currentTimeMillis() + "-" + UUID.randomUUID();
+
+        // 시간 기반 정렬 + 충돌 방지용 UUID 조합
+        String timeId = String.valueOf(System.currentTimeMillis());
+        String uuid = UUID.randomUUID().toString().replace("-", "");
+        String randomName = timeId + "-" + uuid;
 
         return cleanFolder.isEmpty()
                 ? randomName + ext

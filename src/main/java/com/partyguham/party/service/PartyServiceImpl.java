@@ -52,7 +52,7 @@ public class PartyServiceImpl /*extends S3FileService*/ implements PartyService 
 
     @Override
     @Transactional
-    public PartyResponseDto createParty(PartyCreateRequestDto request, Long userId) { // 파티 생성
+    public PartyResponseDto createParty(PartyCreateRequestDto request, Long userId, String imageKey) { // 파티 생성
         PartyType partyType = partyTypeRepository.findById(request.getPartyTypeId())
                 .orElseThrow(() -> new PartyTypeNotFoundException(request.getPartyTypeId()));
 
@@ -63,16 +63,11 @@ public class PartyServiceImpl /*extends S3FileService*/ implements PartyService 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId));
 
-        String imageUrl = null;
-        if (request.getImage() != null && !request.getImage().isEmpty()) {
-            imageUrl = imageUploader.upload(request.getImage());
-        }
-
         Party party = Party.builder()
                 .title(request.getTitle())
                 .content(request.getContent())
                 .partyType(partyType)
-                .image(imageUrl)
+                .image(imageKey)
                 .build();
 
         partyRepository.save(party);

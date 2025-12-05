@@ -8,7 +8,6 @@ import org.springframework.web.multipart.MultipartFile;
 @Getter
 @Setter
 public class PartyCreateRequestDto {
-    private MultipartFile image;
     private String title;
     private String content;
     private Long partyTypeId;

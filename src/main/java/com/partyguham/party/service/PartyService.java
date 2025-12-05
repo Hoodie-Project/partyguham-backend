@@ -7,7 +7,7 @@ import com.partyguham.party.dto.party.response.*;
 
 public interface PartyService { 
    
-    PartyResponseDto createParty(PartyCreateRequestDto request, Long userId); //파티 생성
+    PartyResponseDto createParty(PartyCreateRequestDto request, Long userId, String imageKey); //파티 생성
     
     GetPartiesResponseDto getParties(GetPartiesRequestDto request); //파티 목록 조회
     
