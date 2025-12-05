@@ -26,7 +26,7 @@ public class AppVersionService {
                 .latestVersion(v.getLatestVersion())
                 .minRequiredVersion(v.getMinRequiredVersion())
                 .releaseNotes(v.getReleaseNotes())
-                .forceUpdate(v.isForceUpdate())
+                .forceUpdate(v.getForceUpdate())
                 .downloadUrl(v.getDownloadUrl())
                 .createdAt(v.getCreatedAt())
                 .updatedAt(v.getUpdatedAt())

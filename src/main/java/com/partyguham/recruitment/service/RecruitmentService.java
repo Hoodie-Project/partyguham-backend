@@ -53,7 +53,7 @@ public class RecruitmentService {
         List<PartyRecruitment> recruitments = partyRecruitmentRepository.findByPartyId(partyId, sort);
 
         List<PartyRecruitment> filtered = recruitments.stream()
-                .filter(recruitment -> recruitment.isCompleted() == request.isCompleted())
+                .filter(recruitment -> recruitment.getCompleted() == request.isCompleted())
                 .filter(recruitment -> request.getMain().isEmpty() || recruitment.getPosition().getMain().equals(request.getMain()))
                 .toList();
 
@@ -96,7 +96,7 @@ public class RecruitmentService {
                             .content(saved.getContent())
                             .recruitingCount(saved.getMaxParticipants())
                             .recruitedCount(saved.getCurrentParticipants())
-                            .status(saved.isCompleted() ? "COMPLETED" : "RECRUITING")
+                            .status(saved.getCompleted() ? "COMPLETED" : "RECRUITING")
                             .createdAt(saved.getCreatedAt())
                             .build();
                 })

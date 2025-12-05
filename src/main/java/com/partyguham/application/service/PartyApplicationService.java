@@ -273,7 +273,7 @@ public class PartyApplicationService {
             PartyUser partyUser = PartyUser.builder()
                     .party(party)
                     .user(user)
-//                    .position(recruitment.get)
+                    .position(recruitment.getPosition())
                     .authority(PartyAuthority.MEMBER) // 기본 MEMBER
                     .build();
 

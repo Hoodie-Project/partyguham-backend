@@ -65,7 +65,7 @@ public class PartyRecruitmentsResponseDto {
                     .content(recruitment.getContent())
                     .recruitingCount(recruitment.getMaxParticipants())
                     .recruitedCount(recruitment.getCurrentParticipants())
-                    .status(recruitment.isCompleted() ? "COMPLETED" : "RECRUITING")
+                    .status(recruitment.getCompleted() ? "COMPLETED" : "RECRUITING")
                     .createdAt(recruitment.getCreatedAt() != null
                             ? recruitment.getCreatedAt().toString()
                             : null)
