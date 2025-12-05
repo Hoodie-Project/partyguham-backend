@@ -22,7 +22,7 @@ app:
 
 jwt:
   access-exp: 900000
-  refresh-exp: 1209600000  # 14일
+  refresh-exp: 2592000000  # 30일
 
 logging:
   level:

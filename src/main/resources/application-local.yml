@@ -22,8 +22,8 @@ app:
     base: ${LOCAL_DOMAIN_BASE}
 
 jwt:
-  access-exp: 2592000000
-  refresh-exp: 2592000000  # 30일
+  access-exp: 31536000000
+  refresh-exp: 31536000000  # 1y
 
 
 # trace - debug - info - warn - error
