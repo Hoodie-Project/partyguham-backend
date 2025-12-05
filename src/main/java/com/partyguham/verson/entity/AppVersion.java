@@ -37,7 +37,7 @@ public class AppVersion extends BaseEntity {
     private String releaseNotes;
 
     @Column(name = "is_force_update", nullable = false)
-    private boolean forceUpdate;
+    private Boolean forceUpdate;
 
     @Column(name = "download_url", length = 255)
     private String downloadUrl;

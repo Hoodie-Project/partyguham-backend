@@ -50,11 +50,11 @@ public class Notification {
 
     @Builder.Default
     @Column(nullable = false)
-    private boolean isRead = false;    // 실제 읽음
+    private Boolean isRead = false;    // 실제 읽음
 
     @Builder.Default
     @Column(nullable = false)
-    private boolean isChecked = false; // 리스트 노출 여부
+    private Boolean isChecked = false; // 리스트 노출 여부
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;

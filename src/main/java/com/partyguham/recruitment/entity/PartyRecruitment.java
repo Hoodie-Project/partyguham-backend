@@ -50,7 +50,7 @@ public class PartyRecruitment extends BaseEntity {
     private Integer currentParticipants;
 
     @Column(nullable = false)
-    private boolean completed;
+    private Boolean completed;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "position_id", nullable = false)
