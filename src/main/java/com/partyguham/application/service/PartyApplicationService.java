@@ -67,7 +67,7 @@ public class PartyApplicationService {
                 ));
 
         // 모집이 이미 종료된 경우 막기
-        if (Boolean.TRUE.equals(recruitment.getIsCompleted())) {
+        if (Boolean.TRUE.equals(recruitment.getCompleted())) {
             throw new IllegalStateException("이미 마감된 모집입니다.");
         }
 
@@ -244,7 +244,7 @@ public class PartyApplicationService {
 
         // 4) 모집 정보 가져오기
         PartyRecruitment recruitment = app.getPartyRecruitment();
-        if (Boolean.TRUE.equals(recruitment.getIsCompleted())) {
+        if (Boolean.TRUE.equals(recruitment.getCompleted())) {
             throw new IllegalStateException("이미 마감된 모집입니다.");
         }
 
@@ -252,7 +252,7 @@ public class PartyApplicationService {
         int max = recruitment.getMaxParticipants();
 
         if (current >= max) {
-            recruitment.setIsCompleted(true);
+            recruitment.setCompleted(true);
             throw new IllegalStateException("모집 정원이 이미 찼습니다.");
         }
 
@@ -285,7 +285,7 @@ public class PartyApplicationService {
 
         // 7) 정원 찼으면 모집 완료 처리
         if (recruitment.getCurrentParticipants() >= max) {
-            recruitment.setIsCompleted(true);
+            recruitment.setCompleted(true);
         }
 
         // 8) 지원 상태 최종 승인 처리
