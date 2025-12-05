@@ -43,41 +43,48 @@ public class PartyApplicationService {
      * - 모집공고 유효성 확인
      * - 중복 지원 방지
      */
+    @Transactional
     public void applyToRecruitment(Long partyId,
                                    Long recruitmentId,
                                    Long userId,
                                    CreatePartyApplicationRequestDto request) {
+        // 1) 유저 조회 (기본 방어)
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저입니다. id=" + userId));
 
-        // 1) 유저가 해당 파티의 파티원인지 확인 (DELETED 제외)
-        PartyUser partyUser = partyUserRepository
-                .findByParty_IdAndUser_IdAndStatusNot(partyId, userId, Status.DELETED)
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "파티원이 아닙니다. partyId=" + partyId + ", userId=" + userId
-                ));
+        // 2) 이미 파티 멤버인지 체크 (멤버면 지원 불가)
+        boolean alreadyMember = partyUserRepository
+                .existsByParty_IdAndUser_IdAndStatusNot(partyId, userId, Status.DELETED);
 
-        // 2) 모집공고 조회
-        PartyRecruitment recruitment = partyRecruitmentRepository
-                .findById(recruitmentId)
+        if (alreadyMember) {
+            throw new IllegalStateException("이미 해당 파티의 멤버입니다. 지원할 수 없습니다.");
+        }
+
+        // 3) 모집공고 조회
+        PartyRecruitment recruitment = partyRecruitmentRepository.findById(recruitmentId)
                 .orElseThrow(() -> new IllegalArgumentException(
                         "존재하지 않는 모집공고입니다. id=" + recruitmentId
                 ));
 
-        // 3) 중복 지원 방지
-        boolean exists = partyApplicationRepository
-                .existsByUser_IdAndPartyRecruitment_Id(
-                        partyUser.getId(), recruitmentId
-                );
+        // 모집이 이미 종료된 경우 막기
+        if (Boolean.TRUE.equals(recruitment.getIsCompleted())) {
+            throw new IllegalStateException("이미 마감된 모집입니다.");
+        }
 
-        if (exists) {
+        // 4) 중복 지원 방지
+        boolean alreadyApplied = partyApplicationRepository
+                .existsByUser_IdAndPartyRecruitment_Id(userId, recruitmentId);
+
+        if (alreadyApplied) {
             throw new IllegalStateException("이미 이 모집에 지원한 사용자입니다.");
         }
 
-        // 4) 지원 생성
+        // 5) 지원 생성
         PartyApplication application = PartyApplication.builder()
-                .user(partyUser.getUser())
+                .user(user)
                 .partyRecruitment(recruitment)
                 .message(request.getMessage())
-                .build(); // BaseEntity.status = ACTIVE 기본값
+                .build();
 
         partyApplicationRepository.save(application);
     }
@@ -228,7 +235,6 @@ public class PartyApplicationService {
         Long appUserId = app.getUser().getId();
         if (!appUserId.equals(applicantUserId)) {
             throw new IllegalStateException("본인 지원만 처리할 수 있습니다.");
-            // 나중에 BusinessException으로 교체 추천
         }
 
         // 3) 상태 검증: 파티장이 승인한 상태여야 함
@@ -267,6 +273,7 @@ public class PartyApplicationService {
             PartyUser partyUser = PartyUser.builder()
                     .party(party)
                     .user(user)
+//                    .position(recruitment.get)
                     .authority(PartyAuthority.MEMBER) // 기본 MEMBER
                     .build();
 
