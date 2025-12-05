@@ -43,7 +43,7 @@ public class RecruitmentAdminService {
 
         partyAccessService.checkManagerOrThrow(partyId, userId);
 
-        if (recruitment.isCompleted()) {
+        if (recruitment.getCompleted()) {
             throw new IllegalStateException("이미 완료된 모집공고입니다.");
         }
 
