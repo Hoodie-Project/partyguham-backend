@@ -10,6 +10,7 @@ import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
 @Entity
+@Table(name = "party_users")
 @Getter
 @Setter
 @SuperBuilder

@@ -5,7 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "app_version")
+@Table(name = "app_versions")
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)

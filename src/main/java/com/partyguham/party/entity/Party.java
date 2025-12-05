@@ -9,6 +9,7 @@ import lombok.experimental.SuperBuilder;
 import java.util.List;
 
 @Entity
+@Table(name = "parties")
 @Getter
 @Setter
 @SuperBuilder

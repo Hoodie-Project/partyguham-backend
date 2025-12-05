@@ -6,7 +6,7 @@ import lombok.*;
 
 @Entity
 @Table(
-        name = "user_career",
+        name = "user_careers",
         uniqueConstraints = {
                 // (user_id, career_type) 1개만 허용 (PRIMARY 1개, SECONDARY 1개)
                 @UniqueConstraint(

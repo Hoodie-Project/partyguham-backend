@@ -7,7 +7,7 @@ import lombok.*;
 
 @Entity
 @Table(
-        name = "user_location",
+        name = "user_locations",
         uniqueConstraints = {
                 @UniqueConstraint(
                         name = "uk_user_location",

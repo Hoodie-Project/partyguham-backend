@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "position")
+@Table(name = "positions")
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)

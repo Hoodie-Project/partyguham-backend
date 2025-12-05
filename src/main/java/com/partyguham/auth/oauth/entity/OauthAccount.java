@@ -16,7 +16,7 @@ import lombok.*;
         allocationSize = 50
 )
 @Table(
-        name = "oauth_account",
+        name = "oauth_accounts",
         uniqueConstraints = {
                 @UniqueConstraint(
                         name = "uk_oauth_provider_external_id",

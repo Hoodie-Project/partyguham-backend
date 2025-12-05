@@ -6,7 +6,7 @@ import lombok.*;
 import java.util.List;
 
 @Entity
-@Table(name = "location")
+@Table(name = "locations")
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)

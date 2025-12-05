@@ -8,7 +8,7 @@ import java.util.List;
 
 @Entity
 @Table(
-        name = "notification_type",
+        name = "notification_types",
         uniqueConstraints = {
                 @UniqueConstraint(
                         name = "uk_notification_type",

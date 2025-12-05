@@ -6,7 +6,7 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 @Entity
-@Table(name = "banner")
+@Table(name = "banners")
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)

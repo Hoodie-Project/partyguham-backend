@@ -8,7 +8,7 @@ import lombok.Setter;
 import java.time.LocalDate;
 
 @Entity
-@Table(name="user_profile",
+@Table(name="user_profiles",
         uniqueConstraints=@UniqueConstraint(name="uk_profile_nickname", columnNames="nickname"))
 @Getter
 @Setter

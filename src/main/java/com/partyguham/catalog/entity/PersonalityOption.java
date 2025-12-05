@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "personality_option")
+@Table(name = "personality_options")
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)

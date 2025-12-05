@@ -7,7 +7,7 @@ import lombok.experimental.SuperBuilder;
 import java.util.List;
 
 @Entity
-@Table(name="party_type")
+@Table(name="party_types")
 @Getter
 @Setter
 @SuperBuilder
