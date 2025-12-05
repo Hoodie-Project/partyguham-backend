@@ -1,5 +1,8 @@
 package com.partyguham.recruitment.dto.request;
 
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -17,11 +20,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @AllArgsConstructor
 @Builder
 public class CreatePartyRecruitmentRequestDto {
-    
-    private Long positionId;   
+    @NotNull(message = "positionId 는 필수값입니다.")
+    private Long positionId;
 
-    private String content;      
+    @NotBlank(message = "content 는 필수값입니다.")
+    private String content;
 
+    @Min(value = 1, message = "recruiting_count 는 최소 1명 이상이어야 합니다.")
     @JsonProperty("recruiting_count")
     private int recruitingCount;
 }

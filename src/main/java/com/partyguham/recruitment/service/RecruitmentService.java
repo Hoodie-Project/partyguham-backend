@@ -1,9 +1,7 @@
 package com.partyguham.recruitment.service;
 
-import com.partyguham.catalog.repository.PositionRepository;
 import com.partyguham.party.entity.Party;
 import com.partyguham.party.exception.PartyNotFoundException;
-import com.partyguham.party.exception.PositionNotFoundException;
 import com.partyguham.party.repository.PartyRepository;
 import com.partyguham.party.service.PartyAccessService;
 import com.partyguham.recruitment.dto.request.CreatePartyRecruitmentRequestDto;
@@ -32,14 +30,13 @@ public class RecruitmentService {
 
     private final PartyRecruitmentRepository partyRecruitmentRepository;
     private final PartyRepository partyRepository;
-    private final PositionRepository positionRepository;
     private final PartyAccessService partyAccessService;
 
     /**
      * 파티 모집글 목록 조회
      */
-    public PartyRecruitmentsResponseDto getPartyRecruitments(Long partyId,
-                                                             PartyRecruitmentsRequestDto request) {
+    public List<PartyRecruitmentsResponseDto.PartyRecruitmentDto> getPartyRecruitments(Long partyId,
+                                                                                       PartyRecruitmentsRequestDto request) {
 
         partyRepository.findById(partyId)
                 .orElseThrow(() -> new PartyNotFoundException(partyId));
@@ -65,47 +62,45 @@ public class RecruitmentService {
                 .map(PartyRecruitmentsResponseDto.PartyRecruitmentDto::from)
                 .toList();
 
-        return PartyRecruitmentsResponseDto.builder()
-                .total(filtered.size())
-                .partyRecruitments(recruitmentDtos)
-                .build();
+        return recruitmentDtos;
     }
 
     /**
-     * 파티 모집공고 생성
+     * 파티 모집공고 생성 (1~5개)
      */
     @Transactional
-    public CreatePartyRecruitmentsResponseDto createPartyRecruitment(Long partyId,
-                                                                     Long userId,
-                                                                     CreatePartyRecruitmentRequestDto request) {
+    public List<CreatePartyRecruitmentsResponseDto> createPartyRecruitment(Long partyId,
+                                                                           Long userId,
+                                                                           List<CreatePartyRecruitmentRequestDto> requests) {
         
         Party party = partyRepository.findById(partyId)
                 .orElseThrow(() -> new PartyNotFoundException(partyId));
 
         partyAccessService.checkManagerOrThrow(partyId, userId);
 
-        positionRepository.findById(request.getPositionId())
-                .orElseThrow(() -> new PositionNotFoundException(request.getPositionId()));
-
-        PartyRecruitment recruitment = PartyRecruitment.builder()
-                .party(party)
-                .title(party.getTitle())
-                .content(request.getContent())
-                .maxParticipants(request.getRecruitingCount())
-                .currentParticipants(0) // 초기값 0
-                .completed(false) // 초기값 false
-                .build();
-
-        PartyRecruitment saved = partyRecruitmentRepository.save(recruitment);
-
-        return CreatePartyRecruitmentsResponseDto.builder()
-                .id(saved.getId())
-                .content(saved.getContent())
-                .recruitingCount(saved.getMaxParticipants())
-                .recruitedCount(saved.getCurrentParticipants())
-                .status(saved.isCompleted() ? "COMPLETED" : "RECRUITING")
-                .createdAt(saved.getCreatedAt())
-                .build();
+        return requests.stream()
+                .map(request -> {
+                    PartyRecruitment recruitment = PartyRecruitment.builder()
+                            .party(party)
+                            .title(party.getTitle())
+                            .content(request.getContent())
+                            .maxParticipants(request.getRecruitingCount())
+                            .currentParticipants(0)
+                            .completed(false)
+                            .build();
+                    
+                    PartyRecruitment saved = partyRecruitmentRepository.save(recruitment);
+                    
+                    return CreatePartyRecruitmentsResponseDto.builder()
+                            .id(saved.getId())
+                            .content(saved.getContent())
+                            .recruitingCount(saved.getMaxParticipants())
+                            .recruitedCount(saved.getCurrentParticipants())
+                            .status(saved.isCompleted() ? "COMPLETED" : "RECRUITING")
+                            .createdAt(saved.getCreatedAt())
+                            .build();
+                })
+                .toList();
     }
 
     /**
