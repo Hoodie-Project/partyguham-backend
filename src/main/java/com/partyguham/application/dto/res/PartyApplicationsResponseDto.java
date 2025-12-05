@@ -29,7 +29,7 @@ public class PartyApplicationsResponseDto {
     public static class PartyApplicationUserDto {
         private Long id;
         private String message;
-        private String status;      // pending / approved ...
+        private String applicationStatus;      // pending / approved ...
         private LocalDateTime createdAt;
         private UserSummary user;
     }
@@ -61,7 +61,7 @@ public class PartyApplicationsResponseDto {
         return PartyApplicationUserDto.builder()
                 .id(app.getId())
                 .message(app.getMessage())
-                .status(app.getApplicationStatus().name().toLowerCase())
+                .applicationStatus(app.getApplicationStatus().name().toLowerCase())
                 .createdAt(app.getCreatedAt())
                 .user(UserSummary.builder()
                         .id(user.getId())
