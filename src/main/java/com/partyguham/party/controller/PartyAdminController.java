@@ -3,11 +3,11 @@ package com.partyguham.party.controller;
 import com.partyguham.auth.jwt.UserPrincipal;
 import com.partyguham.common.annotation.ApiV2Controller;
 import com.partyguham.infra.s3.S3FileService;
-import com.partyguham.infra.s3.S3Folder;
 import com.partyguham.party.dto.partyAdmin.request.*;
 import com.partyguham.party.dto.partyAdmin.response.*;
 import com.partyguham.party.service.PartyAdminService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -31,25 +31,19 @@ import org.springframework.web.multipart.MultipartFile;
 public class PartyAdminController {
 
     private final PartyAdminService partyAdminService;
-    private final S3FileService s3FileService;
 
     /**
      * 파티 정보 수정 (파티 설명/소개/조건 등)
      */
-    @PatchMapping("/info")
+    @PatchMapping(value = "/info", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<UpdatePartyResponseDto> updateParty(
             @PathVariable Long partyId,
             @AuthenticationPrincipal UserPrincipal user,
-            @RequestPart MultipartFile image,
+            @RequestPart(required = false) MultipartFile image,
             @ModelAttribute UpdatePartyRequestDto request
     ) {
-        String imageKey = null;
-        if (image != null && !image.isEmpty()) {
-            imageKey = s3FileService.upload(image, S3Folder.PARTY);
-        }
-
         return ResponseEntity.ok(
-                partyAdminService.updateParty(partyId, user.getId(), request, imageKey)
+                partyAdminService.updateParty(partyId, user.getId(), request, image)
         );
     }
 

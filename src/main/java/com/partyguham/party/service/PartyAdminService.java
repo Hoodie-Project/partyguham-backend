@@ -4,6 +4,7 @@ import com.partyguham.catalog.entity.Position;
 import com.partyguham.catalog.repository.PositionRepository;
 import com.partyguham.common.entity.Status;
 import com.partyguham.infra.s3.S3FileService;
+import com.partyguham.infra.s3.S3Folder;
 import com.partyguham.party.dto.partyAdmin.mapper.PartyUserAdminMapper;
 import com.partyguham.party.dto.partyAdmin.request.*;
 import com.partyguham.party.dto.partyAdmin.response.*;
@@ -18,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -82,23 +84,23 @@ public class PartyAdminService {
             Long partyId,
             Long userId,
             UpdatePartyRequestDto request,
-            String newImageKey // 새 이미지가 없으면 null
+            MultipartFile image // 새 이미지, 없으면 null
     ) {
-        // 1) 권한 체크
+// 1) 권한 체크
         partyAccessService.checkMasterOrThrow(partyId, userId);
 
         // 2) 파티 조회
         Party party = partyRepository.findById(partyId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 파티입니다. id=" + partyId));
 
-        // 3) 파티 타입 변경 (nullable이면 변경 안 함)
+        // 3) 타입 변경
         if (request.getPartyTypeId() != null) {
             PartyType partyType = partyTypeRepository.findById(request.getPartyTypeId())
                     .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 파티 타입입니다. id=" + request.getPartyTypeId()));
             party.setPartyType(partyType);
         }
 
-        // 4) 제목/내용 부분 수정 (null이면 변경 안 함)
+        // 4) 제목/내용 수정
         if (request.getTitle() != null) {
             party.setTitle(request.getTitle());
         }
@@ -106,13 +108,14 @@ public class PartyAdminService {
             party.setContent(request.getContent());
         }
 
-        // 5) 이미지 변경 (있을 때만)
-        if (newImageKey != null) {
+        // 5) 이미지 교체 (파일이 왔을 때만)
+        if (image != null && !image.isEmpty()) {
             String oldKey = party.getImage();
-            party.setImage(newImageKey);
+            String newKey = s3FileService.upload(image, S3Folder.PARTY);
 
-            // 이전 이미지 삭제하고 싶으면
-            if (oldKey != null && !oldKey.equals(newImageKey)) {
+            party.setImage(newKey);
+
+            if (oldKey != null && !oldKey.equals(newKey)) {
                 s3FileService.delete(oldKey);
             }
         }
