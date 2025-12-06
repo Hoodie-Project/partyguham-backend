@@ -31,13 +31,13 @@ public class RecruitmentController {
         return ResponseEntity.ok(partyRecruitmentService.getPartyRecruitments(partyId, request));
     }
 
-    @PostMapping("/{partyId}/recruitments") // 다중 포지션 모집공고 생성
-    public ResponseEntity<List<CreatePartyRecruitmentsResponseDto>> createPartyRecruitment(
+    @PostMapping("/{partyId}/recruitments") // 파티 모집공고 생성
+    public ResponseEntity<CreatePartyRecruitmentsResponseDto> createPartyRecruitment(
             @PathVariable Long partyId,
             @AuthenticationPrincipal UserPrincipal user,
-            @RequestBody @Valid List<CreatePartyRecruitmentRequestDto> requests) {
+            @RequestBody @Valid CreatePartyRecruitmentRequestDto request) {
 
-        return ResponseEntity.ok(partyRecruitmentService.createPartyRecruitment(partyId, user.getId(), requests));
+        return ResponseEntity.ok(partyRecruitmentService.createPartyRecruitment(partyId, user.getId(), request));
     }
 
 //    @GetMapping("/recruitments/personalized")
