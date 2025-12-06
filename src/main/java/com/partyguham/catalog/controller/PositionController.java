@@ -15,7 +15,6 @@ public class PositionController {
 
     private final PositionService positionService;
 
-    // GET /api/v2/positions?main=백엔드
     @GetMapping
     public List<PositionResponse> getByMain(@RequestParam String main) {
         return positionService.getByMain(main);

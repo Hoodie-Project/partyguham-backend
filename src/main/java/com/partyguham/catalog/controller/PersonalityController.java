@@ -18,12 +18,8 @@ public class PersonalityController {
 
     /**
      * 성향 질문/옵션 전체 조회
-     *
-     * 프론트에서:
-     *  - 질문 목록 렌더링
-     *  - 각 질문에 보기를 함께 보여줄 때 사용
      */
-    @GetMapping("")
+    @GetMapping()
     public List<PersonalityQuestionWithOptionsResponse> getQuestions() {
         return questionQueryService.getAllQuestionsWithOptions();
     }
