@@ -1,8 +1,10 @@
 package com.partyguham.user.profile.controller;
 
 import com.partyguham.auth.jwt.UserPrincipal;
+import com.partyguham.common.annotation.ApiV2Controller;
 import com.partyguham.user.profile.dto.request.PersonalityAnswerRequest;
 import com.partyguham.user.profile.dto.response.PersonalityAnswerResponse;
+import com.partyguham.user.profile.dto.response.PersonalityBulkAnswerRequest;
 import com.partyguham.user.profile.service.UserPersonalityService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -11,20 +13,20 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@RestController
+@ApiV2Controller
 @RequiredArgsConstructor
 @RequestMapping("/users/me/personalities")
 public class UserPersonalityController {
 
     private final UserPersonalityService userPersonalityService;
 
-    /** 성향 응답 생성/수정 (질문 하나에 대해 여러 옵션 선택 가능) */
+    /** 성향 응답 생성/수정 (여러 질문 한 번에 Upsert) */
     @PostMapping
-    public PersonalityAnswerResponse save(
+    public List<PersonalityAnswerResponse> saveAll(
             @AuthenticationPrincipal UserPrincipal user,
-            @RequestBody @Valid PersonalityAnswerRequest request
+            @RequestBody @Valid PersonalityBulkAnswerRequest request
     ) {
-        return userPersonalityService.saveAnswer(user.getId(), request);
+        return userPersonalityService.saveAnswers(user.getId(), request);
     }
 
     /** 나의 성향 전체 조회 */

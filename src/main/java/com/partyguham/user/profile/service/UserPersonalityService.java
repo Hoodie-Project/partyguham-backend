@@ -7,7 +7,9 @@ import com.partyguham.catalog.repository.PersonalityQuestionRepository;
 import com.partyguham.user.account.entity.User;
 import com.partyguham.user.account.repository.UserRepository;
 import com.partyguham.user.profile.dto.request.PersonalityAnswerRequest;
+import com.partyguham.user.profile.dto.response.PersonalityAnswerItem;
 import com.partyguham.user.profile.dto.response.PersonalityAnswerResponse;
+import com.partyguham.user.profile.dto.response.PersonalityBulkAnswerRequest;
 import com.partyguham.user.profile.entity.UserPersonality;
 import com.partyguham.user.profile.repository.UserPersonalityRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -41,65 +43,138 @@ public class UserPersonalityService {
      * @param req    질문 ID + 선택한 옵션 ID 리스트
      */
     @Transactional
-    public PersonalityAnswerResponse saveAnswer(Long userId, PersonalityAnswerRequest req) {
+    public List<PersonalityAnswerResponse> saveAnswers(Long userId, PersonalityBulkAnswerRequest req) {
 
         // 0) 유저 존재 여부 확인
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("user not found"));
 
-        // 1) 질문 존재 여부 확인
-        PersonalityQuestion question = questionRepository.findById(req.questionId())
-                .orElseThrow(() -> new EntityNotFoundException("question not found"));
+        // 1) 요청 유효성 체크
+        List<PersonalityAnswerItem> items = Optional.ofNullable(req.personalities())
+                .orElse(List.of());
 
-        // 2) 옵션 ID 중복 제거 + 비어있는지 체크
-        List<Long> distinctOptionIds = req.optionIds().stream().distinct().toList();
-        if (distinctOptionIds.isEmpty()) {
-            throw new IllegalArgumentException("optionIds must not be empty");
+        if (items.isEmpty()) {
+            throw new IllegalArgumentException("personality 리스트가 비어 있습니다.");
         }
 
-        // (선택) 최대 선택 개수 제한
-        // if (distinctOptionIds.size() > 3) throw new IllegalArgumentException("최대 3개까지 선택 가능합니다.");
+        // 2) 질문 ID 모으기 (중복 제거)
+        List<Long> questionIds = items.stream()
+                .map(PersonalityAnswerItem::questionId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
 
-        // 3) 옵션들 조회
-        List<PersonalityOption> options = optionRepository.findByIdIn(distinctOptionIds);
-        if (options.size() != distinctOptionIds.size()) {
+        if (questionIds.isEmpty()) {
+            throw new IllegalArgumentException("questionId가 비어 있습니다.");
+        }
+
+        // 3) 질문들 조회
+        List<PersonalityQuestion> questions = questionRepository.findAllById(questionIds);
+        if (questions.size() != questionIds.size()) {
+            throw new IllegalArgumentException("존재하지 않는 questionId가 포함되어 있습니다.");
+        }
+        Map<Long, PersonalityQuestion> questionMap = questions.stream()
+                .collect(Collectors.toMap(PersonalityQuestion::getId, q -> q));
+
+        // 4) 전체 옵션 ID 모으기 (중복 제거)
+        List<Long> allOptionIds = items.stream()
+                .flatMap(i -> Optional.ofNullable(i.optionIds()).orElse(List.of()).stream())
+                .distinct()
+                .toList();
+
+        if (allOptionIds.isEmpty()) {
+            throw new IllegalArgumentException("optionIds가 비어 있습니다.");
+        }
+
+        // 5) 옵션들 조회
+        List<PersonalityOption> allOptions = optionRepository.findByIdIn(allOptionIds);
+        if (allOptions.size() != allOptionIds.size()) {
             throw new IllegalArgumentException("잘못된 옵션 ID가 포함되어 있습니다.");
         }
+        Map<Long, PersonalityOption> optionMap = allOptions.stream()
+                .collect(Collectors.toMap(PersonalityOption::getId, o -> o));
 
-        // 4) 모든 옵션이 같은 질문에 속하는지 검증
-        boolean allMatchQuestion = options.stream()
-                .allMatch(o -> Objects.equals(o.getPersonalityQuestion().getId(), question.getId()));
-        if (!allMatchQuestion) {
-            throw new IllegalArgumentException("옵션이 해당 질문에 속하지 않습니다.");
+        // 6) 질문별 선택 옵션 리스트 구성 + 검증
+        Map<Long, List<PersonalityOption>> questionToOptions = new LinkedHashMap<>();
+
+        for (PersonalityAnswerItem item : items) {
+            Long qId = item.questionId();
+            PersonalityQuestion question = questionMap.get(qId);
+            if (question == null) {
+                throw new IllegalArgumentException("존재하지 않는 질문 ID입니다. id=" + qId);
+            }
+
+            List<Long> optionIds = Optional.ofNullable(item.optionIds())
+                    .orElse(List.of())
+                    .stream()
+                    .distinct()
+                    .toList();
+
+            if (optionIds.isEmpty()) {
+                throw new IllegalArgumentException("questionId=" + qId + " 에 대한 optionIds가 비어 있습니다.");
+            }
+
+            // 6-1) 질문당 최대 선택 개수(responseCount) 검증
+            int maxSelectable = question.getResponseCount();
+            if (optionIds.size() > maxSelectable) {
+                throw new IllegalArgumentException(
+                        "questionId=" + qId + " 은(는) 최대 " + maxSelectable + "개까지 선택 가능합니다."
+                );
+            }
+
+            // 6-2) 옵션 ID -> 엔티티 매핑 + 질문 일치 여부 검증
+            List<PersonalityOption> optionsForQuestion = optionIds.stream()
+                    .map(optionId -> {
+                        PersonalityOption opt = optionMap.get(optionId);
+                        if (opt == null) {
+                            throw new IllegalArgumentException("존재하지 않는 옵션 ID입니다. id=" + optionId);
+                        }
+                        if (!Objects.equals(
+                                opt.getPersonalityQuestion().getId(),
+                                question.getId()
+                        )) {
+                            throw new IllegalArgumentException(
+                                    "optionId=" + optionId + " 는 questionId=" + qId + " 에 속하지 않습니다."
+                            );
+                        }
+                        return opt;
+                    })
+                    .toList();
+
+            questionToOptions.put(qId, optionsForQuestion);
         }
 
-        // 5) 기존 응답 삭제 (해당 유저 + 질문 기준)
-        userPersonalityRepository.deleteByUserIdAndQuestionId(userId, question.getId());
+        // 7) 기존 응답 삭제 (해당 유저 + 이번에 제출한 질문들 기준)
+        // user_personalities 테이블에서 user_id + question_id in (...) 삭제
+        userPersonalityRepository.deleteByUserIdAndQuestion_IdIn(userId, questionIds);
+        // (만약 이 메서드가 없다면, questionIds.forEach(qId -> deleteByUserIdAndQuestionId(userId, qId)); 로 처리)
 
-        // 6) 새 응답 저장
-        List<UserPersonality> newAnswers = options.stream()
-                .map(opt -> UserPersonality.builder()
+        // 8) 새 응답 엔티티 생성
+        List<UserPersonality> newAnswers = new ArrayList<>();
+        for (Map.Entry<Long, List<PersonalityOption>> entry : questionToOptions.entrySet()) {
+            Long qId = entry.getKey();
+            PersonalityQuestion question = questionMap.get(qId);
+
+            for (PersonalityOption opt : entry.getValue()) {
+                UserPersonality up = UserPersonality.builder()
                         .user(user)
                         .question(question)
-                        // ✅ 엔티티 필드명이 personalityOption 이라면 이렇게!
                         .personalityOption(opt)
-                        .build())
-                .toList();
+                        .build();
+                newAnswers.add(up);
+            }
+        }
 
         userPersonalityRepository.saveAll(newAnswers);
 
-        // 7) 응답 DTO 변환
-        List<PersonalityAnswerResponse.OptionInfo> optionInfos = options.stream()
-                .map(o -> new PersonalityAnswerResponse.OptionInfo(o.getId(), o.getContent()))
+        // 9) 응답 DTO 리스트로 변환
+        return questionToOptions.entrySet().stream()
+                .map(entry -> PersonalityAnswerResponse.from(
+                        questionMap.get(entry.getKey()),
+                        entry.getValue()
+                ))
                 .toList();
-
-        return new PersonalityAnswerResponse(
-                question.getId(),
-                question.getContent(),
-                optionInfos
-        );
     }
-
     /**
      * 내 성향 전체 조회
      */
@@ -137,11 +212,11 @@ public class UserPersonalityService {
 
     @Transactional
     public void deleteAnswersByQuestion(Long userId, Long questionId) {
-        userPersonalityRepository.deleteByUserIdAndQuestionId(userId, questionId);
+        userPersonalityRepository.deleteByUserIdAndQuestion_Id(userId, questionId);
     }
 
     @Transactional
     public void deleteAnswerByOption(Long userId, Long optionId) {
-        userPersonalityRepository.deleteByUserIdAndPersonalityOptionId(userId, optionId);
+        userPersonalityRepository.deleteByUser_IdAndPersonalityOption_Id(userId, optionId);
     }
 }
