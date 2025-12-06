@@ -28,10 +28,10 @@ public class UserLocationController {
      * 내 관심지역 설정 (전체 교체)
      * - body.locationIds: [1, 2, 3] 형식
      */
-    @PutMapping
-    public void putMyLocations(@AuthenticationPrincipal UserPrincipal user,
+    @PostMapping
+    public List<UserLocationResponse> putMyLocations(@AuthenticationPrincipal UserPrincipal user,
                                @RequestBody UserLocationBulkRequest req) {
-        userLocationService.setMyLocations(user.getId(), req);
+        return userLocationService.setMyLocations(user.getId(), req);
     }
 
     /** 내 관심지역 전체 삭제 */
