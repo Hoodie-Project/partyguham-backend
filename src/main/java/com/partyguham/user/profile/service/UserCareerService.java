@@ -35,16 +35,24 @@ public class UserCareerService {
                 .orElseThrow(() -> new IllegalArgumentException("position not found"));
     }
 
-    // READ: 나의 모든 경력 조회
+    /**
+     * READ: 나의 모든 경력 조회
+     */
     @Transactional(readOnly = true)
     public List<CareerResponse> getMyCareers(Long userId) {
         User user = getUserOrThrow(userId);
+
         return userCareerRepository.findByUser(user).stream()
-                .map(this::toResponse)
-                .collect(Collectors.toList());
+                .map(CareerResponse::from)  // 공통 변환 로직 사용
+                .toList();
     }
 
-    // CREATE/UPSERT: PRIMARY/SECONDARY를 한 번에 저장/갱신 (최대 2개)
+    /**
+     * CREATE/UPSERT: PRIMARY/SECONDARY를 한 번에 저장/갱신 (최대 2개)
+     * - 요청에 들어온 careerType 들을 기준으로 기존 데이터 삭제/생성/수정
+     * - 같은 careerType이 요청 안에 중복되면 예외
+     * - 응답은 최종적으로 저장된 나의 경력 목록
+     */
     @Transactional
     public List<CareerResponse> upsertMyCareers(Long userId, UserCareerBulkCreateRequest req) {
         User user = getUserOrThrow(userId);
@@ -53,7 +61,7 @@ public class UserCareerService {
             throw new IllegalArgumentException("careers is empty");
         }
 
-        // 요청 안에서 타입 중복 방지
+        // 1) 요청 안에서 careerType 중복 방지
         Set<CareerType> typesInReq = new HashSet<>();
         for (UserCareerCreateRequest c : req.getCareers()) {
             if (!typesInReq.add(c.getCareerType())) {
@@ -63,11 +71,12 @@ public class UserCareerService {
 
         List<UserCareer> result = new ArrayList<>();
 
+        // 2) 각 careerType 별로 upsert 수행
         for (UserCareerCreateRequest c : req.getCareers()) {
             Position pos = getPositionOrThrow(c.getPositionId());
             CareerType type = c.getCareerType();
 
-            // 이미 이 타입이 있으면 업데이트
+            // 이미 이 타입의 경력이 있으면 -> 업데이트
             Optional<UserCareer> existingOpt = userCareerRepository.findByUserAndCareerType(user, type);
             if (existingOpt.isPresent()) {
                 UserCareer existing = existingOpt.get();
@@ -87,22 +96,31 @@ public class UserCareerService {
             }
         }
 
-        return result.stream().map(this::toResponse).collect(Collectors.toList());
+        // 3) 엔티티 -> 응답 DTO 변환
+        return result.stream()
+                .map(CareerResponse::from)
+                .toList();
     }
 
-    // UPDATE: 특정 경력의 years(경력 연차)만 변경 (권장: 단일 필드 업데이트)
+    /**
+     * UPDATE: 특정 경력의 years(경력 연차)만 변경
+     * - 권장: 단일 필드 업데이트용 API
+     */
     @Transactional
     public CareerResponse updateYears(Long userId, Long careerId, Integer years) {
         User user = getUserOrThrow(userId);
+
         UserCareer uc = userCareerRepository.findById(careerId)
                 .orElseThrow(() -> new IllegalArgumentException("career not found"));
 
+        // 본인 소유 검증
         if (!uc.getUser().getId().equals(user.getId())) {
             throw new IllegalStateException("not your career");
         }
 
         uc.setYears(years);
-        return toResponse(uc);
+
+        return CareerResponse.from(uc);
     }
 
     // DELETE: 특정 경력 삭제
@@ -124,12 +142,4 @@ public class UserCareerService {
         userCareerRepository.deleteByUserId(userId);
     }
 
-    private CareerResponse toResponse(UserCareer uc) {
-        CareerResponse dto = new CareerResponse();
-        dto.setId(uc.getId());
-        dto.setPositionId(uc.getPosition().getId());
-        dto.setYears(uc.getYears());
-        dto.setCareerType(uc.getCareerType());
-        return dto;
-    }
 }
