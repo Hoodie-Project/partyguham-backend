@@ -32,6 +32,10 @@ public class Party extends BaseEntity {
     @Column()
     private String image;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private PartyStatus partyStatus = PartyStatus.IN_PROGRESS;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "party_type_id", nullable = false)
     private PartyType partyType;

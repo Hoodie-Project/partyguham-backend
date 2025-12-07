@@ -1,7 +1,7 @@
 package com.partyguham.party.dto.partyAdmin.response;
 
-import com.partyguham.common.entity.Status;
 import com.partyguham.party.entity.Party;
+import com.partyguham.party.entity.PartyStatus;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -10,12 +10,12 @@ import lombok.Getter;
 public class UpdatePartyStatusResponseDto {
 
     private Long id;
-    private Status status; // "active" / "archived"
+    private PartyStatus partyStatus;
 
     public static UpdatePartyStatusResponseDto from(Party party) {
         return UpdatePartyStatusResponseDto.builder()
                 .id(party.getId())
-                .status(party.getStatus())
+                .partyStatus(party.getPartyStatus())
                 .build();
     }
 }

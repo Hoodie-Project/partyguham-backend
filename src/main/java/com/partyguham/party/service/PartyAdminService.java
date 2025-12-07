@@ -8,10 +8,7 @@ import com.partyguham.infra.s3.S3Folder;
 import com.partyguham.party.dto.partyAdmin.mapper.PartyUserAdminMapper;
 import com.partyguham.party.dto.partyAdmin.request.*;
 import com.partyguham.party.dto.partyAdmin.response.*;
-import com.partyguham.party.entity.Party;
-import com.partyguham.party.entity.PartyAuthority;
-import com.partyguham.party.entity.PartyType;
-import com.partyguham.party.entity.PartyUser;
+import com.partyguham.party.entity.*;
 import com.partyguham.party.repository.PartyRepository;
 import com.partyguham.party.repository.PartyTypeRepository;
 import com.partyguham.party.repository.PartyUserRepository;
@@ -136,13 +133,10 @@ public class PartyAdminService {
         Party party = partyRepository.findById(partyId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 파티입니다. id=" + partyId));
 
-        // 3) 문자열 → 공통 Status enum 변환 (DTO에서 active/archived)
-        Status newStatus = Status.from(request.getStatus()); // ACTIVE / ARCHIVED
+        // 3) 상태 변경
+        party.setPartyStatus(request.partyStatus());
 
-        // 4) 상태 변경
-        party.setStatus(newStatus);
-
-        // 5) 응답 DTO로 변환
+        // 4) 응답 DTO로 변환
         return UpdatePartyStatusResponseDto.from(party);
     }
 
