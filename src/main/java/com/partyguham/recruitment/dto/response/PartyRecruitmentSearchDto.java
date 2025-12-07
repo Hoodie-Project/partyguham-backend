@@ -1,6 +1,7 @@
-package com.partyguham.party.dto.party.response;
+package com.partyguham.recruitment.dto.response;
 
 import com.partyguham.recruitment.entity.PartyRecruitment;
+import com.partyguham.catalog.dto.response.PositionResponse;
 import lombok.*;
 
 @Getter
@@ -16,7 +17,7 @@ public class PartyRecruitmentSearchDto {
     private String status;            // active / completed
     private String createdAt;
     private PartyDto party;
-    private PositionDto position;
+    private PositionResponse position;
 
     @Getter
     @Builder
@@ -36,16 +37,6 @@ public class PartyRecruitmentSearchDto {
         public static class PartyTypeDto {
             private String type;
         }
-    }
-
-    @Getter
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class PositionDto {
-        private Long id;
-        private String main;
-        private String sub;
     }
 
     public static PartyRecruitmentSearchDto from(PartyRecruitment partyRecruitment) {
@@ -80,7 +71,7 @@ public class PartyRecruitmentSearchDto {
                                 )
                                 .build()
                 )
-                .position(null) // TODO: PartyRecruitment에 position 필드가 없으므로 null 처리
+                .position(PositionResponse.from(partyRecruitment.getPosition()))
                 .build();
     }
 }

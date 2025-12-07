@@ -7,6 +7,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 /**
  * 단일 파티 모집글 조회 응답 DTO
  */
@@ -23,8 +25,8 @@ public class PartyRecruitmentResponseDto {
     private int recruitingCount;
     private int recruitedCount;
     private int applicationCount;
-    private String status;
-    private String createdAt;
+    private boolean completed;
+    private LocalDateTime createdAt;
 
     /**
      * PartyRecruitment 엔티티를 PartyRecruitmentResponseDto로 변환하는 정적 팩토리 메서드
@@ -39,7 +41,6 @@ public class PartyRecruitmentResponseDto {
                 .id(recruitment.getParty().getId())
                 .title(recruitment.getParty().getTitle())
                 .image(recruitment.getParty().getImage())
-                .status(recruitment.getParty().getStatus().name())
                 .partyType(partyTypeDto)
                 .build();
 
@@ -64,9 +65,9 @@ public class PartyRecruitmentResponseDto {
                 .recruitingCount(recruitment.getMaxParticipants())
                 .recruitedCount(recruitment.getCurrentParticipants())
                 .applicationCount(applicationCount)
-                .status(recruitment.getCompleted() ? "COMPLETED" : "RECRUITING")
+                .completed(recruitment.getCompleted())
                 .createdAt(recruitment.getCreatedAt() != null
-                        ? recruitment.getCreatedAt().toString()
+                        ? recruitment.getCreatedAt()
                         : null)
                 .build();
     }
@@ -81,7 +82,6 @@ public class PartyRecruitmentResponseDto {
         private Long id;
         private String title;
         private String image;
-        private String status;
         private PartyType partyType;
 
         @Getter
