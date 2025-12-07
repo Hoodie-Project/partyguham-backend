@@ -1,5 +1,6 @@
 package com.partyguham.party.service;
 
+import com.partyguham.common.entity.Status;
 import com.partyguham.catalog.entity.Position;
 import com.partyguham.catalog.repository.PositionRepository;
 import com.partyguham.infra.s3.S3FileService;
@@ -21,6 +22,7 @@ import com.partyguham.party.exception.UserNotFoundException;
 import com.partyguham.party.repository.PartyRepository;
 import com.partyguham.party.repository.PartyTypeRepository;
 import com.partyguham.party.repository.PartyUserRepository;
+import com.partyguham.recruitment.dto.response.PartyRecruitmentSearchDto;
 import com.partyguham.recruitment.entity.PartyRecruitment;
 import com.partyguham.recruitment.repository.PartyRecruitmentRepository;
 import com.partyguham.user.account.entity.User;
@@ -127,7 +129,7 @@ public class PartyServiceImpl implements PartyService  { //TODO: S3 이미지 �
     @Override
     public GetPartyResponseDto getParty(Long partyId) { // 파티 단일 조회
         Party party = partyRepository.findById(partyId)
-                .orElseThrow(() -> new PartyNotFoundException(partyId));
+                .orElseThrow(() -> new PartyNotFoundException());
 
         return GetPartyResponseDto.from(party);
     }
@@ -136,7 +138,7 @@ public class PartyServiceImpl implements PartyService  { //TODO: S3 이미지 �
     public GetPartyUserResponseDto getPartyUsers(GetPartyUsersRequestDto request, Long partyId) { // 파티원 목록 조회
         
         partyRepository.findById(partyId)
-                .orElseThrow(() -> new PartyNotFoundException(partyId));
+                .orElseThrow(() -> new PartyNotFoundException());
 
         // 기본값 적용
         request.applyDefaultValues();
@@ -183,7 +185,7 @@ public class PartyServiceImpl implements PartyService  { //TODO: S3 이미지 �
     public PartyAuthorityResponseDto getPartyAuthority(Long partyId, Long userId) { // 나의 파티 권한 조회
         
         partyRepository.findById(partyId)
-                .orElseThrow(() -> new PartyNotFoundException(partyId));
+                .orElseThrow(() -> new PartyNotFoundException());
 
         // PartyUser 조회
         PartyUser partyUser = partyUserRepository.findByPartyIdAndUserId(partyId, userId)
@@ -204,7 +206,7 @@ public class PartyServiceImpl implements PartyService  { //TODO: S3 이미지 �
     public void leaveParty(Long partyId, Long userId) { // 파티 나가기
         // 파티 존재 확인
         partyRepository.findById(partyId)
-                .orElseThrow(() -> new PartyNotFoundException(partyId));
+                .orElseThrow(() -> new PartyNotFoundException());
 
         // PartyUser 조회 및 삭제
         PartyUser partyUser = partyUserRepository.findByPartyIdAndUserId(partyId, userId)
@@ -215,7 +217,8 @@ public class PartyServiceImpl implements PartyService  { //TODO: S3 이미지 �
             throw new PartyAccessDeniedException("파티장은 파티를 나갈 수 없습니다.");
         }
 
-        partyUserRepository.delete(partyUser);
+        // 소프트 삭제: status를 DELETED로 변경
+        partyUser.setStatus(Status.DELETED);
     }
 
     @Override

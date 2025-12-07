@@ -1,5 +1,6 @@
 package com.partyguham.recruitment.service;
 
+import com.partyguham.common.entity.Status;
 import com.partyguham.party.entity.Party;
 import com.partyguham.party.exception.PartyNotFoundException;
 import com.partyguham.party.repository.PartyRepository;
@@ -11,6 +12,8 @@ import com.partyguham.recruitment.dto.response.PartyRecruitmentResponseDto;
 import com.partyguham.recruitment.dto.response.PartyRecruitmentsResponseDto;
 import com.partyguham.recruitment.entity.PartyRecruitment;
 import com.partyguham.recruitment.repository.PartyRecruitmentRepository;
+import com.partyguham.catalog.entity.Position;
+import com.partyguham.catalog.repository.PositionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -31,15 +34,16 @@ public class RecruitmentService {
     private final PartyRecruitmentRepository partyRecruitmentRepository;
     private final PartyRepository partyRepository;
     private final PartyAccessService partyAccessService;
+    private final PositionRepository positionRepository;
 
     /**
-     * 파티 모집글 목록 조회
+     * 파티 모집 목록 조회
      */
-    public List<PartyRecruitmentsResponseDto.PartyRecruitmentDto> getPartyRecruitments(Long partyId,
-                                                                                       PartyRecruitmentsRequestDto request) {
+    public List<PartyRecruitmentsResponseDto> getPartyRecruitments(Long partyId,
+                                                                    PartyRecruitmentsRequestDto request) {
 
         partyRepository.findById(partyId)
-                .orElseThrow(() -> new PartyNotFoundException(partyId));
+                .orElseThrow(() -> new PartyNotFoundException());
 
 
         Sort.Direction direction = request.getOrder().equalsIgnoreCase("ASC")
@@ -53,16 +57,21 @@ public class RecruitmentService {
         List<PartyRecruitment> recruitments = partyRecruitmentRepository.findByPartyId(partyId, sort);
 
         List<PartyRecruitment> filtered = recruitments.stream()
-                .filter(recruitment -> recruitment.getCompleted() == request.isCompleted())
-                .filter(recruitment -> request.getMain().isEmpty() || recruitment.getPosition().getMain().equals(request.getMain()))
+                .filter(recruitment -> recruitment.getStatus() != Status.DELETED)  // DELETED 제외
+                .filter(recruitment -> recruitment.getCompleted().equals(request.getCompleted()))
+                .filter(recruitment -> {  // main 필터링
+                    String main = request.getMain();
+                    if (main != null && !main.isBlank()) { // main 값이 있으면 필터 적용
+                        return recruitment.getPosition().getMain().equals(main);
+                    }
+                    return true; // main 값이 없으면 전체 조회
+                })
                 .toList();
 
 
-        List<PartyRecruitmentsResponseDto.PartyRecruitmentDto> recruitmentDtos = filtered.stream()
-                .map(PartyRecruitmentsResponseDto.PartyRecruitmentDto::from)
+        return filtered.stream()
+                .map(PartyRecruitmentsResponseDto::from)
                 .toList();
-
-        return recruitmentDtos;
     }
 
     /**
@@ -74,12 +83,16 @@ public class RecruitmentService {
                                                                      CreatePartyRecruitmentRequestDto request) {
         
         Party party = partyRepository.findById(partyId)
-                .orElseThrow(() -> new PartyNotFoundException(partyId));
+                .orElseThrow(() -> new PartyNotFoundException());
 
         partyAccessService.checkManagerOrThrow(partyId, userId);
 
+        Position position = positionRepository.findById(request.getPositionId())
+                .orElseThrow(() -> new EntityNotFoundException("포지션을 찾을 수 없습니다: " + request.getPositionId()));
+
         PartyRecruitment recruitment = PartyRecruitment.builder()
                 .party(party)
+                .position(position)
                 .title(party.getTitle())
                 .content(request.getContent())
                 .maxParticipants(request.getRecruitingCount())
@@ -94,7 +107,7 @@ public class RecruitmentService {
                 .content(saved.getContent())
                 .recruitingCount(saved.getMaxParticipants())
                 .recruitedCount(saved.getCurrentParticipants())
-                .status(saved.getCompleted() ? "COMPLETED" : "RECRUITING")
+                .completed(saved.getCompleted())
                 .createdAt(saved.getCreatedAt())
                 .build();
     }
