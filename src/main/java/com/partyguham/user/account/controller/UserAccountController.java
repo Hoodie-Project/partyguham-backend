@@ -81,9 +81,9 @@ public class UserAccountController {
 
     /**
      * 내가 연동한 소셜 계정 조회
-     * GET /api/v2/users/me/oauth-accounts
+     * GET /api/v2/users/me/oauth
      */
-    @GetMapping("/me/oauth-accounts")
+    @GetMapping("/me/oauth")
     public List<MyOauthAccountResponse> getMyOauthAccounts(
             @AuthenticationPrincipal UserPrincipal user
     ) {

@@ -35,6 +35,9 @@ server:
       charset: UTF-8
       enabled: true
       force: true
+  error:
+    include-stacktrace: never   # trace 숨기기
+    include-message: always     # message는 응답에 포함
 
 springdoc:
   swagger-ui:

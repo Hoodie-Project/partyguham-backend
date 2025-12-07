@@ -15,8 +15,8 @@ public class LocationController {
 
     private final LocationService locationService;
 
-    @GetMapping("/province/{province}")
-    public List<Location> findByProvince(@PathVariable String province) {
+    @GetMapping
+    public List<Location> findByProvince(@RequestParam String province) {
         return locationService.getByProvince(province);
     }
 }

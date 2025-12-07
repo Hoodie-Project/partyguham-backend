@@ -40,6 +40,9 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/v2/auth/**",
                                 "/api/v2/banners",
+                                "/api/v2/locations",
+                                "/api/v2/personalities",
+                                "/api/v2/positions",
                                 "/api/v2/auth/oauth/**",
                                 "/api/v2/"
                         ).permitAll()

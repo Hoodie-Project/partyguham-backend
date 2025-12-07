@@ -2,10 +2,10 @@ package com.partyguham.party.controller;
 
 import com.partyguham.auth.jwt.UserPrincipal;
 import com.partyguham.common.annotation.ApiV2Controller;
-import com.partyguham.infra.s3.S3FileService;
 import com.partyguham.party.dto.partyAdmin.request.*;
 import com.partyguham.party.dto.partyAdmin.response.*;
 import com.partyguham.party.service.PartyAdminService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -25,7 +25,6 @@ import org.springframework.web.multipart.MultipartFile;
  * - 파티장 권한 위임
  * - 파티 삭제
  */
-@ApiV2Controller
 @RequiredArgsConstructor
 @RequestMapping("/parties/{partyId}/admin")
 public class PartyAdminController {
@@ -54,7 +53,7 @@ public class PartyAdminController {
     public ResponseEntity<UpdatePartyStatusResponseDto> updatePartyStatus(
             @PathVariable Long partyId,
             @AuthenticationPrincipal UserPrincipal user,
-            @RequestBody UpdatePartyStatusRequestDto request
+            @RequestBody @Valid UpdatePartyStatusRequestDto request
     ) {
         return ResponseEntity.ok(
                 partyAdminService.updatePartyStatus(partyId, user.getId(), request)

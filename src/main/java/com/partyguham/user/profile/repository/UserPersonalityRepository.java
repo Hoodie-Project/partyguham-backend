@@ -18,9 +18,12 @@ public interface UserPersonalityRepository extends JpaRepository<UserPersonality
     void deleteByUserId(Long userId);
 
     // 유저 + 질문 기준 전체 삭제
-    void deleteByUserIdAndQuestionId(Long userId, Long questionId);
+    void deleteByUserIdAndQuestion_Id(Long userId, Long questionId);
 
     // 유저 + 옵션 기준 1개 삭제 (user + option 유니크 가정)
-    void deleteByUserIdAndPersonalityOptionId(Long userId, Long optionId);
+    void deleteByUser_IdAndPersonalityOption_Id(Long userId, Long optionId);
+
+    // 🔥 여러 questionId 한 번에 삭제 (IN)
+    void deleteByUserIdAndQuestion_IdIn(Long userId, List<Long> questionIds);
 
 }

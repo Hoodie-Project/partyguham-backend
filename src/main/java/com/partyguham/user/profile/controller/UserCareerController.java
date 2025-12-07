@@ -2,6 +2,7 @@ package com.partyguham.user.profile.controller;
 
 import com.partyguham.auth.jwt.UserPrincipal;
 import com.partyguham.common.annotation.ApiV2Controller;
+import com.partyguham.user.profile.dto.request.UpdateCareerYearsRequest;
 import com.partyguham.user.profile.dto.request.UserCareerBulkCreateRequest;
 import com.partyguham.user.profile.dto.response.CareerResponse;
 import com.partyguham.user.profile.service.UserCareerService;
@@ -37,8 +38,9 @@ public class UserCareerController {
     public CareerResponse updateYears(
             @AuthenticationPrincipal UserPrincipal user,
             @PathVariable Long careerId,
-            @RequestParam("years") Integer years) {
-        return userCareerService.updateYears(user.getId(), careerId, years);
+            @RequestBody UpdateCareerYearsRequest request
+    ) {
+        return userCareerService.updateYears(user.getId(), careerId, request.getYears());
     }
 
     // DELETE: 경력 전체 삭제

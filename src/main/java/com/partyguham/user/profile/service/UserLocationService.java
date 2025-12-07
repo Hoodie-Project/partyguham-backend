@@ -26,18 +26,13 @@ public class UserLocationService {
     private final UserLocationRepository userLocationRepository;
 
     /** 내 관심지역 전체 조회 */
-    @Transactional
+    @Transactional()
     public List<UserLocationResponse> getMyLocations(Long userId) {
         List<UserLocation> list = userLocationRepository.findByUserId(userId);
 
         return list.stream()
-                .map(ul -> new UserLocationResponse(
-                        ul.getId(),
-                        ul.getLocation().getId(),
-                        ul.getLocation().getProvince(),
-                        ul.getLocation().getCity()
-                ))
-                .collect(Collectors.toList());
+                .map(UserLocationResponse::from)
+                .toList();
     }
 
     /**
@@ -46,7 +41,7 @@ public class UserLocationService {
      * - 중복 locationId 허용 안 함
      */
     @Transactional
-    public void setMyLocations(Long userId, UserLocationBulkRequest req) {
+    public List<UserLocationResponse> setMyLocations(Long userId, UserLocationBulkRequest req) {
         List<Long> locationIds = Optional.ofNullable(req.getLocationIds())
                 .orElse(List.of());
 
@@ -69,8 +64,10 @@ public class UserLocationService {
         List<UserLocation> oldList = userLocationRepository.findByUserId(userId);
         userLocationRepository.deleteAllInBatch(oldList);
 
-        // 5) 비어있으면 여기서 끝
-        if (locationIds.isEmpty()) return;
+        // 5) 비어있으면 여기서 끝 (빈 리스트 반환)
+        if (locationIds.isEmpty()) {
+            return List.of();
+        }
 
         // 6) Location 엔티티 조회
         List<Location> locations = locationRepository.findAllById(locationIds);
@@ -84,9 +81,13 @@ public class UserLocationService {
                         .user(user)
                         .location(loc)
                         .build())
-                .collect(Collectors.toList());
+                .toList();
 
         userLocationRepository.saveAll(newList);
+
+        return newList.stream()
+                .map(UserLocationResponse::from)
+                .toList();
     }
 
     /** 특정 관심지역 전체 삭제 */

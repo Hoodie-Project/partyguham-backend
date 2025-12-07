@@ -28,18 +28,18 @@ public class GlobalExceptionHandler {
     }
 
     /** 예상 못한 나머지 예외 → 500 */
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleException(
-            Exception e,
-            HttpServletRequest request
-    ) {
-        ErrorResponse errorResponse = ErrorResponse.of(
-                "서버 오류가 발생했습니다.",
-                "INTERNAL_SERVER_ERROR",
-                500,
-                request.getRequestURI()
-        );
-        return ResponseEntity.status(500).body(errorResponse);
-    }
+//    @ExceptionHandler(Exception.class)
+//    public ResponseEntity<ErrorResponse> handleException(
+//            Exception e,
+//            HttpServletRequest request
+//    ) {
+//        ErrorResponse errorResponse = ErrorResponse.of(
+//                "서버 오류가 발생했습니다.",
+//                "INTERNAL_SERVER_ERROR",
+//                500,
+//                request.getRequestURI()
+//        );
+//        return ResponseEntity.status(500).body(errorResponse);
+//    }
 }
 
