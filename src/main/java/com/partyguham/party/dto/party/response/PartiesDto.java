@@ -2,6 +2,7 @@ package com.partyguham.party.dto.party.response;
 
 import com.partyguham.party.entity.Party;
 
+import com.partyguham.party.entity.PartyStatus;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
@@ -16,7 +17,7 @@ public class PartiesDto {
     private String title;
     private String content;
     private String image;
-    private String status;     
+    private PartyStatus partyStatus;
     private String createdAt;
     private String updatedAt;
     private Integer recruitmentCount;
@@ -33,7 +34,7 @@ public class PartiesDto {
                 .title(party.getTitle())
                 .content(party.getContent())
                 .image(party.getImage())
-                .status(party.getStatus().name())
+                .partyStatus(party.getPartyStatus())
                 .createdAt(party.getCreatedAt().toString())
                 .updatedAt(party.getUpdatedAt().toString())
                 .recruitmentCount(

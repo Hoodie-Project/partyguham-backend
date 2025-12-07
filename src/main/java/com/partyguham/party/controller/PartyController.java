@@ -2,13 +2,11 @@ package com.partyguham.party.controller;
 
 import com.partyguham.auth.jwt.UserPrincipal;
 import com.partyguham.common.annotation.ApiV2Controller;
-import com.partyguham.infra.s3.S3FileService;
-import com.partyguham.infra.s3.S3Folder;
-import com.partyguham.party.dto.party.request.GetPartiesRequestDto;
 import com.partyguham.party.dto.party.request.GetPartyUsersRequestDto;
 import com.partyguham.party.dto.party.request.PartyCreateRequestDto;
 import com.partyguham.party.dto.party.response.*;
 import com.partyguham.party.service.PartyService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -26,19 +24,12 @@ public class PartyController { // create → get → search → action 순서
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<PartyResponseDto> createParty(
             @RequestPart(required = false) MultipartFile image,
-            @ModelAttribute PartyCreateRequestDto request,
+            @ModelAttribute @Valid PartyCreateRequestDto request,
             @AuthenticationPrincipal UserPrincipal user
     ) {
         return ResponseEntity.ok(
                 partyService.createParty(request, user.getId(), image)
         );
-    }
-
-    @GetMapping
-    public ResponseEntity<GetPartiesResponseDto> getParties( // 파티 목록 조회
-                                                             @ModelAttribute GetPartiesRequestDto parties) {
-
-        return ResponseEntity.ok(partyService.getParties(parties));
     }
 
     @GetMapping("/{partyId}")
@@ -71,15 +62,6 @@ public class PartyController { // create → get → search → action 순서
     public ResponseEntity<PartyTypeResponseDto> getPartyTypes() { // 파티 타입 목록 조회
 
         return ResponseEntity.ok(partyService.getPartyTypes());
-    }
-
-    @GetMapping("/search")
-    public ResponseEntity<GetSearchResponseDto> searchParties( // 파티 / 파티 모집공고 통합 검색
-                                                               @RequestParam int page,
-                                                               @RequestParam int limit,
-                                                               @RequestParam(required = false) String titleSearch) {
-
-        return ResponseEntity.ok(partyService.searchParties(page, limit, titleSearch));
     }
 
     @DeleteMapping("/{partyId}/users/me") //파티 나가기

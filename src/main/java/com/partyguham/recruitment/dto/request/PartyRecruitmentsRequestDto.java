@@ -2,6 +2,7 @@ package com.partyguham.recruitment.dto.request;
 
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import jakarta.annotation.Nullable;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
@@ -25,9 +26,10 @@ public class PartyRecruitmentsRequestDto {
     @Builder.Default
     private String order = "ASC";
 
+    @Nullable
     private String main;
 
-    private boolean completed; // 프론트 변경요청
+    private Boolean completed; // 프론트 변경요청
 
 }
 

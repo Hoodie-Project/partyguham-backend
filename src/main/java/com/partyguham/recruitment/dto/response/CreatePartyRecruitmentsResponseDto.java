@@ -22,7 +22,7 @@ public class CreatePartyRecruitmentsResponseDto {
     private String content;
     private Integer recruitingCount;
     private Integer recruitedCount;
-    private String status;
+    private Boolean completed;
     private LocalDateTime createdAt;
 }
 
