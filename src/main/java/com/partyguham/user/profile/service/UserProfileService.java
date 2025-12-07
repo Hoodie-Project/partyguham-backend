@@ -46,6 +46,31 @@ public class UserProfileService {
         );
     }
 
+    @Transactional(readOnly = true)
+    public UserProfileResponse getProfileByNickname(String nickname) {
+        User user = userRepository.findByNickname(nickname)
+                .orElseThrow(() -> new EntityNotFoundException("user not found"));
+
+        UserProfile profile = user.getProfile(); // null 가능
+
+        return new UserProfileResponse(
+                user.getEmail(),
+                user.getNickname(),
+                profile != null ? profile.getBirth() : null,
+                profile != null && profile.isBirthVisible(),
+                profile != null ? profile.getGender() : null,
+                profile != null && profile.isGenderVisible(),
+                profile != null ? profile.getPortfolioTitle() : null,
+                profile != null ? profile.getPortfolio() : null,
+                profile != null ? profile.getImage() : null,
+                user.getCreatedAt(),
+                user.getUpdatedAt(),
+                userPersonalityService.getMyAnswers(user.getId()),
+                userCareerService.getMyCareers(user.getId()),
+                userLocationService.getMyLocations(user.getId())
+        );
+    }
+
     @Transactional
     public void updateProfile(Long userId, UserProfileUpdateRequest req) {
 

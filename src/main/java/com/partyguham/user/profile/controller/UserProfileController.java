@@ -25,6 +25,14 @@ public class UserProfileController {
         return userProfileService.getMyProfile(user.getId());
     }
 
+    @GetMapping("/profile")
+    public UserProfileResponse getUserProfile(
+            @AuthenticationPrincipal UserPrincipal user,
+            @RequestParam() String nickname
+    ) {
+        return userProfileService.getProfileByNickname(nickname);
+    }
+
     @PatchMapping
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void update(
