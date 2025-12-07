@@ -19,7 +19,7 @@ public class UserRecoverService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("user not found"));
 
-        if (user.getStatus() != Status.DELETED) {
+        if (user.getStatus() != Status.INACTIVE) {
             throw new IllegalStateException("복구 대상이 아닌 유저입니다.");
         }
 

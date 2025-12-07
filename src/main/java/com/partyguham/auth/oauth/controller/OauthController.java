@@ -117,14 +117,27 @@ public class OauthController {
     }
 
     /** 복구 플로우: 쿼리 파라미터를 포함해 /home 으로 리다이렉트 */
+    /** 복구 플로우: recoverToken은 쿠키, 나머지는 쿼리 파라미터로 /home 리다이렉트 */
     private void handleRecover(HttpServletResponse res, LoginResult r) throws IOException {
+        // 1) recoverToken 쿠키로 내려주기
+        ResponseCookie recover = ResponseCookie.from("recoverToken", r.recoverToken())
+                .httpOnly(true)
+                .secure(true)          // https 환경이 아니면 일단 false로 테스트해봐도 됨
+                .sameSite("strict")      // cross-site면 None, 동일 도메인이면 Lax/Strict도 가능
+                .path("/")
+                .maxAge(900)           // 15분
+                .build();
+        res.addHeader("Set-Cookie", recover.toString());
+
+        // 2) 쿼리 파라미터는 error/email/deletedAt만
         String url = UriComponentsBuilder.fromHttpUrl(domain.homeUrl())
                 .queryParam("error", r.errorType().name()) // USER_DELETED_30D
-                .queryParam("recoverToken", r.recoverToken())
                 .queryParam("email", r.email())
                 .queryParam("deletedAt", r.deletedAt())
                 .build(true)
                 .toUriString();
+
+        // 3) 최종 리다이렉트
         res.sendRedirect(url);
     }
 
