@@ -27,8 +27,7 @@ public class MyPartyService {
         int page = (req.getPage() != null && req.getPage() > 0) ? req.getPage() - 1 : 0;
         int size = (req.getSize() != null && req.getSize() > 0) ? req.getSize() : 20;
 
-        // 2) 정렬 방향 (null이면 기본 DESC)
-        Sort.Direction dir = (req.getOrder() != null) ? req.getOrder() : Sort.Direction.DESC;
+        Sort.Direction dir = req.getOrder();
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(dir, "createdAt"));
 

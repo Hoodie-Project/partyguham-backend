@@ -3,7 +3,10 @@ package com.partyguham.user.my.controller;
 import com.partyguham.auth.jwt.UserPrincipal;
 import com.partyguham.common.annotation.ApiV2Controller;
 import com.partyguham.user.my.dto.request.GetMyPartiesRequestDto;
+import com.partyguham.user.my.dto.request.GetMyPartyApplicationsRequestDto;
 import com.partyguham.user.my.dto.response.GetMyPartiesResponseDto;
+import com.partyguham.user.my.dto.response.GetMyPartyApplicationsResponseDto;
+import com.partyguham.user.my.service.MyPartyApplicationService;
 import com.partyguham.user.my.service.MyPartyService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class myController {
 
     private final MyPartyService myPartyService;
-
+    private final MyPartyApplicationService myPartyApplicationService;
     /**
      * 내가 속한 파티 목록 조회
      * GET /api/v2/users/me/parties
@@ -32,5 +35,17 @@ public class myController {
                 myPartyService.getMyParties(user.getId(), request)
         );
     }
-    // 나의 지원 목록 조회
+
+    /**
+     * 내가 지원한 파티 모집 목록 조회
+     */
+    @GetMapping("/me/parties/applications")
+    public ResponseEntity<GetMyPartyApplicationsResponseDto> getMyApplications(
+            @AuthenticationPrincipal UserPrincipal user,
+            @ModelAttribute GetMyPartyApplicationsRequestDto request
+    ) {
+        return ResponseEntity.ok(
+                myPartyApplicationService.getMyPartyApplications(user.getId(), request)
+        );
+    }
 }

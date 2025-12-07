@@ -28,7 +28,7 @@ public class GetMyPartiesRequestDto {
      * - ASC : 오래된 파티부터 (createdAt 오름차순)
      * - DESC: 최신 파티부터 (createdAt 내림차순)
      */
-    private Sort.Direction order;
+    private Sort.Direction order = Sort.Direction.DESC;
 
     /**
      * 파티 상태 필터 (optional)
