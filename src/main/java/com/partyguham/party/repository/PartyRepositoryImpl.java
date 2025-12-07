@@ -17,6 +17,8 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+//import static com.partyguham.party.entity.QParty.party; + queryDSL config
+
 @Repository
 public class PartyRepositoryImpl implements PartyCustomRepository {
 
