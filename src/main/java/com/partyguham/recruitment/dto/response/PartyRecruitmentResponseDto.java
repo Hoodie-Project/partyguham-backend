@@ -1,5 +1,6 @@
 package com.partyguham.recruitment.dto.response;
 
+import com.partyguham.party.entity.PartyStatus;
 import com.partyguham.recruitment.entity.PartyRecruitment;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -41,18 +42,16 @@ public class PartyRecruitmentResponseDto {
                 .id(recruitment.getParty().getId())
                 .title(recruitment.getParty().getTitle())
                 .image(recruitment.getParty().getImage())
+                .partyStatus(recruitment.getParty().getPartyStatus())
                 .partyType(partyTypeDto)
                 .build();
 
-        // Position 매핑
-        Position positionDto = null;
-        if (recruitment.getPosition() != null) {
-            positionDto = Position.builder()
-                    .id(recruitment.getPosition().getId())
-                    .main(recruitment.getPosition().getMain())
-                    .sub(recruitment.getPosition().getSub())
-                    .build();
-        }
+        Position positionDto = Position.builder()
+                .id(recruitment.getPosition().getId())
+                .main(recruitment.getPosition().getMain())
+                .sub(recruitment.getPosition().getSub())
+                .build();
+
 
         int applicationCount = recruitment.getPartyApplications() != null
                 ? recruitment.getPartyApplications().size()
@@ -82,6 +81,7 @@ public class PartyRecruitmentResponseDto {
         private Long id;
         private String title;
         private String image;
+        private PartyStatus partyStatus;
         private PartyType partyType;
 
         @Getter

@@ -1,6 +1,5 @@
 package com.partyguham.party.repository;
 
-import com.partyguham.common.entity.Status;
 import com.partyguham.party.dto.party.request.GetPartiesRequestDto;
 import com.partyguham.party.entity.Party;
 import com.partyguham.party.entity.QParty;
@@ -82,14 +81,9 @@ public class PartyRepositoryImpl implements PartyCustomRepository {
         QParty party = QParty.party;
         BooleanBuilder builder = new BooleanBuilder();
 
-        // Status 필터링
-        if (request.getStatus() != null && !request.getStatus().isBlank()) {
-            try {
-                Status status = Status.from(request.getStatus());
-                builder.and(party.status.eq(status));
-            } catch (IllegalArgumentException e) {
-                // 유효하지 않은 status 값은 무시
-            }
+        // PartyStatus 필터링
+        if (request.getPartyStatus() != null) {
+            builder.and(party.partyStatus.eq(request.getPartyStatus()));
         }
 
         if (request.getTitleSearch() != null && !request.getTitleSearch().isBlank()) {

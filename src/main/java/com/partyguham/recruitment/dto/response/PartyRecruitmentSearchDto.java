@@ -1,5 +1,6 @@
 package com.partyguham.recruitment.dto.response;
 
+import com.partyguham.party.entity.PartyStatus;
 import com.partyguham.recruitment.entity.PartyRecruitment;
 import com.partyguham.catalog.dto.response.PositionResponse;
 import lombok.*;
@@ -9,12 +10,11 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PartyRecruitmentSearchDto {
-
     private Long id;
     private String content;
     private Integer recruitingCount;  // 모집 중인 인원 수
     private Integer recruitedCount;   // 모집된 인원 수
-    private String status;            // active / completed
+    private Boolean completed;
     private String createdAt;
     private PartyDto party;
     private PositionResponse position;
@@ -27,7 +27,7 @@ public class PartyRecruitmentSearchDto {
         private Long id;
         private String title;
         private String image;
-        private String status;
+        private PartyStatus partyStatus;
         private PartyTypeDto partyType;
 
         @Getter
@@ -56,14 +56,14 @@ public class PartyRecruitmentSearchDto {
                 .content(partyRecruitment.getContent())
                 .recruitingCount(recruitingCount)
                 .recruitedCount(recruitedCount)
-                .status(status)
+                .completed(partyRecruitment.getCompleted())
                 .createdAt(partyRecruitment.getCreatedAt().toString())
                 .party(
                         PartyDto.builder()
                                 .id(partyRecruitment.getParty().getId())
                                 .title(partyRecruitment.getParty().getTitle())
                                 .image(partyRecruitment.getParty().getImage())
-                                .status(partyRecruitment.getParty().getStatus().name().toLowerCase())
+                                .partyStatus(partyRecruitment.getParty().getPartyStatus())
                                 .partyType(
                                         PartyDto.PartyTypeDto.builder()
                                                 .type(partyRecruitment.getParty().getPartyType().getType())
