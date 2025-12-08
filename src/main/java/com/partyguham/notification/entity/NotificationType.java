@@ -27,7 +27,7 @@ public class NotificationType {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // ex) "PARTY_INVITE", "COMMENT", "SYSTEM"
+    // ex) "PARTY, RECRUIT"
     @Column(nullable = false, length = 50)
     private String type;
 

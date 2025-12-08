@@ -1,5 +1,6 @@
-package com.partyguham.notification.event;
+package com.partyguham.notification.publisher;
 
+import com.partyguham.notification.event.PartyAppliedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
@@ -10,6 +11,11 @@ import org.springframework.stereotype.Component;
  * 사용 예:
  *  - PartyApplicationService 안에서
  *    notificationEventPublisher.publishPartyApplied(...);
+ *
+ * 1) Event → Queue (Kafka / RabbitMQ)
+ * 2) Event → Outbox 패턴
+ * 3) 이벤트 누적 후 벌크 처리
+
  */
 @Component
 @RequiredArgsConstructor

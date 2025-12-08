@@ -10,6 +10,7 @@ import com.partyguham.application.repostiory.PartyApplicationQueryRepository;
 import com.partyguham.application.repostiory.PartyApplicationRepository;
 import com.partyguham.common.entity.Status;
 import com.partyguham.common.exception.NotFoundException;
+import com.partyguham.notification.publisher.NotificationEventPublisher;
 import com.partyguham.party.entity.Party;
 import com.partyguham.party.entity.PartyAuthority;
 import com.partyguham.party.entity.PartyUser;
@@ -36,6 +37,7 @@ public class PartyApplicationService {
     private final PartyRecruitmentRepository partyRecruitmentRepository;
     private final PartyApplicationRepository partyApplicationRepository;
     private final PartyApplicationQueryRepository partyApplicationQueryRepository;
+    private final NotificationEventPublisher notificationEventPublisher;
 
     /**
      * 모집 지원 생성
@@ -71,6 +73,17 @@ public class PartyApplicationService {
             throw new IllegalStateException("이미 마감된 모집입니다.");
         }
 
+        Party party = recruitment.getParty();
+
+        // 파티장 찾기
+        User hostUser = party.getPartyUsers().stream()
+                .filter(pu -> pu.getAuthority() == PartyAuthority.MASTER)
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("파티장 정보를 찾을 수 없습니다."))
+                .getUser();
+
+        Long hostUserId = hostUser.getId();
+
         // 4) 중복 지원 방지
         boolean alreadyApplied = partyApplicationRepository
                 .existsByUser_IdAndPartyRecruitment_Id(userId, recruitmentId);
@@ -87,6 +100,8 @@ public class PartyApplicationService {
                 .build();
 
         partyApplicationRepository.save(application);
+
+        notificationEventPublisher.publishPartyApplied(partyId, recruitment.getParty().getTitle(), hostUserId, userId);
     }
 
     public PartyApplicationMeResponseDto getMyApplication(Long partyId,

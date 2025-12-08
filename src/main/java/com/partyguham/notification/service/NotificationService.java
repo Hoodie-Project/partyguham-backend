@@ -92,10 +92,10 @@ public class NotificationService {
                         "존재하지 않는 유저입니다. id=" + hostUserId
                 ));
 
-        // 1) 알림 타입 조회 (DB에 미리: type = "PARTY_APPLIED")
-        NotificationType type = notificationTypeRepository.findByType("PARTY_APPLIED")
+        // 1) 알림 타입 조회 (DB에 미리: type = "PARTY")
+        NotificationType type = notificationTypeRepository.findByType("PARTY")
                 .orElseThrow(() -> new IllegalStateException(
-                        "알림 타입(PARTY_APPLIED)이 정의되어 있지 않습니다."
+                        "알림 타입(PARTY)이 정의되어 있지 않습니다."
                 ));
 
         // 2) 제목/메시지/링크 구성
