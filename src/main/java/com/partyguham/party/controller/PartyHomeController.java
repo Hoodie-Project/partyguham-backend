@@ -35,4 +35,13 @@ public class PartyHomeController {
 
         return ResponseEntity.ok(partyService.searchParties(page, limit, titleSearch));
     }
+
+
+//    @GetMapping("/recruitments/personalized")
+//    public ResponseEntity<GetPartyRecruitmentsResponseDto> getRecruitmentsPersonalized(
+//            @AuthenticationPrincipal UserPrincipal user,
+//            @ModelAttribute GetPartyRecruitmentsPersonalizedRequestDto request) {
+//                return ResponseEntity.ok(partyRecruitmentService.getPersonalizedRecruitments(user.getId(), request));
+//            }
+
 }

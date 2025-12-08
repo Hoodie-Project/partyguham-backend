@@ -31,7 +31,10 @@ public class RecruitmentController {
         return ResponseEntity.ok(partyRecruitmentService.getPartyRecruitments(partyId, request));
     }
 
-    @PostMapping("/{partyId}/recruitments") // 파티 모집공고 생성
+    /**
+     * 파티 모집공고 생성 API
+     */
+    @PostMapping("/{partyId}/recruitments")
     public ResponseEntity<CreatePartyRecruitmentsResponseDto> createPartyRecruitment(
             @PathVariable Long partyId,
             @AuthenticationPrincipal UserPrincipal user,
@@ -40,14 +43,10 @@ public class RecruitmentController {
         return ResponseEntity.ok(partyRecruitmentService.createPartyRecruitment(partyId, user.getId(), request));
     }
 
-//    @GetMapping("/recruitments/personalized")
-//    public ResponseEntity<GetPartyRecruitmentsResponseDto> getRecruitmentsPersonalized(
-//            @AuthenticationPrincipal UserPrincipal user,
-//            @ModelAttribute GetPartyRecruitmentsPersonalizedRequestDto request) {
-//                return ResponseEntity.ok(partyRecruitmentService.getPersonalizedRecruitments(user.getId(), request));
-//            }
-
-    @GetMapping("/recruitments/{partyRecruitmentId}") // 파티 모집 단일 조회
+    /**
+     * 파티 모집 단일 조회 API
+     */
+    @GetMapping("/recruitments/{partyRecruitmentId}")
     public ResponseEntity<PartyRecruitmentResponseDto> getPartyRecruitment(
             @PathVariable Long partyRecruitmentId,
             @AuthenticationPrincipal UserPrincipal user) {

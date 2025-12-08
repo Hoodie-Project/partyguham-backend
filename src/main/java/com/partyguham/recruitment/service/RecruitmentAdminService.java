@@ -8,6 +8,8 @@ import com.partyguham.party.repository.PartyRepository;
 import com.partyguham.party.service.PartyAccessService;
 import com.partyguham.recruitment.dto.request.CreatePartyRecruitmentRequestDto;
 import com.partyguham.recruitment.dto.request.PartyRecruitmentIdsBodyRequestDto;
+import com.partyguham.recruitment.dto.response.CreatePartyRecruitmentsResponseDto;
+import com.partyguham.recruitment.dto.response.PartyRecruitmentsResponseDto;
 import com.partyguham.recruitment.entity.PartyRecruitment;
 import com.partyguham.recruitment.repository.PartyRecruitmentRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -74,7 +76,7 @@ public class RecruitmentAdminService {
      * 파티 모집공고 수정
      */
     @Transactional
-    public CreatePartyRecruitmentRequestDto updatePartyRecruitment(
+    public PartyRecruitmentsResponseDto updatePartyRecruitment(
             Long partyId, 
             Long partyRecruitmentId, 
             Long userId,
@@ -95,11 +97,7 @@ public class RecruitmentAdminService {
         recruitment.setContent(request.getContent());
         recruitment.setMaxParticipants(request.getRecruitingCount());
 
-        return CreatePartyRecruitmentRequestDto.builder()
-                .positionId(recruitment.getPosition().getId())
-                .content(recruitment.getContent())
-                .recruitingCount(recruitment.getMaxParticipants())
-                .build();
+        return PartyRecruitmentsResponseDto.from(recruitment);
     }
 
     /**
