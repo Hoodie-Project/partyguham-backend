@@ -10,8 +10,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface PartyRecruitmentRepository extends JpaRepository<PartyRecruitment, Long>, PartyRecruitmentCustomRepository {
-    Page<PartyRecruitment> findByTitleContainingIgnoreCase(String title, Pageable pageable);
+public interface PartyRecruitmentRepository extends JpaRepository<PartyRecruitment, Long>{
     
     List<PartyRecruitment> findByPartyId(Long partyId, Sort sort);
 
