@@ -24,7 +24,7 @@ public class RecruitmentController {
      * 파티 모집 목록 조회 API
      */
     @GetMapping("/{partyId}/recruitments")
-    public ResponseEntity<List<PartyRecruitmentsResponseDto.PartyRecruitmentDto>> getPartyRecruitments(
+    public ResponseEntity<List<PartyRecruitmentsResponseDto>> getPartyRecruitments(
             @PathVariable Long partyId,
             @ModelAttribute PartyRecruitmentsRequestDto request) {
         

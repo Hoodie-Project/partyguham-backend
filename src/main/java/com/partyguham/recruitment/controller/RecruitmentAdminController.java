@@ -1,6 +1,7 @@
 package com.partyguham.recruitment.controller;
 
 import com.partyguham.auth.jwt.UserPrincipal;
+import com.partyguham.common.annotation.ApiV2Controller;
 import com.partyguham.common.dto.MessageResponseDto;
 import com.partyguham.recruitment.dto.request.CreatePartyRecruitmentRequestDto;
 import com.partyguham.recruitment.dto.request.PartyRecruitmentIdsBodyRequestDto;
@@ -12,8 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-@RestController
-@RequestMapping("/api/parties/{partyId}/admin/recruitments")
+@ApiV2Controller
+@RequestMapping("/parties/{partyId}/admin/recruitments")
 @RequiredArgsConstructor
 public class RecruitmentAdminController {
 
@@ -35,7 +36,7 @@ public class RecruitmentAdminController {
     ) {
         recruitmentAdminService.completePartyRecruitment(partyId, partyRecruitmentId, user.getId());
         return ResponseEntity.ok(MessageResponseDto.builder()
-                .message("파티 모집공고 완료 처리 요청 성공")
+                .message("파티모집 공고를 완료 하였습니다.")
                 .build());
     }
 

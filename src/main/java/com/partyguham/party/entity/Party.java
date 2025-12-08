@@ -32,6 +32,7 @@ public class Party extends BaseEntity {
     @Column()
     private String image;
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private PartyStatus partyStatus = PartyStatus.IN_PROGRESS;

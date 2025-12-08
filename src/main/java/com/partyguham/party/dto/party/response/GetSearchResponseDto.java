@@ -1,5 +1,6 @@
 package com.partyguham.party.dto.party.response;
 
+import com.partyguham.recruitment.dto.response.PartyRecruitmentSearchDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
