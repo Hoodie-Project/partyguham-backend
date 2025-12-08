@@ -1,14 +1,22 @@
 package com.partyguham.notification.service;
 
+import com.partyguham.notification.dto.request.GetNotificationsRequest;
+import com.partyguham.notification.dto.response.GetNotificationsResponse;
 import com.partyguham.notification.entity.Notification;
 import com.partyguham.notification.entity.NotificationType;
+import com.partyguham.notification.repository.NotificationQueryRepository;
 import com.partyguham.notification.repository.NotificationRepository;
 import com.partyguham.notification.repository.NotificationTypeRepository;
 import com.partyguham.user.account.entity.User;
 import com.partyguham.user.account.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -16,6 +24,7 @@ public class NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final NotificationTypeRepository notificationTypeRepository;
+    private final NotificationQueryRepository notificationQueryRepository;
     private final UserRepository userRepository;
 
 
@@ -25,6 +34,34 @@ public class NotificationService {
 
     public void markAsChecked(Long userId) {
         notificationRepository.markChecked(userId);
+    }
+
+    @Transactional(readOnly = true)
+    public GetNotificationsResponse getNotifications(Long userId,
+                                                     GetNotificationsRequest req) {
+
+        // 1) limit 기본값 & 최대값 제한
+        int limit = (req.getLimit() != null && req.getLimit() > 0 && req.getLimit() <= 50)
+                ? req.getLimit()
+                : 10;
+
+        Long cursor = req.getCursor();
+        String type = req.getType();
+
+        // 2) type → notificationTypeId
+        Long notificationTypeId = null;
+        if (type != null && !type.isBlank()) {
+            NotificationType nt = notificationTypeRepository.findByType(type)
+                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 알림 타입입니다. type=" + type));
+            notificationTypeId = nt.getId();
+        }
+
+        // 3) 쿼리 호출 (커서 기반)
+        Slice<Notification> slice = notificationQueryRepository
+                .findNotifications(userId, limit, cursor, notificationTypeId);
+
+        // 4) 응답 DTO로 변환 (빌더/정적 메서드로 위임)
+        return GetNotificationsResponse.from(slice);
     }
 
     /**
