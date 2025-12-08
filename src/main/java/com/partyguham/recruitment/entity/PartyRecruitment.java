@@ -7,6 +7,7 @@ import com.partyguham.party.entity.Party;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -37,9 +38,6 @@ public class PartyRecruitment extends BaseEntity {
     @JoinColumn(name = "party_id", nullable = false)
     private Party party;
 
-    @Column(nullable = false)
-    private String title;
-
     @Column(columnDefinition = "text")
     private String content;
 
@@ -50,6 +48,7 @@ public class PartyRecruitment extends BaseEntity {
     private Integer currentParticipants;
 
     @Column(nullable = false)
+    @Builder.Default
     private Boolean completed = false;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
