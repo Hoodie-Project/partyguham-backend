@@ -9,10 +9,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
@@ -46,6 +43,25 @@ public class NotificationController {
         return ResponseEntity.noContent().build();
     }
 
+    /** 알림 읽음 처리 */
+    @PatchMapping("/{notificationId}/read")
+    public ResponseEntity<Void> markAsRead(
+            @AuthenticationPrincipal UserPrincipal user,
+            @PathVariable Long notificationId
+    ) {
+        notificationService.markAsRead(notificationId, user.getId());
+        return ResponseEntity.noContent().build();
+    }
+
+    /** 알림 삭제 */
+    @DeleteMapping("/{notificationId}")
+    public ResponseEntity<Void> deleteNotification(
+            @AuthenticationPrincipal UserPrincipal user,
+            @PathVariable Long notificationId
+    ) {
+        notificationService.deleteNotification(notificationId, user.getId());
+        return ResponseEntity.noContent().build();
+    }
 
     /**
      * 사용자 알림 리스트 조회
@@ -57,10 +73,4 @@ public class NotificationController {
     ) {
         return notificationService.getNotifications(user.getId(), req);
     }
-
-
-
-    // 알림 읽음처리
-
-    // 삭제처리
 }

@@ -10,13 +10,9 @@ import com.partyguham.notification.repository.NotificationTypeRepository;
 import com.partyguham.user.account.entity.User;
 import com.partyguham.user.account.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -34,6 +30,22 @@ public class NotificationService {
 
     public void markAsChecked(Long userId) {
         notificationRepository.markChecked(userId);
+    }
+
+    /** 읽음 처리 */
+    @Transactional
+    public void markAsRead(Long notificationId, Long userId) {
+        Notification n = notificationRepository.findByIdAndUser_Id(notificationId, userId)
+                .orElseThrow(() -> new IllegalArgumentException("알림이 존재하지 않습니다."));
+
+        if (!Boolean.TRUE.equals(n.getIsRead())) {
+            n.setIsRead(true);
+        }
+    }
+
+    /** 삭제 */
+    public void deleteNotification(Long notificationId, Long userId) {
+        notificationRepository.deleteByIdAndUserId(notificationId, userId);
     }
 
     @Transactional(readOnly = true)
