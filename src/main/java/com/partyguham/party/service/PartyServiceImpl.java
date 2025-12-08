@@ -231,8 +231,14 @@ public class PartyServiceImpl implements PartyService  { //TODO: S3 이미지 �
                 .map(PartiesDto::from)
                 .toList();
 
-        // PartyRecruitment 검색
-        Page<PartyRecruitment> recruitmentPage = partyRecruitmentRepository.findByTitleKeyword(titleSearch, pageable);
+        // 조회된 파티들의 ID로 모집공고 조회
+        List<Long> partyIds = partyPage.getContent().stream()
+                .map(Party::getId)
+                .toList();
+
+        Page<PartyRecruitment> recruitmentPage = partyIds.isEmpty()
+                ? Page.empty(pageable)
+                : partyRecruitmentRepository.findByPartyIdIn(partyIds, pageable);
         List<PartyRecruitmentSearchDto> recruitmentListDto = recruitmentPage.getContent().stream()
                 .map(PartyRecruitmentSearchDto::from)
                 .toList();

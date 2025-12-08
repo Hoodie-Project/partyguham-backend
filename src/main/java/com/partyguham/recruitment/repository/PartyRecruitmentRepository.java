@@ -14,5 +14,7 @@ public interface PartyRecruitmentRepository extends JpaRepository<PartyRecruitme
     Page<PartyRecruitment> findByTitleContainingIgnoreCase(String title, Pageable pageable);
     
     List<PartyRecruitment> findByPartyId(Long partyId, Sort sort);
+
+    Page<PartyRecruitment> findByPartyIdIn(List<Long> partyIds, Pageable pageable);
 }
 
