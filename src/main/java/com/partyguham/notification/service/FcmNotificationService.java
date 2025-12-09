@@ -31,4 +31,22 @@ public class FcmNotificationService {
 
         fcmService.sendToToken(fcmToken, title, body, data);
     }
+
+    public void sendPartyApplicationRejected(
+            Long applicantUserId,
+            Long partyId,
+            String partyTitle,
+            String fcmToken
+    ) {
+        NotificationTemplate t = NotificationTemplate.PARTY_APPLICATION_REJECTED;
+        String title = t.title();
+        String body = t.body(partyTitle);
+
+        Map<String, String> data = Map.of(
+                "type", "party_applied",
+                "partyId", partyId.toString()
+        );
+
+        fcmService.sendToToken(fcmToken, title, body, data);
+    }
 }

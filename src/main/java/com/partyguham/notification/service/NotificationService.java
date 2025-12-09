@@ -10,6 +10,7 @@ import com.partyguham.notification.repository.NotificationTypeRepository;
 import com.partyguham.notification.template.NotificationTemplate;
 import com.partyguham.user.account.entity.User;
 import com.partyguham.user.account.repository.UserRepository;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,7 @@ public class NotificationService {
     private final NotificationTypeRepository notificationTypeRepository;
     private final NotificationQueryRepository notificationQueryRepository;
     private final UserRepository userRepository;
+    private final EntityManager entityManager;
 
 
     public boolean hasUnchecked(Long userId) {
@@ -87,12 +89,6 @@ public class NotificationService {
             Long partyId,
             String partyTitle
     ) {
-        // 0) 알림 받을 유저(파티장) 조회
-        User hostUser = userRepository.findById(hostUserId)
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "존재하지 않는 유저입니다. id=" + hostUserId
-                ));
-
         // 1) 알림 타입 조회 (DB에 미리: type = "PARTY")
         NotificationType type = notificationTypeRepository.findByType("PARTY")
                 .orElseThrow(() -> new IllegalStateException(
@@ -105,9 +101,12 @@ public class NotificationService {
         String body = t.body(partyTitle, applicantUserNickname);
         String link = "/parties/" + partyId;
 
+        User userRef = entityManager.getReference(User.class, hostUserId);
+
+
         // 3) Notification 엔티티 생성
         Notification notification = Notification.builder()
-                .user(hostUser)
+                .user(userRef)
                 .notificationType(type)
                 .title(title)
                 .message(body)
@@ -119,12 +118,38 @@ public class NotificationService {
         notificationRepository.save(notification);
     }
 
-    public void createApplicationRejectedNotificationForApplicant(
+    public void partyApplicationRejectedNotification(
             Long applicantUserId,
             Long partyId,
-            String partyTitle,
-            String reason
-    ) { /* ... */ }
+            String partyTitle
+    ) {
+        // 1) 알림 타입 조회 (DB에 미리: type = "PARTY")
+        NotificationType type = notificationTypeRepository.findByType("PARTY")
+                .orElseThrow(() -> new IllegalStateException(
+                        "알림 타입(PARTY)이 정의되어 있지 않습니다."
+                ));
+
+        // 2) 제목/메시지/링크 구성
+        NotificationTemplate t = NotificationTemplate.PARTY_APPLICATION_REJECTED;
+        String title = t.title();
+        String body = t.body(partyTitle);
+        String link = "/parties/" + partyId;
+
+        User userRef = entityManager.getReference(User.class, applicantUserId);
+
+        // 3) Notification 엔티티 생성
+        Notification notification = Notification.builder()
+                .user(userRef)
+                .notificationType(type)
+                .title(title)
+                .message(body)
+                .image(null)
+                .link(link)
+                .build();
+
+        // 4) 저장
+        notificationRepository.save(notification);
+    }
 
     public void createApplicationCancelledNotificationForHost(
             Long hostUserId,

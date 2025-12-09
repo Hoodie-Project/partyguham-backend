@@ -37,13 +37,16 @@ public class NotificationEventListener {
         );
     }
 
-
     // 지원 거절 이벤트 처리
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onPartyApplicationRejected(PartyApplicationRejectedEvent event) {
-        log.info("onPartyApplicationRejected partyId={}, rejectedBy={}");
+        log.info("onPartyApplicationRejected partyId={}", event.getPartyId());
 
-
+        notificationService.partyApplicationRejectedNotification(
+                event.getApplicantUserId(),
+                event.getPartyId(),
+                event.getPartyTitle()
+        );
     }
 }

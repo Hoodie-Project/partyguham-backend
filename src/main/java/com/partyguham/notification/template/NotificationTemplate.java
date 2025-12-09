@@ -44,7 +44,7 @@ public enum NotificationTemplate {
     ),
     PARTY_APPLICATION_REJECTED(
             "지원이 거절되었어요",
-            "%s님의 지원이 거절되었어요."
+            "'%s' 파티에서 지원이 거절되었어요."
     ),
     PARTY_APPLICATION_DECLINED(
             "지원자가 합류를 거절했어요",

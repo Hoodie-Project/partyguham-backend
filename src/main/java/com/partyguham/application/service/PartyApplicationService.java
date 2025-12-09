@@ -11,6 +11,7 @@ import com.partyguham.application.repostiory.PartyApplicationRepository;
 import com.partyguham.common.entity.Status;
 import com.partyguham.common.exception.NotFoundException;
 import com.partyguham.notification.event.PartyApplicationCreatedEvent;
+import com.partyguham.notification.event.PartyApplicationRejectedEvent;
 import com.partyguham.party.entity.Party;
 import com.partyguham.party.entity.PartyAuthority;
 import com.partyguham.party.entity.PartyUser;
@@ -223,6 +224,15 @@ public class PartyApplicationService {
 
         // 4) 상태 변경
         app.setApplicationStatus(PartyApplicationStatus.REJECTED);
+
+        PartyApplicationRejectedEvent event = PartyApplicationRejectedEvent.builder()
+                .applicantUserId(app.getUser().getId())
+                .partyId(app.getPartyRecruitment().getParty().getId())
+                .partyTitle(app.getPartyRecruitment().getParty().getTitle())
+                .fcmToken(app.getUser().getFcmToken())
+                .build();
+
+        eventPublisher.publishEvent(event);
     }
 
     /**
@@ -316,7 +326,7 @@ public class PartyApplicationService {
     }
 
     /**
-     * 지원자 최종 거절: PROCESSING -> REJECTED
+     * 지원자 최종 거절: PROCESSING -> DECLINED
      */
     @Transactional
     public void rejectByApplicant(Long partyId, Long applicationId, Long applicantUserId) {
@@ -331,6 +341,6 @@ public class PartyApplicationService {
             throw new IllegalStateException("PROCESSING 상태의 지원만 거절할 수 있습니다.");
         }
 
-        app.setApplicationStatus(PartyApplicationStatus.REJECTED);
+        app.setApplicationStatus(PartyApplicationStatus.DECLINED);
     }
 }
