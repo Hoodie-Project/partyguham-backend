@@ -1,7 +1,7 @@
 package com.partyguham.notification.listener;
 
 import com.partyguham.notification.event.PartyApplicationRejectedEvent;
-import com.partyguham.notification.event.PartyAppliedEvent;
+import com.partyguham.notification.event.PartyApplicationCreatedEvent;
 import com.partyguham.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +26,7 @@ public class NotificationEventListener {
     /** 지원 알림 */
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void onPartyApplied(PartyAppliedEvent event) {
+    public void onPartyApplied(PartyApplicationCreatedEvent event) {
         log.info("NotificationEventListener.onPartyApplied partyId={}", event.getPartyId());
 
         notificationService.createPartyAppliedNotification(

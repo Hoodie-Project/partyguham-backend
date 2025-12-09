@@ -10,7 +10,7 @@ import com.partyguham.application.repostiory.PartyApplicationQueryRepository;
 import com.partyguham.application.repostiory.PartyApplicationRepository;
 import com.partyguham.common.entity.Status;
 import com.partyguham.common.exception.NotFoundException;
-import com.partyguham.notification.event.PartyAppliedEvent;
+import com.partyguham.notification.event.PartyApplicationCreatedEvent;
 import com.partyguham.party.entity.Party;
 import com.partyguham.party.entity.PartyAuthority;
 import com.partyguham.party.entity.PartyUser;
@@ -101,7 +101,7 @@ public class PartyApplicationService {
 
         partyApplicationRepository.save(application);
 
-        PartyAppliedEvent event = PartyAppliedEvent.builder()
+        PartyApplicationCreatedEvent event = PartyApplicationCreatedEvent.builder()
                 .partyId(party.getId())
                 .partyTitle(party.getTitle())
                 .hostUserId(hostUser.getId())

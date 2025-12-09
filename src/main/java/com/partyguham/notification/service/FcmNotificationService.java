@@ -20,7 +20,7 @@ public class FcmNotificationService {
             String partyTitle,
             String fcmToken
     ) {
-        NotificationTemplate t = NotificationTemplate.PARTY_APPLIED;
+        NotificationTemplate t = NotificationTemplate.PARTY_APPLICATION_CREATED;
         String title = t.title();
         String body = t.body(partyTitle, applicantUserNickname);
 

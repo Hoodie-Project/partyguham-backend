@@ -100,7 +100,7 @@ public class NotificationService {
                 ));
 
         // 2) 제목/메시지/링크 구성
-        NotificationTemplate t = NotificationTemplate.PARTY_APPLIED;
+        NotificationTemplate t = NotificationTemplate.PARTY_APPLICATION_CREATED;
         String title = t.title();
         String body = t.body(partyTitle, applicantUserNickname);
         String link = "/parties/" + partyId;

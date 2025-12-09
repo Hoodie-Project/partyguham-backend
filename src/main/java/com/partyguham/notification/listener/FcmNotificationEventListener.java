@@ -1,10 +1,7 @@
 package com.partyguham.notification.listener;
 
-import com.partyguham.infra.fcm.FcmService;
-import com.partyguham.notification.event.PartyAppliedEvent;
+import com.partyguham.notification.event.PartyApplicationCreatedEvent;
 import com.partyguham.notification.service.FcmNotificationService;
-import com.partyguham.user.account.entity.User;
-import com.partyguham.user.account.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -29,7 +26,7 @@ public class FcmNotificationEventListener {
      */
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void onPartyApplied(PartyAppliedEvent event) {
+    public void onPartyApplied(PartyApplicationCreatedEvent event) {
         fcmNotificationService.sendPartyApplied(
                 event.getApplicantNickname(),
                 event.getPartyId(),

@@ -9,11 +9,11 @@ import lombok.Getter;
  */
 @Getter
 @Builder
-public class PartyAppliedEvent {
+public class PartyApplicationCreatedEvent {
 
     private final Long partyId;
     private final String partyTitle;
-    private final Long hostUserId;       // 알림 받을 유저
+    private final Long hostUserId;       // 알림 받을 파티장
     private final String applicantNickname;
 
     private final String fcmToken;
