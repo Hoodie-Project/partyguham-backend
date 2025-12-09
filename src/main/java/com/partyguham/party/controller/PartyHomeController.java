@@ -37,11 +37,11 @@ public class PartyHomeController {
     }
 
 
-//    @GetMapping("/recruitments/personalized")
-//    public ResponseEntity<GetPartyRecruitmentsResponseDto> getRecruitmentsPersonalized(
-//            @AuthenticationPrincipal UserPrincipal user,
-//            @ModelAttribute GetPartyRecruitmentsPersonalizedRequestDto request) {
-//                return ResponseEntity.ok(partyRecruitmentService.getPersonalizedRecruitments(user.getId(), request));
-//            }
+    @GetMapping("/recruitments/personalized")
+    public ResponseEntity<GetPartyRecruitmentsResponseDto> getRecruitmentsPersonalized(
+            @AuthenticationPrincipal UserPrincipal user,
+            @ModelAttribute GetPartyRecruitmentsPersonalizedRequestDto request) {
+                return ResponseEntity.ok(partyRecruitmentService.getPersonalizedRecruitments(user.getId(), request));
+            }
 
 }
