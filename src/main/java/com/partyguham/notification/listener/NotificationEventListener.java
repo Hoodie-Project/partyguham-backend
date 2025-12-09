@@ -1,5 +1,6 @@
 package com.partyguham.notification.listener;
 
+import com.partyguham.notification.event.PartyApplicationRejectedEvent;
 import com.partyguham.notification.event.PartyAppliedEvent;
 import com.partyguham.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
@@ -21,9 +22,8 @@ public class NotificationEventListener {
 
     private final NotificationService notificationService;
 
-    /**
-     * 파티 지원 이벤트를 구독하여 알림 생성
-     */
+
+    /** 지원 알림 */
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onPartyApplied(PartyAppliedEvent event) {
@@ -31,9 +31,19 @@ public class NotificationEventListener {
 
         notificationService.createPartyAppliedNotification(
                 event.getHostUserId(),
-                event.getApplicantUserId(),
+                event.getApplicantNickname(),
                 event.getPartyId(),
                 event.getPartyTitle()
         );
+    }
+
+
+    // 지원 거절 이벤트 처리
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void onPartyApplicationRejected(PartyApplicationRejectedEvent event) {
+        log.info("onPartyApplicationRejected partyId={}, rejectedBy={}");
+
+
     }
 }

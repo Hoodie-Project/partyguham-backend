@@ -10,7 +10,7 @@ import com.partyguham.application.repostiory.PartyApplicationQueryRepository;
 import com.partyguham.application.repostiory.PartyApplicationRepository;
 import com.partyguham.common.entity.Status;
 import com.partyguham.common.exception.NotFoundException;
-import com.partyguham.notification.publisher.NotificationEventPublisher;
+import com.partyguham.notification.event.PartyAppliedEvent;
 import com.partyguham.party.entity.Party;
 import com.partyguham.party.entity.PartyAuthority;
 import com.partyguham.party.entity.PartyUser;
@@ -21,6 +21,7 @@ import com.partyguham.recruitment.repository.PartyRecruitmentRepository;
 import com.partyguham.user.account.entity.User;
 import com.partyguham.user.account.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -37,7 +38,7 @@ public class PartyApplicationService {
     private final PartyRecruitmentRepository partyRecruitmentRepository;
     private final PartyApplicationRepository partyApplicationRepository;
     private final PartyApplicationQueryRepository partyApplicationQueryRepository;
-    private final NotificationEventPublisher notificationEventPublisher;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * 모집 지원 생성
@@ -51,7 +52,8 @@ public class PartyApplicationService {
                                    Long userId,
                                    CreatePartyApplicationRequestDto request) {
         // 1) 유저 조회 (기본 방어)
-        User user = userRepository.findById(userId)
+        User applicantUser
+                = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저입니다. id=" + userId));
 
         // 2) 이미 파티 멤버인지 체크 (멤버면 지원 불가)
@@ -82,8 +84,6 @@ public class PartyApplicationService {
                 .orElseThrow(() -> new IllegalStateException("파티장 정보를 찾을 수 없습니다."))
                 .getUser();
 
-        Long hostUserId = hostUser.getId();
-
         // 4) 중복 지원 방지
         boolean alreadyApplied = partyApplicationRepository
                 .existsByUser_IdAndPartyRecruitment_Id(userId, recruitmentId);
@@ -94,14 +94,22 @@ public class PartyApplicationService {
 
         // 5) 지원 생성
         PartyApplication application = PartyApplication.builder()
-                .user(user)
+                .user(applicantUser)
                 .partyRecruitment(recruitment)
                 .message(request.getMessage())
                 .build();
 
         partyApplicationRepository.save(application);
 
-        notificationEventPublisher.publishPartyApplied(partyId, recruitment.getParty().getTitle(), hostUserId, userId);
+        PartyAppliedEvent event = PartyAppliedEvent.builder()
+                .partyId(party.getId())
+                .partyTitle(party.getTitle())
+                .hostUserId(hostUser.getId())
+                .applicantNickname(applicantUser.getNickname())
+                .fcmToken(hostUser.getFcmToken())
+                .build();
+
+        eventPublisher.publishEvent(event);
     }
 
     public PartyApplicationMeResponseDto getMyApplication(Long partyId,

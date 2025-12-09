@@ -39,3 +39,7 @@ public class NotificationType {
     @OneToMany(mappedBy = "notificationType")
     private List<Notification> notifications = new ArrayList<>();
 }
+
+//  ('PARTY', '파티 활동'),
+//  ('RECRUIT', '지원 소식'),
+//  ('SYSTEM', '시스템 알림');

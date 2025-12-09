@@ -7,6 +7,7 @@ import com.partyguham.notification.entity.NotificationType;
 import com.partyguham.notification.repository.NotificationQueryRepository;
 import com.partyguham.notification.repository.NotificationRepository;
 import com.partyguham.notification.repository.NotificationTypeRepository;
+import com.partyguham.notification.template.NotificationTemplate;
 import com.partyguham.user.account.entity.User;
 import com.partyguham.user.account.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -82,7 +83,7 @@ public class NotificationService {
     @Transactional
     public void createPartyAppliedNotification(
             Long hostUserId,
-            Long applicantUserId,
+            String applicantUserNickname,
             Long partyId,
             String partyTitle
     ) {
@@ -99,17 +100,17 @@ public class NotificationService {
                 ));
 
         // 2) 제목/메시지/링크 구성
-        String title = "새로운 파티 지원이 도착했어요";
-        String message = String.format("'%s' 파티에 유저(ID: %d)가 지원했습니다.",
-                partyTitle, applicantUserId);
+        NotificationTemplate t = NotificationTemplate.PARTY_APPLIED;
+        String title = t.title();
+        String body = t.body(partyTitle, applicantUserNickname);
         String link = "/parties/" + partyId;
 
         // 3) Notification 엔티티 생성
         Notification notification = Notification.builder()
-                .user(hostUser)          // ← 여기!
+                .user(hostUser)
                 .notificationType(type)
                 .title(title)
-                .message(message)
+                .message(body)
                 .image(null)
                 .link(link)
                 .build();
@@ -117,4 +118,18 @@ public class NotificationService {
         // 4) 저장
         notificationRepository.save(notification);
     }
+
+    public void createApplicationRejectedNotificationForApplicant(
+            Long applicantUserId,
+            Long partyId,
+            String partyTitle,
+            String reason
+    ) { /* ... */ }
+
+    public void createApplicationCancelledNotificationForHost(
+            Long hostUserId,
+            Long partyId,
+            String partyTitle,
+            String reason
+    ) { /* ... */ }
 }
