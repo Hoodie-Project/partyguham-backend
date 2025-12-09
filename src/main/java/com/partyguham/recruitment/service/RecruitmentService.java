@@ -93,7 +93,6 @@ public class RecruitmentService {
         PartyRecruitment recruitment = PartyRecruitment.builder()
                 .party(party)
                 .position(position)
-                .title(party.getTitle())
                 .content(request.getContent())
                 .maxParticipants(request.getRecruitingCount())
                 .currentParticipants(0)
