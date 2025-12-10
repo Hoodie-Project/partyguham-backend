@@ -9,6 +9,7 @@ public class PartyApplicationAcceptedEvent {
     private final Long applicantUserId;
     private final Long partyId;
     private final String partyTitle;
+    private final String partyImage;
 
     private final String fcmToken;
 }

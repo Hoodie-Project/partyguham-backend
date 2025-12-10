@@ -70,7 +70,8 @@ public class NotificationEventListener {
 
         notificationService.partyApplicationAcceptedNotification(
                 event.getApplicantUserId(),
-                event.getPartyTitle()
+                event.getPartyTitle(),
+                event.getPartyImage()
         );
     }
 

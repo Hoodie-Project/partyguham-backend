@@ -202,6 +202,16 @@ public class PartyApplicationService {
 
         // 4) 상태 변경 (응답 대기 상태)
         app.setApplicationStatus(PartyApplicationStatus.PROCESSING);
+
+        PartyApplicationAcceptedEvent event = PartyApplicationAcceptedEvent.builder()
+                .applicantUserId(app.getUser().getId())
+                .partyId(app.getPartyRecruitment().getParty().getId())
+                .partyTitle(app.getPartyRecruitment().getParty().getTitle())
+                .partyImage(app.getPartyRecruitment().getParty().getImage())
+                .fcmToken(app.getUser().getFcmToken())
+                .build();
+
+        eventPublisher.publishEvent(event);
     }
 
     /**

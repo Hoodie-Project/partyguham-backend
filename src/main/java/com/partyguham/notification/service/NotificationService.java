@@ -193,7 +193,8 @@ public class NotificationService {
     /** 파티장이 수락 알림*/
     public void partyApplicationAcceptedNotification(
             Long applicantUserId,
-            String partyTitle
+            String partyTitle,
+            String partyImage
     ) {
         // 1) 알림 타입 조회
         NotificationType type = notificationTypeRepository.findByType("PARTY")
@@ -215,7 +216,7 @@ public class NotificationService {
                 .notificationType(type)
                 .title(title)
                 .message(body)
-                .image(null)
+                .image(partyImage)
                 .link(link)
                 .build();
 
