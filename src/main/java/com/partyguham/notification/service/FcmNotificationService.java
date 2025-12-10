@@ -48,6 +48,21 @@ public class FcmNotificationService {
         fcmService.sendToToken(fcmToken, title, body, data);
     }
 
+    /** 파티 지원자 수락, 최종 합류 */
+    public void PartyNewMember(
+            String fcmToken
+    ) {
+        NotificationTemplate t = NotificationTemplate.PARTY_NEW_MEMBER_JOINED;
+        String title = t.title();
+        String body = t.body();
+
+        Map<String, String> data = Map.of(
+                "type", "PARTY"
+        );
+
+        fcmService.sendToToken(fcmToken, title, body, data);
+    }
+
     /** 파티장 수락시 */
     public void sendPartyApplicationAccepted(
             String partyTitle,

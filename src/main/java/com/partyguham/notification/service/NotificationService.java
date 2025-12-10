@@ -113,7 +113,6 @@ public class NotificationService {
                 .link(link)
                 .build();
 
-        // 4) 저장
         notificationRepository.save(notification);
     }
 
@@ -137,7 +136,7 @@ public class NotificationService {
         NotificationTemplate t = NotificationTemplate.PARTY_APPLICATION_DECLINED;
         String title = t.title();
         String body = t.body(partyTitle, applicantUserNickname);
-        String link = "/parties/" + partyId;
+        String link = "/party/setting/applicant/" + partyId;
 
         User userRef = entityManager.getReference(User.class, hostUserId);
 
@@ -152,7 +151,42 @@ public class NotificationService {
                 .link(link)
                 .build();
 
-        // 4) 저장
+        notificationRepository.save(notification);
+    }
+
+    /**
+     * 파티 지원자 수락, 최종 합류
+     */
+    @Transactional
+    public void PartyNewMemberNotification(
+            Long partyUserId,
+            Long partyId
+    ) {
+        // 1) 알림 타입 조회
+        NotificationType type = notificationTypeRepository.findByType("PARTY")
+                .orElseThrow(() -> new IllegalStateException(
+                        "알림 타입(PARTY)이 정의되어 있지 않습니다."
+                ));
+
+        // 2) 제목/메시지/링크 구성
+        NotificationTemplate t = NotificationTemplate.PARTY_NEW_MEMBER_JOINED;
+        String title = t.title();
+        String body = t.body();
+        String link = "/party/" + partyId + "#home";
+
+        User userRef = entityManager.getReference(User.class, partyUserId);
+
+
+        // 3) Notification 엔티티 생성
+        Notification notification = Notification.builder()
+                .user(userRef)
+                .notificationType(type)
+                .title(title)
+                .message(body)
+                .image(null)
+                .link(link)
+                .build();
+
         notificationRepository.save(notification);
     }
 
@@ -185,7 +219,6 @@ public class NotificationService {
                 .link(link)
                 .build();
 
-        // 4) 저장
         notificationRepository.save(notification);
     }
 
@@ -218,14 +251,6 @@ public class NotificationService {
                 .link(link)
                 .build();
 
-        // 4) 저장
         notificationRepository.save(notification);
     }
-
-    public void createApplicationCancelledNotificationForHost(
-            Long hostUserId,
-            Long partyId,
-            String partyTitle,
-            String reason
-    ) { /* ... */ }
 }

@@ -1,9 +1,6 @@
 package com.partyguham.notification.listener;
 
-import com.partyguham.notification.event.PartyApplicationAcceptedEvent;
-import com.partyguham.notification.event.PartyApplicationDeclinedEvent;
-import com.partyguham.notification.event.PartyApplicationRejectedEvent;
-import com.partyguham.notification.event.PartyApplicationCreatedEvent;
+import com.partyguham.notification.event.*;
 import com.partyguham.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -50,6 +47,18 @@ public class NotificationEventListener {
                 event.getApplicantNickname(),
                 event.getPartyId(),
                 event.getPartyTitle()
+        );
+    }
+
+    /** 지원자 수락, 최종 합류 */
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void onPartyApplicationDeclined(PartyNewMemberJoinedEvent event) {
+        log.info("PartyNewMemberJoinedEvent partyId={}", event.getPartyId());
+
+        notificationService.PartyNewMemberNotification(
+                event.getPartyUserId(),
+                event.getPartyId()
         );
     }
 

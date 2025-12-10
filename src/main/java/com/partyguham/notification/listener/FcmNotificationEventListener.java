@@ -51,6 +51,17 @@ public class FcmNotificationEventListener {
     }
 
     /**
+     * 지원자 파티 최종 합류
+     */
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void sendPartyNewMember(PartyApplicationDeclinedEvent event) {
+        fcmNotificationService.PartyNewMember(
+                event.getFcmToken()
+        );
+    }
+
+    /**
      * 파티장 지원 수락 -> 지원자에게 푸쉬
      */
     @Async

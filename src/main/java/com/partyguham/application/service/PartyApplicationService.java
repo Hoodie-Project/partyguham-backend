@@ -13,6 +13,7 @@ import com.partyguham.common.exception.NotFoundException;
 import com.partyguham.notification.event.PartyApplicationCreatedEvent;
 import com.partyguham.notification.event.PartyApplicationDeclinedEvent;
 import com.partyguham.notification.event.PartyApplicationRejectedEvent;
+import com.partyguham.notification.event.PartyNewMemberJoinedEvent;
 import com.partyguham.party.entity.Party;
 import com.partyguham.party.entity.PartyAuthority;
 import com.partyguham.party.entity.PartyUser;
@@ -28,6 +29,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -287,7 +290,7 @@ public class PartyApplicationService {
             throw new IllegalStateException("모집 정원이 이미 찼습니다.");
         }
 
-        // 5) 파티 합류 처리
+        // 5) 파티 합류 처리 (합류 되는 유저(본인)에게도 합류했다는 알림 필요할듯
         Party party = recruitment.getParty();
 
         boolean alreadyMember = partyUserRepository
@@ -321,6 +324,25 @@ public class PartyApplicationService {
 
         // 8) 지원 상태 최종 승인 처리
         app.setApplicationStatus(PartyApplicationStatus.APPROVED);
+
+
+        // 파티원 전체 조회 및 이벤트 발행
+        List<PartyUser> members = party.getPartyUsers();
+
+        for (PartyUser member : members) {
+            Long targetUserId = member.getUser().getId();
+
+            // 본인은 제외
+            if (targetUserId.equals(applicantUserId)) continue;
+
+            PartyNewMemberJoinedEvent event = PartyNewMemberJoinedEvent.builder()
+                    .partyUserId(targetUserId)
+                    .partyId(party.getId())
+                    .fcmToken(member.getUser().getFcmToken())
+                    .build();
+
+            eventPublisher.publishEvent(event);
+        }
     }
 
     /**
