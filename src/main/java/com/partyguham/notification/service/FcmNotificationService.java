@@ -167,5 +167,24 @@ public class FcmNotificationService {
         fcmService.sendToToken(fcmToken, title, body, data);
     }
 
+    /**
+     * 파티 유저 나감
+     */
+    public void sendPartyMemberLeft(
+            String userNickname,
+            String partyTitle,
+            String fcmToken
+    ) {
+        NotificationTemplate t = NotificationTemplate.PARTY_MEMBER_LEFT;
+        String title = t.title();
+        String body = t.body(partyTitle, userNickname);
+
+        Map<String, String> data = Map.of(
+                "type", "PARTY"
+        );
+
+        fcmService.sendToToken(fcmToken, title, body, data);
+    }
+
 
 }

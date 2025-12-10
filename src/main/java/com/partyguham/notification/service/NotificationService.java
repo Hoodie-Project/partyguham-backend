@@ -397,5 +397,41 @@ public class NotificationService {
         notificationRepository.save(notification);
     }
 
+    /**
+     * 파티유저 나감
+     */
+    @Transactional
+    public void partyMemberLeft(
+            Long partyUserId,
+            String userNickname,
+            Long partyId,
+            String partyTitle
+    ) {
+        NotificationType type = notificationTypeRepository.findByType("PARTY")
+                .orElseThrow(() -> new IllegalStateException(
+                        "알림 타입(PARTY)이 정의되어 있지 않습니다."
+                ));
+
+        // 2) 제목/메시지/링크 구성
+        NotificationTemplate t = NotificationTemplate.PARTY_MEMBER_LEFT;
+        String title = t.title();
+        String body = t.body(partyTitle,userNickname);
+        String link = "/party/" + partyId + "#PartyPeopleTab";
+
+        User userRef = entityManager.getReference(User.class, partyUserId);
+
+        // 3) Notification 엔티티 생성
+        Notification notification = Notification.builder()
+                .user(userRef)
+                .notificationType(type)
+                .title(title)
+                .message(body)
+                .image(null)
+                .link(link)
+                .build();
+
+        notificationRepository.save(notification);
+    }
+
 
 }

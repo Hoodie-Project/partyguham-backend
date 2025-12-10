@@ -136,4 +136,18 @@ public class NotificationEventListener {
                 event.getPartyTitle()
         );
     }
+
+    /** 파티유저 나감 */
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void partyMemberLeft(PartyMemberLeftEvent event) {
+        log.info("partyReopened");
+
+        notificationService.partyMemberLeft(
+                event.getPartyUserId(),
+                event.getUserNickname(),
+                event.getPartyId(),
+                event.getPartyTitle()
+        );
+    }
 }

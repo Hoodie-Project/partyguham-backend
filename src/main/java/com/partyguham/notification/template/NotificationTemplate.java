@@ -18,19 +18,19 @@ public enum NotificationTemplate {
     // 파티원 변경
     PARTY_MEMBER_LEFT(
             "파티원이 탈퇴했어요",
-            "%s님이 파티에서 탈퇴했어요."
+            "'%s' 파티에서 %s님이 탈퇴했어요."
     ),
     PARTY_MEMBER_KICKED(
             "파티원이 제외되었어요",
-            "%s님이 파티에서 제외되었습니다."
+            "'%s' 파티에서 %s님이 제외되었습니다."
     ),
     PARTY_LEADER_CHANGED(
             "파티장이 변경되었어요",
-            "파티장이 %s님으로 변경되었어요."
+            "'%s' 파티에서 %s님이 변경되었어요."
     ),
     PARTY_MEMBER_POSITION_CHANGED(
             "파티원의 포지션이 변경되었어요",
-            "%s님의 포지션이 %s(으)로 변경되었어요."
+            "'%s' 파티에서 %s님의 포지션이 %s(으)로 변경되었어요."
     ),
 
     // 지원자/합류 관련

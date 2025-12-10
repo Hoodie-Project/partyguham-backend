@@ -122,4 +122,15 @@ public class FcmNotificationEventListener {
                 event.getFcmToken()
         );
     }
+
+    /** 파티 유저 떠남 */
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void partyMemberLeft(PartyMemberLeftEvent event) {
+        fcmNotificationService.sendPartyMemberLeft(
+                event.getUserNickname(),
+                event.getPartyTitle(),
+                event.getFcmToken()
+        );
+    }
 }
