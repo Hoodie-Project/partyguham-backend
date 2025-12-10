@@ -1,0 +1,56 @@
+name: Dev Deploy
+
+on:
+  push:
+    branches:
+      - dev   # dev 브랜치 push 시 실행
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1) 레포 체크아웃
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 2) JDK 세팅 (Gradle 빌드용)
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      # 3) Spring Boot jar 빌드
+      - name: Build jar
+        run: ./gradlew clean bootJar --no-daemon
+
+      # 4) GHCR 로그인
+      - name: Log in to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      # 5) 이미지 빌드 & 푸시
+      - name: Build & Push image
+        run: |
+          IMAGE=ghcr.io/iysh321/partyguham-backend
+          TAG=dev-latest
+          docker build -t $IMAGE:$TAG .
+          docker push $IMAGE:$TAG
+
+      # 6) 맥미니 접속해서 배포 (docker compose up -d)
+      - name: Deploy to Mac mini (SSH)
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          passphrase: ${{ secrets.SSH_PASSPHRASE }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            cd /opt/partyguham/dev
+            # 최신 이미지 풀
+            docker compose pull
+            # 변경분 반영하여 컨테이너 재시작
+            docker compose up -d
+            # 안쓰는 이미지 정리
+            docker image prune -f
