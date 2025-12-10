@@ -1,6 +1,6 @@
 package com.partyguham.recruitment.dto.response;
 
-import com.partyguham.party.entity.PartyStatus;
+import com.partyguham.party.dto.party.response.PartyDto;
 import com.partyguham.recruitment.entity.PartyRecruitment;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,7 +19,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class PartyRecruitmentResponseDto {
-    private Party party;
+    private PartyDto party;
     private Position position;
 
     private String content;
@@ -33,25 +33,15 @@ public class PartyRecruitmentResponseDto {
      * PartyRecruitment 엔티티를 PartyRecruitmentResponseDto로 변환하는 정적 팩토리 메서드
      */
     public static PartyRecruitmentResponseDto from(PartyRecruitment recruitment) {
-        // Party 매핑
-        Party.PartyType partyTypeDto = Party.PartyType.builder()
-                .type(recruitment.getParty().getPartyType().getType())
-                .build();
+        // PartyDto 매핑 (별도 파일의 PartyDto 사용)
+        PartyDto partyDto = PartyDto.from(recruitment.getParty());
 
-        Party partyDto = Party.builder()
-                .id(recruitment.getParty().getId())
-                .title(recruitment.getParty().getTitle())
-                .image(recruitment.getParty().getImage())
-                .partyStatus(recruitment.getParty().getPartyStatus())
-                .partyType(partyTypeDto)
-                .build();
-
+        // Position 매핑
         Position positionDto = Position.builder()
                 .id(recruitment.getPosition().getId())
                 .main(recruitment.getPosition().getMain())
                 .sub(recruitment.getPosition().getSub())
                 .build();
-
 
         int applicationCount = recruitment.getPartyApplications() != null
                 ? recruitment.getPartyApplications().size()
@@ -71,29 +61,9 @@ public class PartyRecruitmentResponseDto {
                 .build();
     }
 
-
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @Builder
-    public static class Party {
-        private Long id;
-        private String title;
-        private String image;
-        private PartyStatus partyStatus;
-        private PartyType partyType;
-
-        @Getter
-        @Setter
-        @NoArgsConstructor
-        @AllArgsConstructor
-        @Builder
-        public static class PartyType {
-            private String type;
-        }
-    }
-
+    // 내부 클래스 Party 제거 (별도 파일의 PartyDto 사용)
+    
+    // Position은 그대로 유지 (PositionResponse와 다른 구조)
     @Getter
     @Setter
     @NoArgsConstructor

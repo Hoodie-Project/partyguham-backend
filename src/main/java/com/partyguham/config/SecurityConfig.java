@@ -55,7 +55,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/v2/parties/search").permitAll()            // 파티 검색
                         /* ==== 모집공고 관련 공개 API (인증 불필요) ==== */
                         .requestMatchers(HttpMethod.GET, "/api/v2/parties/{partyId}/recruitments").permitAll() // 파팀 모집 목록 조회
-                        .requestMatchers(HttpMethod.GET, "/api/v2/parties/admin/{partyId}/recruitments/batch-status").permitAll() // 파팀 모집 목록 조회
+                        .requestMatchers(HttpMethod.GET, "/api/v2/parties/{partyId}/recruitments/{partyRecruitmentId}").permitAll() // 파티 모집 단일 조회
+                        .requestMatchers(HttpMethod.GET, "/api/v2/parties/admin/{partyId}/recruitments/batch-status").permitAll()
 
                         // OTT로 보호할 엔드포인트
                         .requestMatchers("/api/v2/users/recover/**")

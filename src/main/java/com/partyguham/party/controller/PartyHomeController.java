@@ -59,11 +59,9 @@ public class PartyHomeController {
      * 파티 모집 공고 목록 조회
      */
     @GetMapping("/recruitments")
-    public ResponseEntity<GetPartyRecruitmentsResponseDto> getRecruitments(
-            @AuthenticationPrincipal UserPrincipal user,
-            @ModelAttribute @Valid GetPartyRecruitmentsRequestDto request) {
+    public ResponseEntity<GetPartyRecruitmentsResponseDto> getRecruitments(@ModelAttribute @Valid GetPartyRecruitmentsRequestDto request) {
 
-        return ResponseEntity.ok(RecruitmentService.getRecruitments(user.getId(), request));
+        return ResponseEntity.ok(RecruitmentService.getRecruitments(request));
     }
 
 
