@@ -5,6 +5,8 @@ import com.partyguham.common.annotation.ApiV2Controller;
 import com.partyguham.common.dto.MessageResponseDto;
 import com.partyguham.recruitment.dto.request.CreatePartyRecruitmentRequestDto;
 import com.partyguham.recruitment.dto.request.PartyRecruitmentIdsBodyRequestDto;
+import com.partyguham.recruitment.dto.response.CreatePartyRecruitmentsResponseDto;
+import com.partyguham.recruitment.dto.response.PartyRecruitmentsResponseDto;
 import com.partyguham.recruitment.service.RecruitmentAdminService;
 
 import jakarta.validation.Valid;
@@ -68,7 +70,7 @@ public class RecruitmentAdminController {
      * @return 수정된 파티 모집 데이터
      */
     @PatchMapping("/{partyRecruitmentId}") // 파티 모집 수정
-    public ResponseEntity<CreatePartyRecruitmentRequestDto> updatePartyRecruitment(
+    public ResponseEntity<PartyRecruitmentsResponseDto> updatePartyRecruitment(
             @PathVariable Long partyId,
             @PathVariable Long partyRecruitmentId,
             @AuthenticationPrincipal UserPrincipal user,
@@ -92,7 +94,7 @@ public class RecruitmentAdminController {
             @AuthenticationPrincipal UserPrincipal user
     ) {
         recruitmentAdminService.deletePartyRecruitment(partyId, partyRecruitmentId, user.getId());
-        return ResponseEntity.ok(null);
+        return ResponseEntity.noContent().build();
     }
 
     /**
@@ -110,6 +112,6 @@ public class RecruitmentAdminController {
             @RequestBody @Valid PartyRecruitmentIdsBodyRequestDto request
     ) {
         recruitmentAdminService.deletePartyRecruitmentBatch(partyId, user.getId(), request);
-        return ResponseEntity.ok(null);
+        return ResponseEntity.noContent().build();
     }
 }

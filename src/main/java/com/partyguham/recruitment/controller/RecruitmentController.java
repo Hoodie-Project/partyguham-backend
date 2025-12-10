@@ -21,17 +21,9 @@ public class RecruitmentController {
     private final RecruitmentService partyRecruitmentService;
 
     /**
-     * 파티 모집 목록 조회 API
+     * 파티 모집공고 생성 API
      */
-    @GetMapping("/{partyId}/recruitments")
-    public ResponseEntity<List<PartyRecruitmentsResponseDto>> getPartyRecruitments(
-            @PathVariable Long partyId,
-            @ModelAttribute PartyRecruitmentsRequestDto request) {
-        
-        return ResponseEntity.ok(partyRecruitmentService.getPartyRecruitments(partyId, request));
-    }
-
-    @PostMapping("/{partyId}/recruitments") // 파티 모집공고 생성
+    @PostMapping("/{partyId}/recruitments")
     public ResponseEntity<CreatePartyRecruitmentsResponseDto> createPartyRecruitment(
             @PathVariable Long partyId,
             @AuthenticationPrincipal UserPrincipal user,
@@ -40,18 +32,12 @@ public class RecruitmentController {
         return ResponseEntity.ok(partyRecruitmentService.createPartyRecruitment(partyId, user.getId(), request));
     }
 
-//    @GetMapping("/recruitments/personalized")
-//    public ResponseEntity<GetPartyRecruitmentsResponseDto> getRecruitmentsPersonalized(
-//            @AuthenticationPrincipal UserPrincipal user,
-//            @ModelAttribute GetPartyRecruitmentsPersonalizedRequestDto request) {
-//                return ResponseEntity.ok(partyRecruitmentService.getPersonalizedRecruitments(user.getId(), request));
-//            }
-
-    @GetMapping("/recruitments/{partyRecruitmentId}") // 파티 모집 단일 조회
-    public ResponseEntity<PartyRecruitmentResponseDto> getPartyRecruitment(
-            @PathVariable Long partyRecruitmentId,
-            @AuthenticationPrincipal UserPrincipal user) {
-                return ResponseEntity.ok(partyRecruitmentService.getPartyRecruitment(partyRecruitmentId, user.getId()));
+    /**
+     * 파티 모집 단일 조회 API
+     */
+    @GetMapping("/recruitments/{partyRecruitmentId}")
+    public ResponseEntity<PartyRecruitmentResponseDto> getPartyRecruitment(@PathVariable Long partyRecruitmentId) {
+                return ResponseEntity.ok(partyRecruitmentService.getPartyRecruitment(partyRecruitmentId));
             }
 
 }

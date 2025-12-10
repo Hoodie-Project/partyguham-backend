@@ -10,7 +10,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface PartyRecruitmentRepository extends JpaRepository<PartyRecruitment, Long>{
+public interface PartyRecruitmentRepository extends JpaRepository<PartyRecruitment, Long>, PartyRecruitmentCustomRepository {
     
     List<PartyRecruitment> findByPartyId(Long partyId, Sort sort);
 
