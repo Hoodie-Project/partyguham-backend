@@ -25,16 +25,30 @@ public class FcmNotificationService {
         String body = t.body(partyTitle, applicantUserNickname);
 
         Map<String, String> data = Map.of(
-                "type", "party_applied",
-                "partyId", partyId.toString()
+                "type", "PARTY"
         );
 
         fcmService.sendToToken(fcmToken, title, body, data);
     }
 
+    /** 파티장 수락시 */
+    public void sendPartyApplicationAccepted(
+            String partyTitle,
+            String fcmToken
+    ) {
+        NotificationTemplate t = NotificationTemplate.PARTY_APPLICATION_ACCEPTED;
+        String title = t.title();
+        String body = t.body(partyTitle);
+
+        Map<String, String> data = Map.of(
+                "type", "PARTY"
+        );
+
+        fcmService.sendToToken(fcmToken, title, body, data);
+    }
+
+    /** 파티장 거절시 */
     public void sendPartyApplicationRejected(
-            Long applicantUserId,
-            Long partyId,
             String partyTitle,
             String fcmToken
     ) {
@@ -43,8 +57,7 @@ public class FcmNotificationService {
         String body = t.body(partyTitle);
 
         Map<String, String> data = Map.of(
-                "type", "party_applied",
-                "partyId", partyId.toString()
+                "type", "PARTY"
         );
 
         fcmService.sendToToken(fcmToken, title, body, data);

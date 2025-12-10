@@ -118,9 +118,42 @@ public class NotificationService {
         notificationRepository.save(notification);
     }
 
+    /** 파티장이 수락 */
+    public void partyApplicationAcceptedNotification(
+            Long applicantUserId,
+            String partyTitle
+    ) {
+        // 1) 알림 타입 조회 (DB에 미리: type = "PARTY")
+        NotificationType type = notificationTypeRepository.findByType("PARTY")
+                .orElseThrow(() -> new IllegalStateException(
+                        "알림 타입(PARTY)이 정의되어 있지 않습니다."
+                ));
+
+        // 2) 제목/메시지/링크 구성
+        NotificationTemplate t = NotificationTemplate.PARTY_APPLICATION_ACCEPTED;
+        String title = t.title();
+        String body = t.body(partyTitle);
+        String link = "/my/apply";
+
+        User userRef = entityManager.getReference(User.class, applicantUserId);
+
+        // 3) Notification 엔티티 생성
+        Notification notification = Notification.builder()
+                .user(userRef)
+                .notificationType(type)
+                .title(title)
+                .message(body)
+                .image(null)
+                .link(link)
+                .build();
+
+        // 4) 저장
+        notificationRepository.save(notification);
+    }
+
+    /** 파티장이 거절 */
     public void partyApplicationRejectedNotification(
             Long applicantUserId,
-            Long partyId,
             String partyTitle
     ) {
         // 1) 알림 타입 조회 (DB에 미리: type = "PARTY")
@@ -133,7 +166,7 @@ public class NotificationService {
         NotificationTemplate t = NotificationTemplate.PARTY_APPLICATION_REJECTED;
         String title = t.title();
         String body = t.body(partyTitle);
-        String link = "/parties/" + partyId;
+        String link = "/my/apply";
 
         User userRef = entityManager.getReference(User.class, applicantUserId);
 

@@ -1,5 +1,6 @@
 package com.partyguham.notification.listener;
 
+import com.partyguham.notification.event.PartyApplicationAcceptedEvent;
 import com.partyguham.notification.event.PartyApplicationCreatedEvent;
 import com.partyguham.notification.event.PartyApplicationRejectedEvent;
 import com.partyguham.notification.service.FcmNotificationService;
@@ -37,14 +38,24 @@ public class FcmNotificationEventListener {
     }
 
     /**
-     * 파티 지원 완료 → 파티장에게 푸시
+     * 파티장 지원 수락 -> 지원자에게 푸쉬
+     */
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void sendPartyApplicationAccepted(PartyApplicationAcceptedEvent event) {
+        fcmNotificationService.sendPartyApplicationAccepted(
+                event.getPartyTitle(),
+                event.getFcmToken()
+        );
+    }
+
+    /**
+     * 파티장 지원 거절 -> 지원자에게 푸쉬
      */
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void sendPartyApplicationRejected(PartyApplicationRejectedEvent event) {
         fcmNotificationService.sendPartyApplicationRejected(
-                event.getApplicantUserId(),
-                event.getPartyId(),
                 event.getPartyTitle(),
                 event.getFcmToken()
         );

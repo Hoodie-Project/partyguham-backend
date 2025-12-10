@@ -40,7 +40,7 @@ public enum NotificationTemplate {
     ),
     PARTY_APPLICATION_ACCEPTED(
             "지원이 수락되었어요",
-            "%s님의 지원이 수락되었어요. 합류 여부를 결정해 주세요."
+            "'%s' 파티에서 지원이 수락되었어요. 합류 여부를 결정해 주세요."
     ),
     PARTY_APPLICATION_REJECTED(
             "지원이 거절되었어요",
