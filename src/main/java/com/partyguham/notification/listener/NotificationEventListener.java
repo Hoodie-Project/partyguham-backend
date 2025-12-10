@@ -32,7 +32,8 @@ public class NotificationEventListener {
                 event.getHostUserId(),
                 event.getApplicantNickname(),
                 event.getPartyId(),
-                event.getPartyTitle()
+                event.getPartyTitle(),
+                event.getPartyImage()
         );
     }
 
@@ -46,7 +47,8 @@ public class NotificationEventListener {
                 event.getHostUserId(),
                 event.getApplicantNickname(),
                 event.getPartyId(),
-                event.getPartyTitle()
+                event.getPartyTitle(),
+                event.getPartyImage()
         );
     }
 
@@ -58,7 +60,9 @@ public class NotificationEventListener {
 
         notificationService.PartyNewMemberNotification(
                 event.getPartyUserId(),
-                event.getPartyId()
+                event.getPartyId(),
+                event.getPartyImage()
+
         );
     }
 
@@ -83,7 +87,8 @@ public class NotificationEventListener {
 
         notificationService.partyApplicationRejectedNotification(
                 event.getApplicantUserId(),
-                event.getPartyTitle()
+                event.getPartyTitle(),
+                event.getPartyImage()
         );
     }
 
@@ -95,7 +100,8 @@ public class NotificationEventListener {
 
         notificationService.PartyRecruitmentClosed(
                 event.getApplicationUserId(),
-                event.getPartyTitle()
+                event.getPartyTitle(),
+                event.getPartyImage()
         );
     }
 
@@ -108,7 +114,8 @@ public class NotificationEventListener {
         notificationService.partyFinished(
                 event.getPartyUserId(),
                 event.getPartyId(),
-                event.getPartyTitle()
+                event.getPartyTitle(),
+                event.getPartyImage()
         );
     }
 
@@ -121,7 +128,8 @@ public class NotificationEventListener {
         notificationService.partyReopened(
                 event.getPartyUserId(),
                 event.getPartyId(),
-                event.getPartyTitle()
+                event.getPartyTitle(),
+                event.getPartyImage()
         );
     }
 
@@ -134,7 +142,8 @@ public class NotificationEventListener {
         notificationService.partyInfoUpdated(
                 event.getPartyUserId(),
                 event.getPartyId(),
-                event.getPartyTitle()
+                event.getPartyTitle(),
+                event.getPartyImage()
         );
     }
 
@@ -148,7 +157,8 @@ public class NotificationEventListener {
                 event.getPartyUserId(),
                 event.getUserNickname(),
                 event.getPartyId(),
-                event.getPartyTitle()
+                event.getPartyTitle(),
+                event.getPartyImage()
         );
     }
 }

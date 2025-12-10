@@ -235,6 +235,7 @@ public class PartyServiceImpl implements PartyService  { //TODO: S3 이미지 �
                     .userNickname(leftUser.getUser().getNickname())
                     .partyId(party.getId())
                     .partyTitle(party.getTitle())
+                    .partyImage(party.getImage())
                     .fcmToken(member.getUser().getFcmToken())
                     .build();
 

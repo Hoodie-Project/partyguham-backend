@@ -15,6 +15,7 @@ public class PartyApplicationCreatedEvent {
     private final String partyTitle;
     private final Long hostUserId;
     private final String applicantNickname;
+    private final String partyImage;
 
     private final String fcmToken;
 }

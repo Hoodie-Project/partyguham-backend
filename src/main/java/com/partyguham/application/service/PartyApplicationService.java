@@ -103,8 +103,10 @@ public class PartyApplicationService {
         PartyApplicationCreatedEvent event = PartyApplicationCreatedEvent.builder()
                 .partyId(party.getId())
                 .partyTitle(party.getTitle())
+                .partyImage(party.getImage())
                 .hostUserId(hostUser.getId())
                 .applicantNickname(applicantUser.getNickname())
+                .partyImage(party.getImage())
                 .fcmToken(hostUser.getFcmToken())
                 .build();
 
@@ -237,6 +239,7 @@ public class PartyApplicationService {
                 .applicantUserId(app.getUser().getId())
                 .partyId(app.getPartyRecruitment().getParty().getId())
                 .partyTitle(app.getPartyRecruitment().getParty().getTitle())
+                .partyTitle(app.getPartyRecruitment().getParty().getImage())
                 .fcmToken(app.getUser().getFcmToken())
                 .build();
 
@@ -343,6 +346,7 @@ public class PartyApplicationService {
             PartyNewMemberJoinedEvent joinedEvent = PartyNewMemberJoinedEvent.builder()
                     .partyUserId(targetUserId)
                     .partyId(party.getId())
+                    .partyImage(party.getImage())
                     .fcmToken(member.getUser().getFcmToken())
                     .build();
 
@@ -367,6 +371,7 @@ public class PartyApplicationService {
                 PartyRecruitmentClosedEvent closedEvent = PartyRecruitmentClosedEvent.builder()
                         .applicationUserId(remainingUser.getId())
                         .partyTitle(partyTitle)
+                        .partyImage(party.getImage())
                         .fcmToken(remainingUser.getFcmToken())
                         .build();
 
@@ -413,7 +418,8 @@ public class PartyApplicationService {
                 .partyTitle(party.getTitle())
                 .hostUserId(hostUser.getId())
                 .applicantNickname(app.getUser().getNickname())
-                .fcmToken(hostUser.getFcmToken()) // 필요하면
+                .partyImage(party.getImage())
+                .fcmToken(hostUser.getFcmToken())
                 .build();
 
         eventPublisher.publishEvent(event);

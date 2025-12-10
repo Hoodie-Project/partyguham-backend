@@ -8,6 +8,7 @@ import lombok.Getter;
 public class PartyNewMemberJoinedEvent {
     private final Long partyUserId;
     private final Long partyId;
+    private final String partyImage;
 
     private final String fcmToken;
 }

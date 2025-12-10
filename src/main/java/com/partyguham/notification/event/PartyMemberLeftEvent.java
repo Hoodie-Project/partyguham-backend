@@ -10,6 +10,7 @@ public class PartyMemberLeftEvent {
     private final String userNickname;
     private final Long partyId;
     private final String partyTitle;
+    private final String partyImage;
 
     private final String fcmToken;
 }

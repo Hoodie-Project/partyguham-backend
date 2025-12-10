@@ -6,6 +6,7 @@ import com.partyguham.common.entity.Status;
 import com.partyguham.infra.s3.S3FileService;
 import com.partyguham.infra.s3.S3Folder;
 import com.partyguham.notification.event.PartyFinishedEvent;
+import com.partyguham.notification.event.PartyInfoUpdatedEvent;
 import com.partyguham.notification.event.PartyReopenedEvent;
 import com.partyguham.party.dto.partyAdmin.mapper.PartyUserAdminMapper;
 import com.partyguham.party.dto.partyAdmin.request.*;
@@ -162,9 +163,10 @@ public class PartyAdminService {
 
         if (request.partyStatus() == PartyStatus.CLOSED) {
             for (PartyUser member : members) {
-                PartyFinishedEvent event = PartyFinishedEvent.builder()
+                PartyInfoUpdatedEvent event = PartyInfoUpdatedEvent.builder()
                         .partyId(party.getId())
                         .partyTitle(party.getTitle())
+                        .partyImage(party.getImage())
                         .partyUserId(member.getUser().getId())
                         .fcmToken(member.getUser().getFcmToken())
                         .build();
@@ -178,6 +180,7 @@ public class PartyAdminService {
                 PartyReopenedEvent event = PartyReopenedEvent.builder()
                         .partyId(party.getId())
                         .partyTitle(party.getTitle())
+                        .partyImage(party.getImage())
                         .partyUserId(member.getUser().getId())
                         .fcmToken(member.getUser().getFcmToken())
                         .build();

@@ -87,7 +87,8 @@ public class NotificationService {
             Long hostUserId,
             String applicantUserNickname,
             Long partyId,
-            String partyTitle
+            String partyTitle,
+            String partyImage
     ) {
         // 1) 알림 타입 조회
         NotificationType type = notificationTypeRepository.findByType("PARTY")
@@ -109,7 +110,7 @@ public class NotificationService {
                 .notificationType(type)
                 .title(title)
                 .message(body)
-                .image(null)
+                .image(partyImage)
                 .link(link)
                 .build();
 
@@ -124,7 +125,8 @@ public class NotificationService {
             Long hostUserId,
             String applicantUserNickname,
             Long partyId,
-            String partyTitle
+            String partyTitle,
+            String partyImage
     ) {
         // 1) 알림 타입 조회
         NotificationType type = notificationTypeRepository.findByType("PARTY")
@@ -147,7 +149,7 @@ public class NotificationService {
                 .notificationType(type)
                 .title(title)
                 .message(body)
-                .image(null)
+                .image(partyImage)
                 .link(link)
                 .build();
 
@@ -160,7 +162,8 @@ public class NotificationService {
     @Transactional
     public void PartyNewMemberNotification(
             Long partyUserId,
-            Long partyId
+            Long partyId,
+            String partyImage
     ) {
         // 1) 알림 타입 조회
         NotificationType type = notificationTypeRepository.findByType("PARTY")
@@ -183,7 +186,7 @@ public class NotificationService {
                 .notificationType(type)
                 .title(title)
                 .message(body)
-                .image(null)
+                .image(partyImage)
                 .link(link)
                 .build();
 
@@ -226,7 +229,8 @@ public class NotificationService {
     /** 파티장이 거절 알림*/
     public void partyApplicationRejectedNotification(
             Long applicantUserId,
-            String partyTitle
+            String partyTitle,
+            String partyImage
     ) {
         // 1) 알림 타입 조회
         NotificationType type = notificationTypeRepository.findByType("PARTY")
@@ -248,7 +252,7 @@ public class NotificationService {
                 .notificationType(type)
                 .title(title)
                 .message(body)
-                .image(null)
+                .image(partyImage)
                 .link(link)
                 .build();
 
@@ -261,7 +265,8 @@ public class NotificationService {
     @Transactional
     public void PartyRecruitmentClosed(
             Long applicationUserId,
-            String partyTitle
+            String partyTitle,
+            String partyImage
     ) {
         // 1) 알림 타입 조회
         NotificationType type = notificationTypeRepository.findByType("RECRUIT")
@@ -284,7 +289,7 @@ public class NotificationService {
                 .notificationType(type)
                 .title(title)
                 .message(body)
-                .image(null)
+                .image(partyImage)
                 .link(link)
                 .build();
 
@@ -298,7 +303,8 @@ public class NotificationService {
     public void partyFinished(
             Long partyUserId,
             Long partyId,
-            String partyTitle
+            String partyTitle,
+            String partyImage
     ) {
         NotificationType type = notificationTypeRepository.findByType("PARTY")
                 .orElseThrow(() -> new IllegalStateException(
@@ -320,7 +326,7 @@ public class NotificationService {
                 .notificationType(type)
                 .title(title)
                 .message(body)
-                .image(null)
+                .image(partyImage)
                 .link(link)
                 .build();
 
@@ -334,7 +340,8 @@ public class NotificationService {
     public void partyReopened(
             Long partyUserId,
             Long partyId,
-            String partyTitle
+            String partyTitle,
+            String partyImage
     ) {
         NotificationType type = notificationTypeRepository.findByType("PARTY")
                 .orElseThrow(() -> new IllegalStateException(
@@ -356,7 +363,7 @@ public class NotificationService {
                 .notificationType(type)
                 .title(title)
                 .message(body)
-                .image(null)
+                .image(partyImage)
                 .link(link)
                 .build();
 
@@ -370,7 +377,8 @@ public class NotificationService {
     public void partyInfoUpdated(
             Long partyUserId,
             Long partyId,
-            String partyTitle
+            String partyTitle,
+            String partyImage
     ) {
         NotificationType type = notificationTypeRepository.findByType("PARTY")
                 .orElseThrow(() -> new IllegalStateException(
@@ -391,7 +399,7 @@ public class NotificationService {
                 .notificationType(type)
                 .title(title)
                 .message(body)
-                .image(null)
+                .image(partyImage)
                 .link(link)
                 .build();
 
@@ -406,7 +414,8 @@ public class NotificationService {
             Long partyUserId,
             String userNickname,
             Long partyId,
-            String partyTitle
+            String partyTitle,
+            String partyImage
     ) {
         NotificationType type = notificationTypeRepository.findByType("PARTY")
                 .orElseThrow(() -> new IllegalStateException(
@@ -427,7 +436,7 @@ public class NotificationService {
                 .notificationType(type)
                 .title(title)
                 .message(body)
-                .image(null)
+                .image(partyImage)
                 .link(link)
                 .build();
 
