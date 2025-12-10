@@ -37,6 +37,10 @@ public interface PartyUserRepository extends JpaRepository<PartyUser, Long>, Par
                                                       List<Long> ids,
                                                       Status status);
 
+    List<PartyUser> findByParty_IdAndStatus(Long partyId, Status status);
+
+    List<PartyUser> findByParty_IdAndStatusNot(Long partyId, Status status);
+
     /**
      * 특정 파티에 특정 유저가 속해있는지 확인하는 메서드
      * (단, 삭제된 멤버는 제외)

@@ -96,7 +96,7 @@ public class FcmNotificationService {
     }
 
     /**
-     * 모집 완료
+     * 모집 완료 (종료)
      */
     public void sendPartyRecruitmentClosed(
             String partyTitle,
@@ -112,4 +112,60 @@ public class FcmNotificationService {
 
         fcmService.sendToToken(fcmToken, title, body, data);
     }
+
+    /**
+     * 파티 종료
+     */
+    public void sendPartyFinished(
+            String partyTitle,
+            String fcmToken
+    ) {
+        NotificationTemplate t = NotificationTemplate.PARTY_FINISHED;
+        String title = t.title();
+        String body = t.body(partyTitle);
+
+        Map<String, String> data = Map.of(
+                "type", "PARTY"
+        );
+
+        fcmService.sendToToken(fcmToken, title, body, data);
+    }
+
+    /**
+     * 파티 재활성화
+     */
+    public void sendPartyReopened(
+            String partyTitle,
+            String fcmToken
+    ) {
+        NotificationTemplate t = NotificationTemplate.PARTY_REOPENED;
+        String title = t.title();
+        String body = t.body(partyTitle);
+
+        Map<String, String> data = Map.of(
+                "type", "PARTY"
+        );
+
+        fcmService.sendToToken(fcmToken, title, body, data);
+    }
+
+    /**
+     * 파티 업데이트
+     */
+    public void sendPartyUpdated(
+            String partyTitle,
+            String fcmToken
+    ) {
+        NotificationTemplate t = NotificationTemplate.PARTY_INFO_UPDATED;
+        String title = t.title();
+        String body = t.body(partyTitle);
+
+        Map<String, String> data = Map.of(
+                "type", "PARTY"
+        );
+
+        fcmService.sendToToken(fcmToken, title, body, data);
+    }
+
+
 }

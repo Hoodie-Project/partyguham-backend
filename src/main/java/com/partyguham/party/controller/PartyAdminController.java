@@ -25,6 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
  * - 파티장 권한 위임
  * - 파티 삭제
  */
+@ApiV2Controller
 @RequiredArgsConstructor
 @RequestMapping("/parties/{partyId}/admin")
 public class PartyAdminController {

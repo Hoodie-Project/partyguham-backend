@@ -85,8 +85,39 @@ public class FcmNotificationEventListener {
     /** 모집 마감에 이은 지원 종료 */
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void PartyRecruitmentClosed(PartyRecruitmentClosedEvent event) {
+    public void partyRecruitmentClosed(PartyRecruitmentClosedEvent event) {
         fcmNotificationService.sendPartyRecruitmentClosed(
+                event.getPartyTitle(),
+                event.getFcmToken()
+        );
+    }
+
+    /** 파티 종료 */
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void partyFinished(PartyFinishedEvent event) {
+        fcmNotificationService.sendPartyFinished(
+                event.getPartyTitle(),
+                event.getFcmToken()
+        );
+    }
+
+    /** 파티 재활성화 */
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void partyReopened(PartyReopenedEvent event) {
+        fcmNotificationService.sendPartyReopened(
+                event.getPartyTitle(),
+                event.getFcmToken()
+        );
+    }
+
+
+    /** 파티 재활성화 */
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void partyInfoUpdated(PartyInfoUpdatedEvent event) {
+        fcmNotificationService.sendPartyUpdated(
                 event.getPartyTitle(),
                 event.getFcmToken()
         );

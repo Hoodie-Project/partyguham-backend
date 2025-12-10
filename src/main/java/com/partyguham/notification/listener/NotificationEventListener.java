@@ -89,11 +89,50 @@ public class NotificationEventListener {
     /** 모집 마감에 이은 지원 종료 */
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void PartyRecruitmentClosed(PartyRecruitmentClosedEvent event) {
+    public void partyRecruitmentClosed(PartyRecruitmentClosedEvent event) {
         log.info("PartyRecruitmentClosedEvent");
 
         notificationService.PartyRecruitmentClosed(
                 event.getApplicationUserId(),
+                event.getPartyTitle()
+        );
+    }
+
+    /** 파티 종료 */
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void partyFinished(PartyFinishedEvent event) {
+        log.info("partyFinished");
+
+        notificationService.partyFinished(
+                event.getPartyUserId(),
+                event.getPartyId(),
+                event.getPartyTitle()
+        );
+    }
+
+    /** 파티 재 진행중 */
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void partyReopened(PartyReopenedEvent event) {
+        log.info("partyReopened");
+
+        notificationService.partyReopened(
+                event.getPartyUserId(),
+                event.getPartyId(),
+                event.getPartyTitle()
+        );
+    }
+
+    /** 파티 업데이트 */
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void partyInfoUpdated(PartyInfoUpdatedEvent event) {
+        log.info("partyReopened");
+
+        notificationService.partyInfoUpdated(
+                event.getPartyUserId(),
+                event.getPartyId(),
                 event.getPartyTitle()
         );
     }

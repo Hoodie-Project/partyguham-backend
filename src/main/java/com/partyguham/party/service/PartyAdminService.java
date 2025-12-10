@@ -5,6 +5,8 @@ import com.partyguham.catalog.repository.PositionRepository;
 import com.partyguham.common.entity.Status;
 import com.partyguham.infra.s3.S3FileService;
 import com.partyguham.infra.s3.S3Folder;
+import com.partyguham.notification.event.PartyFinishedEvent;
+import com.partyguham.notification.event.PartyReopenedEvent;
 import com.partyguham.party.dto.partyAdmin.mapper.PartyUserAdminMapper;
 import com.partyguham.party.dto.partyAdmin.request.*;
 import com.partyguham.party.dto.partyAdmin.response.*;
@@ -13,6 +15,7 @@ import com.partyguham.party.repository.PartyRepository;
 import com.partyguham.party.repository.PartyTypeRepository;
 import com.partyguham.party.repository.PartyUserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,7 +33,8 @@ public class PartyAdminService {
     private final PartyRepository partyRepository;
     private final PartyTypeRepository partyTypeRepository;
     private final PositionRepository positionRepository;
-    private final S3FileService s3FileService; // 이전 이미지 삭제용(옵션)
+    private final S3FileService s3FileService;
+    private final ApplicationEventPublisher eventPublisher;
 
 
     /**
@@ -117,6 +121,22 @@ public class PartyAdminService {
             }
         }
 
+        // 이벤트 발행
+        List<PartyUser> members = partyUserRepository
+                .findByParty_IdAndStatus(partyId, Status.ACTIVE);
+
+            for (PartyUser member : members) {
+                PartyFinishedEvent event = PartyFinishedEvent.builder()
+                        .partyId(party.getId())
+                        .partyTitle(party.getTitle())
+                        .partyUserId(member.getUser().getId())
+                        .fcmToken(member.getUser().getFcmToken())
+                        .build();
+
+                eventPublisher.publishEvent(event);
+            }
+
+
         return UpdatePartyResponseDto.from(party);
     }
 
@@ -135,6 +155,36 @@ public class PartyAdminService {
 
         // 3) 상태 변경
         party.setPartyStatus(request.partyStatus());
+
+        // 이벤트 발행
+        List<PartyUser> members = partyUserRepository
+                .findByParty_IdAndStatus(partyId, Status.ACTIVE);
+
+        if (request.partyStatus() == PartyStatus.CLOSED) {
+            for (PartyUser member : members) {
+                PartyFinishedEvent event = PartyFinishedEvent.builder()
+                        .partyId(party.getId())
+                        .partyTitle(party.getTitle())
+                        .partyUserId(member.getUser().getId())
+                        .fcmToken(member.getUser().getFcmToken())
+                        .build();
+
+                eventPublisher.publishEvent(event);
+            }
+        }
+
+        if (request.partyStatus() == PartyStatus.IN_PROGRESS) {
+            for (PartyUser member : members) {
+                PartyReopenedEvent event = PartyReopenedEvent.builder()
+                        .partyId(party.getId())
+                        .partyTitle(party.getTitle())
+                        .partyUserId(member.getUser().getId())
+                        .fcmToken(member.getUser().getFcmToken())
+                        .build();
+
+                eventPublisher.publishEvent(event);
+            }
+        }
 
         // 4) 응답 DTO로 변환
         return UpdatePartyStatusResponseDto.from(party);
