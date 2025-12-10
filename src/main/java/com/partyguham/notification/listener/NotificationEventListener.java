@@ -1,7 +1,6 @@
 package com.partyguham.notification.listener;
 
-import com.partyguham.notification.event.PartyApplicationRejectedEvent;
-import com.partyguham.notification.event.PartyAppliedEvent;
+import com.partyguham.notification.event.*;
 import com.partyguham.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,24 +25,140 @@ public class NotificationEventListener {
     /** 지원 알림 */
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void onPartyApplied(PartyAppliedEvent event) {
+    public void onPartyApplied(PartyApplicationCreatedEvent event) {
         log.info("NotificationEventListener.onPartyApplied partyId={}", event.getPartyId());
 
         notificationService.createPartyAppliedNotification(
                 event.getHostUserId(),
                 event.getApplicantNickname(),
                 event.getPartyId(),
-                event.getPartyTitle()
+                event.getPartyTitle(),
+                event.getPartyImage()
         );
     }
 
+    /** 지원 합류 거절 */
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void onPartyApplicationDeclined(PartyApplicationDeclinedEvent event) {
+        log.info("NotificationEventListener.onPartyApplicationDeclined partyId={}", event.getPartyId());
 
-    // 지원 거절 이벤트 처리
+        notificationService.createPartyDeclinedNotification(
+                event.getHostUserId(),
+                event.getApplicantNickname(),
+                event.getPartyId(),
+                event.getPartyTitle(),
+                event.getPartyImage()
+        );
+    }
+
+    /** 지원자 수락, 최종 합류 */
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void onPartyApplicationDeclined(PartyNewMemberJoinedEvent event) {
+        log.info("PartyNewMemberJoinedEvent partyId={}", event.getPartyId());
+
+        notificationService.PartyNewMemberNotification(
+                event.getPartyUserId(),
+                event.getPartyId(),
+                event.getPartyImage()
+
+        );
+    }
+
+    /** 파티장 지원 수락 */
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void onPartyApplicationAccepted(PartyApplicationAcceptedEvent event) {
+        log.info("onPartyApplicationAccepted partyId={}", event.getPartyId());
+
+        notificationService.partyApplicationAcceptedNotification(
+                event.getApplicantUserId(),
+                event.getPartyTitle(),
+                event.getPartyImage()
+        );
+    }
+
+    /** 파티장 지원 거절 */
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onPartyApplicationRejected(PartyApplicationRejectedEvent event) {
-        log.info("onPartyApplicationRejected partyId={}, rejectedBy={}");
+        log.info("onPartyApplicationRejected partyId={}", event.getPartyId());
 
+        notificationService.partyApplicationRejectedNotification(
+                event.getApplicantUserId(),
+                event.getPartyTitle(),
+                event.getPartyImage()
+        );
+    }
 
+    /** 모집 마감에 이은 지원 종료 */
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void partyRecruitmentClosed(PartyRecruitmentClosedEvent event) {
+        log.info("PartyRecruitmentClosedEvent");
+
+        notificationService.PartyRecruitmentClosed(
+                event.getApplicationUserId(),
+                event.getPartyTitle(),
+                event.getPartyImage()
+        );
+    }
+
+    /** 파티 종료 */
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void partyFinished(PartyFinishedEvent event) {
+        log.info("partyFinished");
+
+        notificationService.partyFinished(
+                event.getPartyUserId(),
+                event.getPartyId(),
+                event.getPartyTitle(),
+                event.getPartyImage()
+        );
+    }
+
+    /** 파티 재 진행중 */
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void partyReopened(PartyReopenedEvent event) {
+        log.info("partyReopened");
+
+        notificationService.partyReopened(
+                event.getPartyUserId(),
+                event.getPartyId(),
+                event.getPartyTitle(),
+                event.getPartyImage()
+        );
+    }
+
+    /** 파티 업데이트 */
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void partyInfoUpdated(PartyInfoUpdatedEvent event) {
+        log.info("partyReopened");
+
+        notificationService.partyInfoUpdated(
+                event.getPartyUserId(),
+                event.getPartyId(),
+                event.getPartyTitle(),
+                event.getPartyImage()
+        );
+    }
+
+    /** 파티유저 나감 */
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void partyMemberLeft(PartyMemberLeftEvent event) {
+        log.info("partyReopened");
+
+        notificationService.partyMemberLeft(
+                event.getPartyUserId(),
+                event.getUserNickname(),
+                event.getPartyId(),
+                event.getPartyTitle(),
+                event.getPartyImage()
+        );
     }
 }

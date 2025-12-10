@@ -5,8 +5,7 @@ import lombok.Getter;
 
 @Getter
 @Builder
-public class PartyApplicationRejectedEvent {
-
+public class PartyApplicationAcceptedEvent {
     private final Long applicantUserId;
     private final Long partyId;
     private final String partyTitle;

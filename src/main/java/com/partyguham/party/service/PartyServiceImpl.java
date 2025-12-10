@@ -5,6 +5,9 @@ import com.partyguham.catalog.entity.Position;
 import com.partyguham.catalog.repository.PositionRepository;
 import com.partyguham.infra.s3.S3FileService;
 import com.partyguham.infra.s3.S3Folder;
+import com.partyguham.notification.event.PartyApplicationCreatedEvent;
+import com.partyguham.notification.event.PartyFinishedEvent;
+import com.partyguham.notification.event.PartyMemberLeftEvent;
 import com.partyguham.party.dto.party.request.GetPartiesRequestDto;
 import com.partyguham.party.dto.party.request.GetPartyUsersRequestDto;
 import com.partyguham.party.dto.party.request.PartyCreateRequestDto;
@@ -29,6 +32,7 @@ import com.partyguham.user.account.entity.User;
 import com.partyguham.user.account.repository.UserRepository;
 import com.partyguham.user.profile.repository.UserCareerRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -52,6 +56,7 @@ public class PartyServiceImpl implements PartyService  { //TODO: S3 이미지 �
     private final UserCareerRepository userCareerRepository;
     private final PartyRecruitmentRepository partyRecruitmentRepository;
     private final S3FileService s3FileService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     @Transactional
@@ -205,20 +210,37 @@ public class PartyServiceImpl implements PartyService  { //TODO: S3 이미지 �
     @Transactional
     public void leaveParty(Long partyId, Long userId) { // 파티 나가기
         // 파티 존재 확인
-        partyRepository.findById(partyId)
+        Party party = partyRepository.findById(partyId)
                 .orElseThrow(() -> new PartyNotFoundException());
 
         // PartyUser 조회 및 삭제
-        PartyUser partyUser = partyUserRepository.findByPartyIdAndUserId(partyId, userId)
+        PartyUser leftUser = partyUserRepository.findByPartyIdAndUserId(partyId, userId)
                 .orElseThrow(() -> new PartyUserNotFoundException(partyId, userId));
 
         // 파티장은 파티를 나갈 수 없음
-        if (partyUser.getAuthority() == PartyAuthority.MASTER) {
+        if (leftUser.getAuthority() == PartyAuthority.MASTER) {
             throw new PartyAccessDeniedException("파티장은 파티를 나갈 수 없습니다.");
         }
 
         // 소프트 삭제: status를 DELETED로 변경
-        partyUser.setStatus(Status.DELETED);
+        leftUser.setStatus(Status.DELETED);
+
+        // 이벤트 발행
+        List<PartyUser> members = partyUserRepository
+                .findByParty_IdAndStatus(partyId, Status.ACTIVE);
+
+        for (PartyUser member : members) {
+            PartyMemberLeftEvent event = PartyMemberLeftEvent.builder()
+                    .partyUserId(member.getUser().getId())
+                    .userNickname(leftUser.getUser().getNickname())
+                    .partyId(party.getId())
+                    .partyTitle(party.getTitle())
+                    .partyImage(party.getImage())
+                    .fcmToken(member.getUser().getFcmToken())
+                    .build();
+
+            eventPublisher.publishEvent(event);
+        }
     }
 
     @Override

@@ -10,7 +10,7 @@ import com.partyguham.application.repostiory.PartyApplicationQueryRepository;
 import com.partyguham.application.repostiory.PartyApplicationRepository;
 import com.partyguham.common.entity.Status;
 import com.partyguham.common.exception.NotFoundException;
-import com.partyguham.notification.event.PartyAppliedEvent;
+import com.partyguham.notification.event.*;
 import com.partyguham.party.entity.Party;
 import com.partyguham.party.entity.PartyAuthority;
 import com.partyguham.party.entity.PartyUser;
@@ -26,6 +26,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -59,7 +61,6 @@ public class PartyApplicationService {
         // 2) 이미 파티 멤버인지 체크 (멤버면 지원 불가)
         boolean alreadyMember = partyUserRepository
                 .existsByParty_IdAndUser_IdAndStatusNot(partyId, userId, Status.DELETED);
-
         if (alreadyMember) {
             throw new IllegalStateException("이미 해당 파티의 멤버입니다. 지원할 수 없습니다.");
         }
@@ -69,7 +70,6 @@ public class PartyApplicationService {
                 .orElseThrow(() -> new IllegalArgumentException(
                         "존재하지 않는 모집공고입니다. id=" + recruitmentId
                 ));
-
         // 모집이 이미 종료된 경우 막기
         if (Boolean.TRUE.equals(recruitment.getCompleted())) {
             throw new IllegalStateException("이미 마감된 모집입니다.");
@@ -87,7 +87,6 @@ public class PartyApplicationService {
         // 4) 중복 지원 방지
         boolean alreadyApplied = partyApplicationRepository
                 .existsByUser_IdAndPartyRecruitment_Id(userId, recruitmentId);
-
         if (alreadyApplied) {
             throw new IllegalStateException("이미 이 모집에 지원한 사용자입니다.");
         }
@@ -101,11 +100,13 @@ public class PartyApplicationService {
 
         partyApplicationRepository.save(application);
 
-        PartyAppliedEvent event = PartyAppliedEvent.builder()
+        PartyApplicationCreatedEvent event = PartyApplicationCreatedEvent.builder()
                 .partyId(party.getId())
                 .partyTitle(party.getTitle())
+                .partyImage(party.getImage())
                 .hostUserId(hostUser.getId())
                 .applicantNickname(applicantUser.getNickname())
+                .partyImage(party.getImage())
                 .fcmToken(hostUser.getFcmToken())
                 .build();
 
@@ -203,6 +204,16 @@ public class PartyApplicationService {
 
         // 4) 상태 변경 (응답 대기 상태)
         app.setApplicationStatus(PartyApplicationStatus.PROCESSING);
+
+        PartyApplicationAcceptedEvent event = PartyApplicationAcceptedEvent.builder()
+                .applicantUserId(app.getUser().getId())
+                .partyId(app.getPartyRecruitment().getParty().getId())
+                .partyTitle(app.getPartyRecruitment().getParty().getTitle())
+                .partyImage(app.getPartyRecruitment().getParty().getImage())
+                .fcmToken(app.getUser().getFcmToken())
+                .build();
+
+        eventPublisher.publishEvent(event);
     }
 
     /**
@@ -223,6 +234,16 @@ public class PartyApplicationService {
 
         // 4) 상태 변경
         app.setApplicationStatus(PartyApplicationStatus.REJECTED);
+
+        PartyApplicationRejectedEvent event = PartyApplicationRejectedEvent.builder()
+                .applicantUserId(app.getUser().getId())
+                .partyId(app.getPartyRecruitment().getParty().getId())
+                .partyTitle(app.getPartyRecruitment().getParty().getTitle())
+                .partyTitle(app.getPartyRecruitment().getParty().getImage())
+                .fcmToken(app.getUser().getFcmToken())
+                .build();
+
+        eventPublisher.publishEvent(event);
     }
 
     /**
@@ -271,6 +292,9 @@ public class PartyApplicationService {
             throw new IllegalStateException("이미 마감된 모집입니다.");
         }
 
+        Party party = recruitment.getParty();
+        String partyTitle = party.getTitle();
+
         int current = recruitment.getCurrentParticipants();
         int max = recruitment.getMaxParticipants();
 
@@ -280,8 +304,6 @@ public class PartyApplicationService {
         }
 
         // 5) 파티 합류 처리
-        Party party = recruitment.getParty();
-
         boolean alreadyMember = partyUserRepository
                 .existsByParty_IdAndUser_IdAndStatusNot(
                         party.getId(),
@@ -290,14 +312,13 @@ public class PartyApplicationService {
                 );
 
         if (!alreadyMember) {
-            // 아직 파티 멤버가 아니면 PartyUser 새로 생성
             User user = app.getUser(); // 이미 로딩된 유저
 
             PartyUser partyUser = PartyUser.builder()
                     .party(party)
                     .user(user)
                     .position(recruitment.getPosition())
-                    .authority(PartyAuthority.MEMBER) // 기본 MEMBER
+                    .authority(PartyAuthority.MEMBER)
                     .build();
 
             partyUserRepository.save(partyUser);
@@ -306,23 +327,71 @@ public class PartyApplicationService {
         // 6) 모집 인원 카운트 증가
         recruitment.setCurrentParticipants(current + 1);
 
-        // 7) 정원 찼으면 모집 완료 처리
+        // 7) 정원 찼으면 모집 완료 처리 여부 플래그
+        boolean recruitmentJustClosed = false;
         if (recruitment.getCurrentParticipants() >= max) {
             recruitment.setCompleted(true);
+            recruitmentJustClosed = true;
         }
 
         // 8) 지원 상태 최종 승인 처리
         app.setApplicationStatus(PartyApplicationStatus.APPROVED);
+
+        // 9) 파티원 전체(본인 제외)에게 "새 멤버 합류" 이벤트 발행
+        List<PartyUser> members = party.getPartyUsers();
+        for (PartyUser member : members) {
+            Long targetUserId = member.getUser().getId();
+            if (targetUserId.equals(applicantUserId)) continue; // 본인은 제외
+
+            PartyNewMemberJoinedEvent joinedEvent = PartyNewMemberJoinedEvent.builder()
+                    .partyUserId(targetUserId)
+                    .partyId(party.getId())
+                    .partyImage(party.getImage())
+                    .fcmToken(member.getUser().getFcmToken())
+                    .build();
+
+            eventPublisher.publishEvent(joinedEvent);
+        }
+
+        // 10) 모집이 이번 승인으로 막 닫혔다면,
+        //     나머지 대기/처리중 지원자들에게 "모집 마감" 이벤트 발행
+        if (recruitmentJustClosed) {
+            List<PartyApplication> remainingApplicants = partyApplicationRepository
+                    .findByPartyRecruitmentAndApplicationStatusIn(
+                            recruitment,
+                            List.of(
+                                    PartyApplicationStatus.PENDING,
+                                    PartyApplicationStatus.PROCESSING
+                            )
+                    );
+
+            for (PartyApplication remainingApplicant : remainingApplicants) {
+                User remainingUser = remainingApplicant.getUser();
+
+                PartyRecruitmentClosedEvent closedEvent = PartyRecruitmentClosedEvent.builder()
+                        .applicationUserId(remainingUser.getId())
+                        .partyTitle(partyTitle)
+                        .partyImage(party.getImage())
+                        .fcmToken(remainingUser.getFcmToken())
+                        .build();
+
+                eventPublisher.publishEvent(closedEvent);
+
+                // 모집 상태 변경 있음 (예: CLOSED)
+                 remainingApplicant.setApplicationStatus(PartyApplicationStatus.CLOSED);
+            }
+        }
     }
 
     /**
-     * 지원자 최종 거절: PROCESSING -> REJECTED
+     * 지원자 최종 거절: PROCESSING -> DECLINED
      */
     @Transactional
     public void rejectByApplicant(Long partyId, Long applicationId, Long applicantUserId) {
+
         PartyApplication app = getApplicationForPartyOrThrow(partyId, applicationId);
 
-        Long appUserId = app.getUser().getId(); // 구조에 맞게 수정
+        Long appUserId = app.getUser().getId();
         if (!appUserId.equals(applicantUserId)) {
             throw new IllegalStateException("본인 지원만 처리할 수 있습니다.");
         }
@@ -331,6 +400,28 @@ public class PartyApplicationService {
             throw new IllegalStateException("PROCESSING 상태의 지원만 거절할 수 있습니다.");
         }
 
-        app.setApplicationStatus(PartyApplicationStatus.REJECTED);
+        // 파티 가져오기
+        Party party = app.getPartyRecruitment().getParty();
+
+        // 파티장 찾기
+        User hostUser = partyUserRepository
+                .findByParty_IdAndAuthority(partyId, PartyAuthority.MASTER)
+                .orElseThrow(() -> new IllegalStateException("파티장 정보를 찾을 수 없습니다."))
+                .getUser();
+
+        // 상태 변경
+        app.setApplicationStatus(PartyApplicationStatus.DECLINED);
+
+        // 이벤트 생성
+        PartyApplicationDeclinedEvent event = PartyApplicationDeclinedEvent.builder()
+                .partyId(party.getId())
+                .partyTitle(party.getTitle())
+                .hostUserId(hostUser.getId())
+                .applicantNickname(app.getUser().getNickname())
+                .partyImage(party.getImage())
+                .fcmToken(hostUser.getFcmToken())
+                .build();
+
+        eventPublisher.publishEvent(event);
     }
 }

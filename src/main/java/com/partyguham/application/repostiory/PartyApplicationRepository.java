@@ -1,8 +1,12 @@
 package com.partyguham.application.repostiory;
 
 import com.partyguham.application.entity.PartyApplication;
+import com.partyguham.application.entity.PartyApplicationStatus;
+import com.partyguham.recruitment.entity.PartyRecruitment;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 public interface PartyApplicationRepository extends JpaRepository<PartyApplication, Long> {
@@ -16,5 +20,10 @@ public interface PartyApplicationRepository extends JpaRepository<PartyApplicati
             Long partyRecruitmentId,
             Long partyId,
             Long userId
+    );
+
+    List<PartyApplication> findByPartyRecruitmentAndApplicationStatusIn(
+            PartyRecruitment recruitment,
+            Collection<PartyApplicationStatus> statuses
     );
 }

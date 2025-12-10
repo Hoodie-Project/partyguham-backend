@@ -5,10 +5,8 @@ import lombok.Getter;
 
 @Getter
 @Builder
-public class PartyApplicationRejectedEvent {
-
-    private final Long applicantUserId;
-    private final Long partyId;
+public class PartyRecruitmentClosedEvent {
+    private final Long applicationUserId; // 지원한 유저
     private final String partyTitle;
     private final String partyImage;
 

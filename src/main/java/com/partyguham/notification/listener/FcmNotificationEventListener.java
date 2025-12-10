@@ -1,10 +1,7 @@
 package com.partyguham.notification.listener;
 
-import com.partyguham.infra.fcm.FcmService;
-import com.partyguham.notification.event.PartyAppliedEvent;
+import com.partyguham.notification.event.*;
 import com.partyguham.notification.service.FcmNotificationService;
-import com.partyguham.user.account.entity.User;
-import com.partyguham.user.account.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -29,10 +26,109 @@ public class FcmNotificationEventListener {
      */
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void onPartyApplied(PartyAppliedEvent event) {
+    public void onPartyApplied(PartyApplicationCreatedEvent event) {
         fcmNotificationService.sendPartyApplied(
                 event.getApplicantNickname(),
-                event.getPartyId(),
+                event.getPartyTitle(),
+                event.getFcmToken()
+        );
+    }
+
+    /**
+     * 지원자 파티 합류 거절 → 파티장에게 푸시
+     */
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void sendPartyDeclined(PartyApplicationDeclinedEvent event) {
+        fcmNotificationService.sendPartyDeclined(
+                event.getApplicantNickname(),
+                event.getPartyTitle(),
+                event.getFcmToken()
+        );
+    }
+
+    /**
+     * 지원자 파티 최종 합류
+     */
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void sendPartyNewMember(PartyApplicationDeclinedEvent event) {
+        fcmNotificationService.PartyNewMember(
+                event.getFcmToken()
+        );
+    }
+
+    /**
+     * 파티장 지원 수락 -> 지원자에게 푸쉬
+     */
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void sendPartyApplicationAccepted(PartyApplicationAcceptedEvent event) {
+        fcmNotificationService.sendPartyApplicationAccepted(
+                event.getPartyTitle(),
+                event.getFcmToken()
+        );
+    }
+
+    /**
+     * 파티장 지원 거절 -> 지원자에게 푸쉬
+     */
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void sendPartyApplicationRejected(PartyApplicationRejectedEvent event) {
+        fcmNotificationService.sendPartyApplicationRejected(
+                event.getPartyTitle(),
+                event.getFcmToken()
+        );
+    }
+
+    /** 모집 마감에 이은 지원 종료 */
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void partyRecruitmentClosed(PartyRecruitmentClosedEvent event) {
+        fcmNotificationService.sendPartyRecruitmentClosed(
+                event.getPartyTitle(),
+                event.getFcmToken()
+        );
+    }
+
+    /** 파티 종료 */
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void partyFinished(PartyFinishedEvent event) {
+        fcmNotificationService.sendPartyFinished(
+                event.getPartyTitle(),
+                event.getFcmToken()
+        );
+    }
+
+    /** 파티 재활성화 */
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void partyReopened(PartyReopenedEvent event) {
+        fcmNotificationService.sendPartyReopened(
+                event.getPartyTitle(),
+                event.getFcmToken()
+        );
+    }
+
+
+    /** 파티 재활성화 */
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void partyInfoUpdated(PartyInfoUpdatedEvent event) {
+        fcmNotificationService.sendPartyUpdated(
+                event.getPartyTitle(),
+                event.getFcmToken()
+        );
+    }
+
+    /** 파티 유저 떠남 */
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void partyMemberLeft(PartyMemberLeftEvent event) {
+        fcmNotificationService.sendPartyMemberLeft(
+                event.getUserNickname(),
                 event.getPartyTitle(),
                 event.getFcmToken()
         );

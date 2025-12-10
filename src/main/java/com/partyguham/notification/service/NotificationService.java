@@ -10,6 +10,7 @@ import com.partyguham.notification.repository.NotificationTypeRepository;
 import com.partyguham.notification.template.NotificationTemplate;
 import com.partyguham.user.account.entity.User;
 import com.partyguham.user.account.repository.UserRepository;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,7 @@ public class NotificationService {
     private final NotificationTypeRepository notificationTypeRepository;
     private final NotificationQueryRepository notificationQueryRepository;
     private final UserRepository userRepository;
+    private final EntityManager entityManager;
 
 
     public boolean hasUnchecked(Long userId) {
@@ -85,51 +87,361 @@ public class NotificationService {
             Long hostUserId,
             String applicantUserNickname,
             Long partyId,
-            String partyTitle
+            String partyTitle,
+            String partyImage
     ) {
-        // 0) 알림 받을 유저(파티장) 조회
-        User hostUser = userRepository.findById(hostUserId)
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "존재하지 않는 유저입니다. id=" + hostUserId
-                ));
-
-        // 1) 알림 타입 조회 (DB에 미리: type = "PARTY")
+        // 1) 알림 타입 조회
         NotificationType type = notificationTypeRepository.findByType("PARTY")
                 .orElseThrow(() -> new IllegalStateException(
                         "알림 타입(PARTY)이 정의되어 있지 않습니다."
                 ));
 
         // 2) 제목/메시지/링크 구성
-        NotificationTemplate t = NotificationTemplate.PARTY_APPLIED;
+        NotificationTemplate t = NotificationTemplate.PARTY_APPLICATION_CREATED;
         String title = t.title();
         String body = t.body(partyTitle, applicantUserNickname);
         String link = "/parties/" + partyId;
 
+        User userRef = entityManager.getReference(User.class, hostUserId);
+
         // 3) Notification 엔티티 생성
         Notification notification = Notification.builder()
-                .user(hostUser)
+                .user(userRef)
                 .notificationType(type)
                 .title(title)
                 .message(body)
-                .image(null)
+                .image(partyImage)
                 .link(link)
                 .build();
 
-        // 4) 저장
         notificationRepository.save(notification);
     }
 
-    public void createApplicationRejectedNotificationForApplicant(
-            Long applicantUserId,
-            Long partyId,
-            String partyTitle,
-            String reason
-    ) { /* ... */ }
-
-    public void createApplicationCancelledNotificationForHost(
+    /**
+     * 파티 지원자 거절 알림 생성
+     */
+    @Transactional
+    public void createPartyDeclinedNotification(
             Long hostUserId,
+            String applicantUserNickname,
             Long partyId,
             String partyTitle,
-            String reason
-    ) { /* ... */ }
+            String partyImage
+    ) {
+        // 1) 알림 타입 조회
+        NotificationType type = notificationTypeRepository.findByType("PARTY")
+                .orElseThrow(() -> new IllegalStateException(
+                        "알림 타입(PARTY)이 정의되어 있지 않습니다."
+                ));
+
+        // 2) 제목/메시지/링크 구성
+        NotificationTemplate t = NotificationTemplate.PARTY_APPLICATION_DECLINED;
+        String title = t.title();
+        String body = t.body(partyTitle, applicantUserNickname);
+        String link = "/party/setting/applicant/" + partyId;
+
+        User userRef = entityManager.getReference(User.class, hostUserId);
+
+
+        // 3) Notification 엔티티 생성
+        Notification notification = Notification.builder()
+                .user(userRef)
+                .notificationType(type)
+                .title(title)
+                .message(body)
+                .image(partyImage)
+                .link(link)
+                .build();
+
+        notificationRepository.save(notification);
+    }
+
+    /**
+     * 파티 지원자 수락, 최종 합류
+     */
+    @Transactional
+    public void PartyNewMemberNotification(
+            Long partyUserId,
+            Long partyId,
+            String partyImage
+    ) {
+        // 1) 알림 타입 조회
+        NotificationType type = notificationTypeRepository.findByType("PARTY")
+                .orElseThrow(() -> new IllegalStateException(
+                        "알림 타입(PARTY)이 정의되어 있지 않습니다."
+                ));
+
+        // 2) 제목/메시지/링크 구성
+        NotificationTemplate t = NotificationTemplate.PARTY_NEW_MEMBER_JOINED;
+        String title = t.title();
+        String body = t.body();
+        String link = "/party/" + partyId + "#home";
+
+        User userRef = entityManager.getReference(User.class, partyUserId);
+
+
+        // 3) Notification 엔티티 생성
+        Notification notification = Notification.builder()
+                .user(userRef)
+                .notificationType(type)
+                .title(title)
+                .message(body)
+                .image(partyImage)
+                .link(link)
+                .build();
+
+        notificationRepository.save(notification);
+    }
+
+    /** 파티장이 수락 알림*/
+    public void partyApplicationAcceptedNotification(
+            Long applicantUserId,
+            String partyTitle,
+            String partyImage
+    ) {
+        // 1) 알림 타입 조회
+        NotificationType type = notificationTypeRepository.findByType("PARTY")
+                .orElseThrow(() -> new IllegalStateException(
+                        "알림 타입(PARTY)이 정의되어 있지 않습니다."
+                ));
+
+        // 2) 제목/메시지/링크 구성
+        NotificationTemplate t = NotificationTemplate.PARTY_APPLICATION_ACCEPTED;
+        String title = t.title();
+        String body = t.body(partyTitle);
+        String link = "/my/apply";
+
+        User userRef = entityManager.getReference(User.class, applicantUserId);
+
+        // 3) Notification 엔티티 생성
+        Notification notification = Notification.builder()
+                .user(userRef)
+                .notificationType(type)
+                .title(title)
+                .message(body)
+                .image(partyImage)
+                .link(link)
+                .build();
+
+        notificationRepository.save(notification);
+    }
+
+    /** 파티장이 거절 알림*/
+    public void partyApplicationRejectedNotification(
+            Long applicantUserId,
+            String partyTitle,
+            String partyImage
+    ) {
+        // 1) 알림 타입 조회
+        NotificationType type = notificationTypeRepository.findByType("PARTY")
+                .orElseThrow(() -> new IllegalStateException(
+                        "알림 타입(PARTY)이 정의되어 있지 않습니다."
+                ));
+
+        // 2) 제목/메시지/링크 구성
+        NotificationTemplate t = NotificationTemplate.PARTY_APPLICATION_REJECTED;
+        String title = t.title();
+        String body = t.body(partyTitle);
+        String link = "/my/apply";
+
+        User userRef = entityManager.getReference(User.class, applicantUserId);
+
+        // 3) Notification 엔티티 생성
+        Notification notification = Notification.builder()
+                .user(userRef)
+                .notificationType(type)
+                .title(title)
+                .message(body)
+                .image(partyImage)
+                .link(link)
+                .build();
+
+        notificationRepository.save(notification);
+    }
+
+    /**
+     * 모집 완료
+     */
+    @Transactional
+    public void PartyRecruitmentClosed(
+            Long applicationUserId,
+            String partyTitle,
+            String partyImage
+    ) {
+        // 1) 알림 타입 조회
+        NotificationType type = notificationTypeRepository.findByType("RECRUIT")
+                .orElseThrow(() -> new IllegalStateException(
+                        "알림 타입(PARTY)이 정의되어 있지 않습니다."
+                ));
+
+        // 2) 제목/메시지/링크 구성
+        NotificationTemplate t = NotificationTemplate.PARTY_RECRUITMENT_CLOSED;
+        String title = t.title();
+        String body = t.body(partyTitle);
+        String link = "/my/apply";
+
+        User userRef = entityManager.getReference(User.class, applicationUserId);
+
+
+        // 3) Notification 엔티티 생성
+        Notification notification = Notification.builder()
+                .user(userRef)
+                .notificationType(type)
+                .title(title)
+                .message(body)
+                .image(partyImage)
+                .link(link)
+                .build();
+
+        notificationRepository.save(notification);
+    }
+
+    /**
+     * 파티 종료
+     */
+    @Transactional
+    public void partyFinished(
+            Long partyUserId,
+            Long partyId,
+            String partyTitle,
+            String partyImage
+    ) {
+        NotificationType type = notificationTypeRepository.findByType("PARTY")
+                .orElseThrow(() -> new IllegalStateException(
+                        "알림 타입(PARTY)이 정의되어 있지 않습니다."
+                ));
+
+        // 2) 제목/메시지/링크 구성
+        NotificationTemplate t = NotificationTemplate.PARTY_FINISHED;
+        String title = t.title();
+        String body = t.body(partyTitle);
+        String link = "/party/" + partyId + "#home";
+
+        User userRef = entityManager.getReference(User.class, partyUserId);
+
+
+        // 3) Notification 엔티티 생성
+        Notification notification = Notification.builder()
+                .user(userRef)
+                .notificationType(type)
+                .title(title)
+                .message(body)
+                .image(partyImage)
+                .link(link)
+                .build();
+
+        notificationRepository.save(notification);
+    }
+
+    /**
+     * 파티 재활성화
+     */
+    @Transactional
+    public void partyReopened(
+            Long partyUserId,
+            Long partyId,
+            String partyTitle,
+            String partyImage
+    ) {
+        NotificationType type = notificationTypeRepository.findByType("PARTY")
+                .orElseThrow(() -> new IllegalStateException(
+                        "알림 타입(PARTY)이 정의되어 있지 않습니다."
+                ));
+
+        // 2) 제목/메시지/링크 구성
+        NotificationTemplate t = NotificationTemplate.PARTY_REOPENED;
+        String title = t.title();
+        String body = t.body(partyTitle);
+        String link = "/party/" + partyId + "#home";
+
+        User userRef = entityManager.getReference(User.class, partyUserId);
+
+
+        // 3) Notification 엔티티 생성
+        Notification notification = Notification.builder()
+                .user(userRef)
+                .notificationType(type)
+                .title(title)
+                .message(body)
+                .image(partyImage)
+                .link(link)
+                .build();
+
+        notificationRepository.save(notification);
+    }
+
+    /**
+     * 파티 업데이트
+     */
+    @Transactional
+    public void partyInfoUpdated(
+            Long partyUserId,
+            Long partyId,
+            String partyTitle,
+            String partyImage
+    ) {
+        NotificationType type = notificationTypeRepository.findByType("PARTY")
+                .orElseThrow(() -> new IllegalStateException(
+                        "알림 타입(PARTY)이 정의되어 있지 않습니다."
+                ));
+
+        // 2) 제목/메시지/링크 구성
+        NotificationTemplate t = NotificationTemplate.PARTY_INFO_UPDATED;
+        String title = t.title();
+        String body = t.body(partyTitle);
+        String link = "/party/" + partyId + "#home";
+
+        User userRef = entityManager.getReference(User.class, partyUserId);
+
+        // 3) Notification 엔티티 생성
+        Notification notification = Notification.builder()
+                .user(userRef)
+                .notificationType(type)
+                .title(title)
+                .message(body)
+                .image(partyImage)
+                .link(link)
+                .build();
+
+        notificationRepository.save(notification);
+    }
+
+    /**
+     * 파티유저 나감
+     */
+    @Transactional
+    public void partyMemberLeft(
+            Long partyUserId,
+            String userNickname,
+            Long partyId,
+            String partyTitle,
+            String partyImage
+    ) {
+        NotificationType type = notificationTypeRepository.findByType("PARTY")
+                .orElseThrow(() -> new IllegalStateException(
+                        "알림 타입(PARTY)이 정의되어 있지 않습니다."
+                ));
+
+        // 2) 제목/메시지/링크 구성
+        NotificationTemplate t = NotificationTemplate.PARTY_MEMBER_LEFT;
+        String title = t.title();
+        String body = t.body(partyTitle,userNickname);
+        String link = "/party/" + partyId + "#PartyPeopleTab";
+
+        User userRef = entityManager.getReference(User.class, partyUserId);
+
+        // 3) Notification 엔티티 생성
+        Notification notification = Notification.builder()
+                .user(userRef)
+                .notificationType(type)
+                .title(title)
+                .message(body)
+                .image(partyImage)
+                .link(link)
+                .build();
+
+        notificationRepository.save(notification);
+    }
+
+
 }
