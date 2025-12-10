@@ -56,7 +56,7 @@ public enum NotificationTemplate {
     ),
     PARTY_RECRUITMENT_CLOSED(
             "지원한 모집 공고가 마감되었어요",
-            "지원하신 파티 모집공고가 마감되었습니다."
+            "'%s' 파티에 지원하신 파티 모집공고가 마감되었습니다."
     );
 
     private final String title;

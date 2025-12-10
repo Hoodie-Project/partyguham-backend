@@ -94,4 +94,22 @@ public class FcmNotificationService {
 
         fcmService.sendToToken(fcmToken, title, body, data);
     }
+
+    /**
+     * 모집 완료
+     */
+    public void sendPartyRecruitmentClosed(
+            String partyTitle,
+            String fcmToken
+    ) {
+        NotificationTemplate t = NotificationTemplate.PARTY_RECRUITMENT_CLOSED;
+        String title = t.title();
+        String body = t.body(partyTitle);
+
+        Map<String, String> data = Map.of(
+                "type", "RECRUIT"
+        );
+
+        fcmService.sendToToken(fcmToken, title, body, data);
+    }
 }

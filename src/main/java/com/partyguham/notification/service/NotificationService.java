@@ -253,4 +253,40 @@ public class NotificationService {
 
         notificationRepository.save(notification);
     }
+
+    /**
+     * 모집 완료
+     */
+    @Transactional
+    public void PartyRecruitmentClosed(
+            Long applicationUserId,
+            String partyTitle
+    ) {
+        // 1) 알림 타입 조회
+        NotificationType type = notificationTypeRepository.findByType("RECRUIT")
+                .orElseThrow(() -> new IllegalStateException(
+                        "알림 타입(PARTY)이 정의되어 있지 않습니다."
+                ));
+
+        // 2) 제목/메시지/링크 구성
+        NotificationTemplate t = NotificationTemplate.PARTY_RECRUITMENT_CLOSED;
+        String title = t.title();
+        String body = t.body(partyTitle);
+        String link = "/my/apply";
+
+        User userRef = entityManager.getReference(User.class, applicationUserId);
+
+
+        // 3) Notification 엔티티 생성
+        Notification notification = Notification.builder()
+                .user(userRef)
+                .notificationType(type)
+                .title(title)
+                .message(body)
+                .image(null)
+                .link(link)
+                .build();
+
+        notificationRepository.save(notification);
+    }
 }

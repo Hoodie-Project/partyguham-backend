@@ -10,10 +10,7 @@ import com.partyguham.application.repostiory.PartyApplicationQueryRepository;
 import com.partyguham.application.repostiory.PartyApplicationRepository;
 import com.partyguham.common.entity.Status;
 import com.partyguham.common.exception.NotFoundException;
-import com.partyguham.notification.event.PartyApplicationCreatedEvent;
-import com.partyguham.notification.event.PartyApplicationDeclinedEvent;
-import com.partyguham.notification.event.PartyApplicationRejectedEvent;
-import com.partyguham.notification.event.PartyNewMemberJoinedEvent;
+import com.partyguham.notification.event.*;
 import com.partyguham.party.entity.Party;
 import com.partyguham.party.entity.PartyAuthority;
 import com.partyguham.party.entity.PartyUser;
@@ -282,6 +279,9 @@ public class PartyApplicationService {
             throw new IllegalStateException("이미 마감된 모집입니다.");
         }
 
+        Party party = recruitment.getParty();
+        String partyTitle = party.getTitle();
+
         int current = recruitment.getCurrentParticipants();
         int max = recruitment.getMaxParticipants();
 
@@ -290,9 +290,7 @@ public class PartyApplicationService {
             throw new IllegalStateException("모집 정원이 이미 찼습니다.");
         }
 
-        // 5) 파티 합류 처리 (합류 되는 유저(본인)에게도 합류했다는 알림 필요할듯
-        Party party = recruitment.getParty();
-
+        // 5) 파티 합류 처리
         boolean alreadyMember = partyUserRepository
                 .existsByParty_IdAndUser_IdAndStatusNot(
                         party.getId(),
@@ -301,14 +299,13 @@ public class PartyApplicationService {
                 );
 
         if (!alreadyMember) {
-            // 아직 파티 멤버가 아니면 PartyUser 새로 생성
             User user = app.getUser(); // 이미 로딩된 유저
 
             PartyUser partyUser = PartyUser.builder()
                     .party(party)
                     .user(user)
                     .position(recruitment.getPosition())
-                    .authority(PartyAuthority.MEMBER) // 기본 MEMBER
+                    .authority(PartyAuthority.MEMBER)
                     .build();
 
             partyUserRepository.save(partyUser);
@@ -317,31 +314,57 @@ public class PartyApplicationService {
         // 6) 모집 인원 카운트 증가
         recruitment.setCurrentParticipants(current + 1);
 
-        // 7) 정원 찼으면 모집 완료 처리
+        // 7) 정원 찼으면 모집 완료 처리 여부 플래그
+        boolean recruitmentJustClosed = false;
         if (recruitment.getCurrentParticipants() >= max) {
             recruitment.setCompleted(true);
+            recruitmentJustClosed = true;
         }
 
         // 8) 지원 상태 최종 승인 처리
         app.setApplicationStatus(PartyApplicationStatus.APPROVED);
 
-
-        // 파티원 전체 조회 및 이벤트 발행
+        // 9) 파티원 전체(본인 제외)에게 "새 멤버 합류" 이벤트 발행
         List<PartyUser> members = party.getPartyUsers();
-
         for (PartyUser member : members) {
             Long targetUserId = member.getUser().getId();
+            if (targetUserId.equals(applicantUserId)) continue; // 본인은 제외
 
-            // 본인은 제외
-            if (targetUserId.equals(applicantUserId)) continue;
-
-            PartyNewMemberJoinedEvent event = PartyNewMemberJoinedEvent.builder()
+            PartyNewMemberJoinedEvent joinedEvent = PartyNewMemberJoinedEvent.builder()
                     .partyUserId(targetUserId)
                     .partyId(party.getId())
                     .fcmToken(member.getUser().getFcmToken())
                     .build();
 
-            eventPublisher.publishEvent(event);
+            eventPublisher.publishEvent(joinedEvent);
+        }
+
+        // 10) 모집이 이번 승인으로 막 닫혔다면,
+        //     나머지 대기/처리중 지원자들에게 "모집 마감" 이벤트 발행
+        if (recruitmentJustClosed) {
+            List<PartyApplication> remainingApplicants = partyApplicationRepository
+                    .findByPartyRecruitmentAndApplicationStatusIn(
+                            recruitment,
+                            List.of(
+                                    PartyApplicationStatus.PENDING,
+                                    PartyApplicationStatus.PROCESSING
+                            )
+                    );
+
+            for (PartyApplication remainingApplicant : remainingApplicants) {
+                User remainingUser = remainingApplicant.getUser();
+
+                PartyRecruitmentClosedEvent closedEvent = PartyRecruitmentClosedEvent.builder()
+                        .applicationUserId(remainingUser.getId())
+                        .partyTitle(partyTitle)
+                        .fcmToken(remainingUser.getFcmToken())
+                        .build();
+
+                eventPublisher.publishEvent(closedEvent);
+
+                // 모집 상태 변경 있음 (예: CLOSED)
+                 remainingApplicant.setApplicationStatus(PartyApplicationStatus.CLOSED);
+            }
         }
     }
 

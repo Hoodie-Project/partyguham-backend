@@ -1,9 +1,6 @@
 package com.partyguham.notification.listener;
 
-import com.partyguham.notification.event.PartyApplicationAcceptedEvent;
-import com.partyguham.notification.event.PartyApplicationCreatedEvent;
-import com.partyguham.notification.event.PartyApplicationDeclinedEvent;
-import com.partyguham.notification.event.PartyApplicationRejectedEvent;
+import com.partyguham.notification.event.*;
 import com.partyguham.notification.service.FcmNotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -80,6 +77,16 @@ public class FcmNotificationEventListener {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void sendPartyApplicationRejected(PartyApplicationRejectedEvent event) {
         fcmNotificationService.sendPartyApplicationRejected(
+                event.getPartyTitle(),
+                event.getFcmToken()
+        );
+    }
+
+    /** 모집 마감에 이은 지원 종료 */
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void PartyRecruitmentClosed(PartyRecruitmentClosedEvent event) {
+        fcmNotificationService.sendPartyRecruitmentClosed(
                 event.getPartyTitle(),
                 event.getFcmToken()
         );

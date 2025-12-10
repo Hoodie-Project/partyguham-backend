@@ -85,4 +85,16 @@ public class NotificationEventListener {
                 event.getPartyTitle()
         );
     }
+
+    /** 모집 마감에 이은 지원 종료 */
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void PartyRecruitmentClosed(PartyRecruitmentClosedEvent event) {
+        log.info("PartyRecruitmentClosedEvent");
+
+        notificationService.PartyRecruitmentClosed(
+                event.getApplicationUserId(),
+                event.getPartyTitle()
+        );
+    }
 }
