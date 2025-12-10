@@ -14,13 +14,30 @@ import java.util.Map;
 public class FcmNotificationService {
     private final FcmService fcmService;
 
+    /** 파티 지원 */
     public void sendPartyApplied(
             String applicantUserNickname,
-            Long partyId,
             String partyTitle,
             String fcmToken
     ) {
         NotificationTemplate t = NotificationTemplate.PARTY_APPLICATION_CREATED;
+        String title = t.title();
+        String body = t.body(partyTitle, applicantUserNickname);
+
+        Map<String, String> data = Map.of(
+                "type", "PARTY"
+        );
+
+        fcmService.sendToToken(fcmToken, title, body, data);
+    }
+
+    /** 지원자 파티 거절 */
+    public void sendPartyDeclined(
+            String applicantUserNickname,
+            String partyTitle,
+            String fcmToken
+    ) {
+        NotificationTemplate t = NotificationTemplate.PARTY_APPLICATION_DECLINED;
         String title = t.title();
         String body = t.body(partyTitle, applicantUserNickname);
 

@@ -11,6 +11,7 @@ import com.partyguham.application.repostiory.PartyApplicationRepository;
 import com.partyguham.common.entity.Status;
 import com.partyguham.common.exception.NotFoundException;
 import com.partyguham.notification.event.PartyApplicationCreatedEvent;
+import com.partyguham.notification.event.PartyApplicationDeclinedEvent;
 import com.partyguham.notification.event.PartyApplicationRejectedEvent;
 import com.partyguham.party.entity.Party;
 import com.partyguham.party.entity.PartyAuthority;
@@ -60,7 +61,6 @@ public class PartyApplicationService {
         // 2) 이미 파티 멤버인지 체크 (멤버면 지원 불가)
         boolean alreadyMember = partyUserRepository
                 .existsByParty_IdAndUser_IdAndStatusNot(partyId, userId, Status.DELETED);
-
         if (alreadyMember) {
             throw new IllegalStateException("이미 해당 파티의 멤버입니다. 지원할 수 없습니다.");
         }
@@ -70,7 +70,6 @@ public class PartyApplicationService {
                 .orElseThrow(() -> new IllegalArgumentException(
                         "존재하지 않는 모집공고입니다. id=" + recruitmentId
                 ));
-
         // 모집이 이미 종료된 경우 막기
         if (Boolean.TRUE.equals(recruitment.getCompleted())) {
             throw new IllegalStateException("이미 마감된 모집입니다.");
@@ -88,7 +87,6 @@ public class PartyApplicationService {
         // 4) 중복 지원 방지
         boolean alreadyApplied = partyApplicationRepository
                 .existsByUser_IdAndPartyRecruitment_Id(userId, recruitmentId);
-
         if (alreadyApplied) {
             throw new IllegalStateException("이미 이 모집에 지원한 사용자입니다.");
         }
@@ -330,9 +328,10 @@ public class PartyApplicationService {
      */
     @Transactional
     public void rejectByApplicant(Long partyId, Long applicationId, Long applicantUserId) {
+
         PartyApplication app = getApplicationForPartyOrThrow(partyId, applicationId);
 
-        Long appUserId = app.getUser().getId(); // 구조에 맞게 수정
+        Long appUserId = app.getUser().getId();
         if (!appUserId.equals(applicantUserId)) {
             throw new IllegalStateException("본인 지원만 처리할 수 있습니다.");
         }
@@ -341,6 +340,27 @@ public class PartyApplicationService {
             throw new IllegalStateException("PROCESSING 상태의 지원만 거절할 수 있습니다.");
         }
 
+        // 파티 가져오기
+        Party party = app.getPartyRecruitment().getParty();
+
+        // 파티장 찾기
+        User hostUser = partyUserRepository
+                .findByParty_IdAndAuthority(partyId, PartyAuthority.MASTER)
+                .orElseThrow(() -> new IllegalStateException("파티장 정보를 찾을 수 없습니다."))
+                .getUser();
+
+        // 상태 변경
         app.setApplicationStatus(PartyApplicationStatus.DECLINED);
+
+        // 이벤트 생성
+        PartyApplicationDeclinedEvent event = PartyApplicationDeclinedEvent.builder()
+                .partyId(party.getId())
+                .partyTitle(party.getTitle())
+                .hostUserId(hostUser.getId())
+                .applicantNickname(app.getUser().getNickname())
+                .fcmToken(hostUser.getFcmToken()) // 필요하면
+                .build();
+
+        eventPublisher.publishEvent(event);
     }
 }

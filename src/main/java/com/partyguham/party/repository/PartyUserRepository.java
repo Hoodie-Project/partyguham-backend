@@ -17,34 +17,17 @@ public interface PartyUserRepository extends JpaRepository<PartyUser, Long>, Par
 
     boolean existsByPartyIdAndUserId(Long partyId, Long userId);
 
-    long countByPartyId(Long partyId);
-
-    Page<PartyUser> findByPartyId(Long partyId, Pageable pageable);
-
-    Page<PartyUser> findByPartyIdAndAuthority(Long partyId, PartyAuthority authority, Pageable pageable);
-
-    Page<PartyUser> findByPartyIdAndUser_NicknameContainingIgnoreCase(Long partyId, String nickname, Pageable pageable);
-
-    Page<PartyUser> findByPartyIdAndAuthorityAndUser_NicknameContainingIgnoreCase(
-            Long partyId, PartyAuthority authority, String nickname, Pageable pageable
-    );
-
-    Optional<PartyUser> findByParty_IdAndUser_IdAndStatusNot(Long partyId,
-                                                             Long userId,
-                                                             Status status);
-
     // 요청자(현재 로그인 유저)의 파티 참여 정보
     Optional<PartyUser> findByParty_IdAndUser_IdAndStatus(Long partyId,
                                                           Long userId,
                                                           Status status);
+    Optional<PartyUser> findByParty_IdAndAuthority(Long partyId, PartyAuthority authority);
 
     // 위임 대상 파티원
     Optional<PartyUser> findByIdAndParty_IdAndStatus(Long partyUserId,
                                                      Long partyId,
                                                      Status status);
 
-
-    long countByParty_IdAndStatusNot(Long partyId, Status status);
 
     Optional<PartyUser> findByIdAndParty_IdAndStatusNot(Long partyUserId,
                                                         Long partyId,

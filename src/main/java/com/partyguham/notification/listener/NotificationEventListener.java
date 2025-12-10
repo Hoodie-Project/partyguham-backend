@@ -1,6 +1,7 @@
 package com.partyguham.notification.listener;
 
 import com.partyguham.notification.event.PartyApplicationAcceptedEvent;
+import com.partyguham.notification.event.PartyApplicationDeclinedEvent;
 import com.partyguham.notification.event.PartyApplicationRejectedEvent;
 import com.partyguham.notification.event.PartyApplicationCreatedEvent;
 import com.partyguham.notification.service.NotificationService;
@@ -38,11 +39,25 @@ public class NotificationEventListener {
         );
     }
 
+    /** 지원 합류 거절 */
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void onPartyApplicationDeclined(PartyApplicationDeclinedEvent event) {
+        log.info("NotificationEventListener.onPartyApplicationDeclined partyId={}", event.getPartyId());
+
+        notificationService.createPartyDeclinedNotification(
+                event.getHostUserId(),
+                event.getApplicantNickname(),
+                event.getPartyId(),
+                event.getPartyTitle()
+        );
+    }
+
     /** 파티장 지원 수락 */
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onPartyApplicationAccepted(PartyApplicationAcceptedEvent event) {
-        log.info("onPartyApplicationRejected partyId={}", event.getPartyId());
+        log.info("onPartyApplicationAccepted partyId={}", event.getPartyId());
 
         notificationService.partyApplicationAcceptedNotification(
                 event.getApplicantUserId(),

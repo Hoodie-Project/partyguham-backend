@@ -89,7 +89,7 @@ public class NotificationService {
             Long partyId,
             String partyTitle
     ) {
-        // 1) 알림 타입 조회 (DB에 미리: type = "PARTY")
+        // 1) 알림 타입 조회
         NotificationType type = notificationTypeRepository.findByType("PARTY")
                 .orElseThrow(() -> new IllegalStateException(
                         "알림 타입(PARTY)이 정의되어 있지 않습니다."
@@ -97,6 +97,44 @@ public class NotificationService {
 
         // 2) 제목/메시지/링크 구성
         NotificationTemplate t = NotificationTemplate.PARTY_APPLICATION_CREATED;
+        String title = t.title();
+        String body = t.body(partyTitle, applicantUserNickname);
+        String link = "/parties/" + partyId;
+
+        User userRef = entityManager.getReference(User.class, hostUserId);
+
+        // 3) Notification 엔티티 생성
+        Notification notification = Notification.builder()
+                .user(userRef)
+                .notificationType(type)
+                .title(title)
+                .message(body)
+                .image(null)
+                .link(link)
+                .build();
+
+        // 4) 저장
+        notificationRepository.save(notification);
+    }
+
+    /**
+     * 파티 지원자 거절 알림 생성
+     */
+    @Transactional
+    public void createPartyDeclinedNotification(
+            Long hostUserId,
+            String applicantUserNickname,
+            Long partyId,
+            String partyTitle
+    ) {
+        // 1) 알림 타입 조회
+        NotificationType type = notificationTypeRepository.findByType("PARTY")
+                .orElseThrow(() -> new IllegalStateException(
+                        "알림 타입(PARTY)이 정의되어 있지 않습니다."
+                ));
+
+        // 2) 제목/메시지/링크 구성
+        NotificationTemplate t = NotificationTemplate.PARTY_APPLICATION_DECLINED;
         String title = t.title();
         String body = t.body(partyTitle, applicantUserNickname);
         String link = "/parties/" + partyId;
@@ -118,12 +156,12 @@ public class NotificationService {
         notificationRepository.save(notification);
     }
 
-    /** 파티장이 수락 */
+    /** 파티장이 수락 알림*/
     public void partyApplicationAcceptedNotification(
             Long applicantUserId,
             String partyTitle
     ) {
-        // 1) 알림 타입 조회 (DB에 미리: type = "PARTY")
+        // 1) 알림 타입 조회
         NotificationType type = notificationTypeRepository.findByType("PARTY")
                 .orElseThrow(() -> new IllegalStateException(
                         "알림 타입(PARTY)이 정의되어 있지 않습니다."
@@ -151,12 +189,12 @@ public class NotificationService {
         notificationRepository.save(notification);
     }
 
-    /** 파티장이 거절 */
+    /** 파티장이 거절 알림*/
     public void partyApplicationRejectedNotification(
             Long applicantUserId,
             String partyTitle
     ) {
-        // 1) 알림 타입 조회 (DB에 미리: type = "PARTY")
+        // 1) 알림 타입 조회
         NotificationType type = notificationTypeRepository.findByType("PARTY")
                 .orElseThrow(() -> new IllegalStateException(
                         "알림 타입(PARTY)이 정의되어 있지 않습니다."
