@@ -214,16 +214,16 @@ public class PartyServiceImpl implements PartyService  { //TODO: S3 이미지 �
                 .orElseThrow(() -> new PartyNotFoundException());
 
         // PartyUser 조회 및 삭제
-        PartyUser partyUser = partyUserRepository.findByPartyIdAndUserId(partyId, userId)
+        PartyUser leftUser = partyUserRepository.findByPartyIdAndUserId(partyId, userId)
                 .orElseThrow(() -> new PartyUserNotFoundException(partyId, userId));
 
         // 파티장은 파티를 나갈 수 없음
-        if (partyUser.getAuthority() == PartyAuthority.MASTER) {
+        if (leftUser.getAuthority() == PartyAuthority.MASTER) {
             throw new PartyAccessDeniedException("파티장은 파티를 나갈 수 없습니다.");
         }
 
         // 소프트 삭제: status를 DELETED로 변경
-        partyUser.setStatus(Status.DELETED);
+        leftUser.setStatus(Status.DELETED);
 
         // 이벤트 발행
         List<PartyUser> members = partyUserRepository
@@ -232,7 +232,7 @@ public class PartyServiceImpl implements PartyService  { //TODO: S3 이미지 �
         for (PartyUser member : members) {
             PartyMemberLeftEvent event = PartyMemberLeftEvent.builder()
                     .partyUserId(member.getUser().getId())
-                    .userNickname(member.getUser().getNickname())
+                    .userNickname(leftUser.getUser().getNickname())
                     .partyId(party.getId())
                     .partyTitle(party.getTitle())
                     .fcmToken(member.getUser().getFcmToken())
