@@ -5,6 +5,10 @@ on:
     branches:
       - dev   # dev 브랜치 push 시 실행
 
+permissions:
+  contents: read      # 코드 읽기
+  packages: write     # GHCR로 이미지 push 권한
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
@@ -32,7 +36,7 @@ jobs:
       # 5) 이미지 빌드 & 푸시
       - name: Build & Push image
         run: |
-          IMAGE=ghcr.io/iysh321/partyguham-backend
+          IMAGE=ghcr.io/hoodie-project/partyguham-backend
           TAG=dev-latest
           docker build -t $IMAGE:$TAG .
           docker push $IMAGE:$TAG
@@ -47,10 +51,20 @@ jobs:
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           port: ${{ secrets.SSH_PORT }}
           script: |
+            export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
             cd /opt/partyguham/dev
+
+            # (맥/colima) 데몬 컨텍스트 고정
+            docker context use colima || true
+
             # 최신 이미지 풀
-            docker compose pull
+            docker-compose pull
+
             # 변경분 반영하여 컨테이너 재시작
-            docker compose up -d
+            docker-compose up -d
+
+            # 상태 확인 (선택)
+            docker-compose ps
+
             # 안쓰는 이미지 정리
             docker image prune -f
