@@ -55,9 +55,9 @@ public class NotificationService {
     public GetNotificationsResponse getNotifications(Long userId,
                                                      GetNotificationsRequest req) {
 
-        // 1) limit 기본값 & 최대값 제한
-        int limit = (req.getLimit() != null && req.getLimit() > 0 && req.getLimit() <= 50)
-                ? req.getLimit()
+        // 1) size 기본값 & 최대값 제한
+        int size = (req.getSize() != null && req.getSize() > 0 && req.getSize() <= 50)
+                ? req.getSize()
                 : 10;
 
         Long cursor = req.getCursor();
@@ -73,7 +73,7 @@ public class NotificationService {
 
         // 3) 쿼리 호출 (커서 기반)
         Slice<Notification> slice = notificationQueryRepository
-                .findNotifications(userId, limit, cursor, notificationTypeId);
+                .findNotifications(userId, size, cursor, notificationTypeId);
 
         // 4) 응답 DTO로 변환 (빌더/정적 메서드로 위임)
         return GetNotificationsResponse.from(slice);

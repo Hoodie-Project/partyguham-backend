@@ -49,10 +49,10 @@ public class PartyHomeController {
     @GetMapping("/search")
     public ResponseEntity<GetSearchResponseDto> searchParties(
             @RequestParam int page,
-            @RequestParam int limit,
+            @RequestParam int size,
             @RequestParam(required = false) String titleSearch) {
 
-        return ResponseEntity.ok(partyService.searchParties(page, limit, titleSearch));
+        return ResponseEntity.ok(partyService.searchParties(page, size, titleSearch));
     }
 
     /**

@@ -22,7 +22,7 @@ public class NotificationQueryRepository {
 
     public Slice<Notification> findNotifications(
             Long userId,
-            int limit,
+            int size,
             Long cursor,              // null이면 처음 페이지
             Long notificationTypeId   // null이면 타입 필터 없음
     ) {
@@ -39,21 +39,21 @@ public class NotificationQueryRepository {
             builder.and(notification.id.lt(cursor));
         }
 
-        // limit + 1 로 hasNext 판단
+        // size + 1 로 hasNext 판단
         List<Notification> result = queryFactory
                 .selectFrom(notification)
                 .join(notification.notificationType, notificationType).fetchJoin()
                 .where(builder)
                 .orderBy(notification.id.desc())
-                .limit(limit + 1)
+                .limit(size + 1)
                 .fetch();
 
         boolean hasNext = false;
-        if (result.size() > limit) {
+        if (result.size() > size) {
             hasNext = true;
-            result.remove(limit); // 초과분 하나 제거
+            result.remove(size); // 초과분 하나 제거
         }
 
-        return new SliceImpl<>(result, PageRequest.of(0, limit), hasNext);
+        return new SliceImpl<>(result, PageRequest.of(0, size), hasNext);
     }
 }

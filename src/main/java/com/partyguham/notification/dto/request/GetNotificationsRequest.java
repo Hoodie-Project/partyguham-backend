@@ -12,7 +12,7 @@ public class GetNotificationsRequest {
 
     @Min(1)
     @Max(10)
-    private Integer limit;
+    private Integer size;
     private Long cursor;
 
     /**

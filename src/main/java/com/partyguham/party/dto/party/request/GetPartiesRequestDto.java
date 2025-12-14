@@ -9,7 +9,7 @@ import java.util.List;
 @Setter
 public class GetPartiesRequestDto { 
     private Integer page;
-    private Integer limit;
+    private Integer size;
     private String sort;
     private String order;
     private PartyStatus partyStatus; 

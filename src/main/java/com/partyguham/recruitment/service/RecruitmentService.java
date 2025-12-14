@@ -50,7 +50,6 @@ public class RecruitmentService {
     private final PartyRepository partyRepository;
     private final PartyAccessService partyAccessService;
     private final PositionRepository positionRepository;
-    private final PartyUserRepository partyUserRepository;
     private final UserCareerRepository userCareerRepository;
     private final UserRepository userRepository;
 
@@ -143,7 +142,7 @@ public class RecruitmentService {
      * 파티 모집 공고 목록 조회 (필터링, 정렬, 페이징)
      */
     public GetPartyRecruitmentsResponseDto getRecruitments(GetPartyRecruitmentsRequestDto request) {
-        Pageable pageable = PageRequest.of(request.getPage() - 1, request.getLimit(), Sort.by(request.getOrder(), request.getSort()));
+        Pageable pageable = PageRequest.of(request.getPage() - 1, request.getSize(), Sort.by(request.getOrder(), request.getSort()));
 
         Page<PartyRecruitment> recruitmentPage = partyRecruitmentRepository.searchRecruitments(request, pageable);
 
@@ -161,7 +160,7 @@ public class RecruitmentService {
      * 개인화된 파티 모집 공고 목록 조회 (유저의 PartyUser position의 main과 일치하는 모집공고만 조회)
      */
     public GetPartyRecruitmentsResponseDto getPersonalizedRecruitments(Long userId, GetPartyRecruitmentsPersonalizedRequestDto request) {
-        Pageable pageable = PageRequest.of(request.getPage() - 1, request.getLimit(), Sort.by(request.getOrder(), request.getSort()));
+        Pageable pageable = PageRequest.of(request.getPage() - 1, request.getSize(), Sort.by(request.getOrder(), request.getSort()));
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("유저를 찾을 수 없습니다: " + userId));
