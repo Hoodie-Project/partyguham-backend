@@ -23,8 +23,8 @@ public class PartyRecruitmentResponseDto {
     private Position position;
 
     private String content;
-    private int recruitingCount;
-    private int recruitedCount;
+    private int maxParticipants;
+    private int currentParticipants;
     private int applicationCount;
     private boolean completed;
     private LocalDateTime createdAt;
@@ -51,8 +51,8 @@ public class PartyRecruitmentResponseDto {
                 .party(partyDto)
                 .position(positionDto)
                 .content(recruitment.getContent())
-                .recruitingCount(recruitment.getMaxParticipants())
-                .recruitedCount(recruitment.getCurrentParticipants())
+                .maxParticipants(recruitment.getMaxParticipants())
+                .currentParticipants(recruitment.getCurrentParticipants())
                 .applicationCount(applicationCount)
                 .completed(recruitment.getCompleted())
                 .createdAt(recruitment.getCreatedAt() != null
