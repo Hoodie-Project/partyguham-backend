@@ -3,7 +3,6 @@ package com.partyguham.recruitment.service;
 import com.partyguham.common.entity.Status;
 import com.partyguham.common.exception.BadRequestException;
 import com.partyguham.common.exception.ConflictException;
-import com.partyguham.party.entity.Party;
 import com.partyguham.party.repository.PartyRepository;
 import com.partyguham.party.service.PartyAccessService;
 import com.partyguham.recruitment.dto.request.CreatePartyRecruitmentRequestDto;
@@ -32,7 +31,7 @@ public class RecruitmentAdminService {
      */
     @Transactional
     public void completePartyRecruitment(Long partyId, Long partyRecruitmentId, Long userId) {
-        Party party = partyRepository.findById(partyId)
+        partyRepository.findById(partyId)
                 .orElseThrow(() -> new BadRequestException("요청한 파티가 존재하지 않습니다."));
 
         PartyRecruitment recruitment = partyRecruitmentRepository.findById(partyRecruitmentId)
@@ -56,7 +55,7 @@ public class RecruitmentAdminService {
      */
     @Transactional
     public void completePartyRecruitmentBatch(Long partyId, Long userId, PartyRecruitmentIdsBodyRequestDto request) {
-        Party party = partyRepository.findById(partyId)
+        partyRepository.findById(partyId)
                 .orElseThrow(() -> new BadRequestException("요청한 파티가 존재하지 않습니다."));
 
         partyAccessService.checkManagerOrThrow(partyId, userId);

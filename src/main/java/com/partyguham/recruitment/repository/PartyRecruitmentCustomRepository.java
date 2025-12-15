@@ -10,10 +10,10 @@ import org.springframework.data.domain.Pageable;
 import java.util.List;
 
 public interface PartyRecruitmentCustomRepository {
-    // 특정 파티의 모집공고 조회 (페이징 없음)
+    // [파티모집] 특정 파티의 모집공고 조회 
     List<PartyRecruitment> searchRecruitmentsByPartyId(Long partyId, PartyRecruitmentsRequestDto request);
 
-    // 전체 모집공고 조회 (페이징 있음)
+    // [라운지] 전체 모집공고 조회 
     Page<PartyRecruitment> searchRecruitments(GetPartyRecruitmentsRequestDto request, Pageable pageable);
 
     Page<PartyRecruitment> searchRecruitmentsPersonalized(GetPartyRecruitmentsPersonalizedRequestDto request, 
