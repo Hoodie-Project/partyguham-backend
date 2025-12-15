@@ -4,6 +4,7 @@ import com.partyguham.common.entity.Status;
 import com.partyguham.party.dto.party.request.GetPartyRecruitmentsRequestDto;
 import com.partyguham.party.entity.QParty;
 import com.partyguham.recruitment.dto.request.GetPartyRecruitmentsPersonalizedRequestDto;
+import com.partyguham.recruitment.dto.request.PartyRecruitmentsRequestDto;
 import com.partyguham.recruitment.entity.PartyRecruitment;
 import com.partyguham.recruitment.entity.QPartyRecruitment;
 import com.querydsl.core.BooleanBuilder;
@@ -34,6 +35,50 @@ public class PartyRecruitmentRepositoryImpl implements PartyRecruitmentCustomRep
         this.queryFactory = new JPAQueryFactory(em);
     }
 
+    /**
+     * [파티모집] 특정 파티의 모집공고 조회 
+     */
+    @Override
+    public List<PartyRecruitment> searchRecruitmentsByPartyId(Long partyId, PartyRecruitmentsRequestDto request) {
+        QPartyRecruitment recruitment = QPartyRecruitment.partyRecruitment;
+        QParty party = QParty.party;
+        
+        BooleanBuilder builder = new BooleanBuilder();
+
+        // partyId 필터링 (특정 파티의 모집공고만 조회)
+        builder.and(recruitment.party.id.eq(partyId));
+
+        // DELETED 제외
+        builder.and(recruitment.status.ne(Status.DELETED));
+
+        // main 필터링
+        if (request.getMain() != null && !request.getMain().isBlank()) {
+            builder.and(recruitment.position.main.eq(request.getMain()));
+        }
+
+        // completed 필터링 
+        builder.and(recruitment.completed.eq(request.getCompleted()));
+
+        // 정렬
+        OrderSpecifier<?> orderSpecifier = buildOrderSpecifier(request.getSort(), request.getOrder(), recruitment);
+
+        // 조회 (페이징 없이 전체 리스트, 관련 엔티티 fetch join)
+        return queryFactory
+                .selectFrom(recruitment)
+                .leftJoin(recruitment.party, party).fetchJoin()
+                .leftJoin(recruitment.party.partyType).fetchJoin()
+                .leftJoin(recruitment.position).fetchJoin()
+                .where(builder)
+                .orderBy(orderSpecifier)
+                .fetch();
+    }
+
+    /**
+     * [라운지] 전체 모집공고 조회 
+     * 
+     * titleSearch의 경우, 모집공고내용이 아닌 파티 제목을 기준으로 필터링됩니다.
+     * 따라서 해당 제목을 가진 파티의 모집공고가 조회됩니다.
+     */
     @Override
     public Page<PartyRecruitment> searchRecruitments(GetPartyRecruitmentsRequestDto request, Pageable pageable) {
         QPartyRecruitment recruitment = QPartyRecruitment.partyRecruitment;
@@ -65,7 +110,7 @@ public class PartyRecruitmentRepositoryImpl implements PartyRecruitmentCustomRep
         }
 
         // 정렬
-        OrderSpecifier<?> orderSpecifier = getOrderSpecifier(request, recruitment);
+        OrderSpecifier<?> orderSpecifier = buildOrderSpecifier(request.getSort(), request.getOrder(), recruitment);
 
         // 조회 (관련 엔티티 fetch join)
         List<PartyRecruitment> results = queryFactory
@@ -108,7 +153,7 @@ public class PartyRecruitmentRepositoryImpl implements PartyRecruitmentCustomRep
         }
         
         // 정렬
-        OrderSpecifier<?> orderSpecifier = getOrderSpecifier(request, recruitment);
+        OrderSpecifier<?> orderSpecifier = buildOrderSpecifier(request.getSort(), request.getOrder(), recruitment);
 
         // 조회 (관련 엔티티 fetch join)
         List<PartyRecruitment> results = queryFactory
@@ -133,26 +178,10 @@ public class PartyRecruitmentRepositoryImpl implements PartyRecruitmentCustomRep
     }
 
 
-    private OrderSpecifier<?> getOrderSpecifier(GetPartyRecruitmentsRequestDto request, QPartyRecruitment recruitment) {
-        
-        Order order = request.getOrder().equals(Sort.Direction.ASC) ? Order.ASC : Order.DESC;
+    private OrderSpecifier<?> buildOrderSpecifier(String sort, Sort.Direction direction, QPartyRecruitment recruitment) {
+        Order order = direction.equals(Sort.Direction.ASC) ? Order.ASC : Order.DESC;
 
-        return switch (request.getSort()) {
-            case "id" -> new OrderSpecifier<>(order, recruitment.id);
-            case "createdAt" -> new OrderSpecifier<>(order, recruitment.createdAt);
-            case "updatedAt" -> new OrderSpecifier<>(order, recruitment.updatedAt);
-            case "content" -> new OrderSpecifier<>(order, recruitment.content);
-            case "maxParticipants" -> new OrderSpecifier<>(order, recruitment.maxParticipants);
-            case "currentParticipants" -> new OrderSpecifier<>(order, recruitment.currentParticipants);
-            case "completed" -> new OrderSpecifier<>(order, recruitment.completed);
-            default -> new OrderSpecifier<>(order, recruitment.createdAt);
-        };
-    }
-
-    private OrderSpecifier<?> getOrderSpecifier(GetPartyRecruitmentsPersonalizedRequestDto request, QPartyRecruitment recruitment) {
-        Order order = request.getOrder().equals(Sort.Direction.ASC) ? Order.ASC : Order.DESC;
-
-        return switch (request.getSort()) {
+        return switch (sort) {
             case "id" -> new OrderSpecifier<>(order, recruitment.id);
             case "createdAt" -> new OrderSpecifier<>(order, recruitment.createdAt);
             case "updatedAt" -> new OrderSpecifier<>(order, recruitment.updatedAt);
