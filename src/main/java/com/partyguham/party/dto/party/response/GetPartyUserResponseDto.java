@@ -15,4 +15,11 @@ public class GetPartyUserResponseDto {
 
     private List<PartyUserDto> partyAdmin;
     private List<PartyUserDto> partyUser;
+
+    public static GetPartyUserResponseDto from(List<PartyUserDto> partyAdmin, List<PartyUserDto> partyUser) {
+        return GetPartyUserResponseDto.builder()
+                .partyAdmin(partyAdmin)
+                .partyUser(partyUser)
+                .build();
+    }
 }

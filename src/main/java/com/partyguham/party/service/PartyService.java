@@ -44,7 +44,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class PartyService { //TODO: S3 이미지 업로드
+public class PartyService { 
 
     private final PartyRepository partyRepository;
     private final PartyTypeRepository partyTypeRepository;
@@ -59,25 +59,20 @@ public class PartyService { //TODO: S3 이미지 업로드
     @Transactional
     public PartyResponseDto createParty(PartyCreateRequestDto request, Long userId, MultipartFile image) {
 
-        // 1) 파티 타입 조회 (존재 여부 확인)
         PartyType partyType = partyTypeRepository.findById(request.getPartyTypeId())
                 .orElseThrow(() -> new PartyTypeNotFoundException(request.getPartyTypeId()));
 
-        // 2) 파티장 역할을 맡을 유저 조회
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId));
 
-        // 3) 파티장 기본 포지션 조회
         Position position = positionRepository.findById(request.getPositionId())
                 .orElseThrow(() -> new PositionNotFoundException(request.getPositionId()));
 
-        // 4) 이미지가 있으면 업로드 후 키 저장
         String imageKey = null;
         if (image != null && !image.isEmpty()) {
             imageKey = s3FileService.upload(image, S3Folder.PARTY);
         }
 
-        // 5) 파티 엔티티 생성
         Party party = Party.builder()
                 .title(request.getTitle())
                 .content(request.getContent())
@@ -87,7 +82,6 @@ public class PartyService { //TODO: S3 이미지 업로드
 
         partyRepository.save(party);
 
-        // 6) 파티장 PartyUser 생성
         PartyUser masterUser = PartyUser.builder()
                 .party(party)
                 .user(user)
@@ -97,20 +91,14 @@ public class PartyService { //TODO: S3 이미지 업로드
 
         partyUserRepository.save(masterUser);
 
-        // 7) 결과 반환
-        return PartyResponseDto.of(party);
+        return PartyResponseDto.from(party);
     }
 
     public GetPartiesResponseDto getParties(GetPartiesRequestDto request) { // 파티 목록 조회
         Pageable pageable = PageRequest.of(
                 request.getPage() - 1,
                 request.getSize(),
-                Sort.by(
-                        request.getOrder().equalsIgnoreCase("ASC")
-                                ? Sort.Direction.ASC
-                                : Sort.Direction.DESC,
-                        request.getSort()
-                )
+                Sort.by(request.getOrder(), request.getSort())
         );
 
         Page<Party> page = partyRepository.searchParties(request, pageable);
@@ -119,12 +107,7 @@ public class PartyService { //TODO: S3 이미지 업로드
                 .map(PartiesDto::from)
                 .toList();
 
-        GetPartiesResponseDto response = GetPartiesResponseDto.builder()
-                .total(page.getTotalElements())
-                .parties(parties)
-                .build();
-
-        return response;
+        return GetPartiesResponseDto.fromPage(page.getTotalElements(), parties);
     }
 
     public GetPartyResponseDto getParty(Long partyId) { // 파티 단일 조회
@@ -174,10 +157,7 @@ public class PartyService { //TODO: S3 이미지 업로드
                 })
                 .toList();
 
-        return GetPartyUserResponseDto.builder()
-                .partyAdmin(partyAdmin)
-                .partyUser(partyUserList)
-                .build();
+        return GetPartyUserResponseDto.from(partyAdmin, partyUserList);
     }
 
     public PartyAuthorityResponseDto getPartyAuthority(Long partyId, Long userId) { // 나의 파티 권한 조회
@@ -200,15 +180,13 @@ public class PartyService { //TODO: S3 이미지 업로드
 
     @Transactional
     public void leaveParty(Long partyId, Long userId) { // 파티 나가기
-        // 파티 존재 확인
+
         Party party = partyRepository.findById(partyId)
                 .orElseThrow(() -> new PartyNotFoundException());
 
-        // PartyUser 조회 및 삭제
         PartyUser leftUser = partyUserRepository.findByPartyIdAndUserId(partyId, userId)
                 .orElseThrow(() -> new PartyUserNotFoundException(partyId, userId));
 
-        // 파티장은 파티를 나갈 수 없음
         if (leftUser.getAuthority() == PartyAuthority.MASTER) {
             throw new PartyAccessDeniedException("파티장은 파티를 나갈 수 없습니다.");
         }
@@ -255,15 +233,11 @@ public class PartyService { //TODO: S3 이미지 업로드
                 .map(PartyRecruitmentSearchDto::from)
                 .toList();
 
-        return GetSearchResponseDto.builder()
-                .party(GetSearchResponseDto.PartySearchDto.builder()
-                        .total(partyPage.getTotalElements())
-                        .parties(partyListDto)
-                        .build())
-                .partyRecruitment(GetSearchResponseDto.PartyRecruitmentSearchResultDto.builder()
-                        .total(recruitmentPage.getTotalElements())
-                        .partyRecruitments(recruitmentListDto)
-                        .build())
-                .build();
+        return GetSearchResponseDto.from(
+                partyPage.getTotalElements(),
+                partyListDto,
+                recruitmentPage.getTotalElements(),
+                recruitmentListDto
+        );
     }
 }

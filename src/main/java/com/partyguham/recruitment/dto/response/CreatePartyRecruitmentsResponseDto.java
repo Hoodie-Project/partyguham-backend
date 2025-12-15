@@ -1,5 +1,6 @@
 package com.partyguham.recruitment.dto.response;
 
+import com.partyguham.recruitment.entity.PartyRecruitment;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -18,10 +19,21 @@ public class CreatePartyRecruitmentsResponseDto {
 
     private Long id;
     private String content;
-    private Integer recruitingCount;
-    private Integer recruitedCount;
+    private Integer maxParticipants;
+    private Integer currentParticipants;
     private Boolean completed;
     private LocalDateTime createdAt;
+
+    public static CreatePartyRecruitmentsResponseDto from(PartyRecruitment recruitment) {
+        return CreatePartyRecruitmentsResponseDto.builder()
+                .id(recruitment.getId())
+                .content(recruitment.getContent())
+                .maxParticipants(recruitment.getMaxParticipants())
+                .currentParticipants(recruitment.getCurrentParticipants())
+                .completed(recruitment.getCompleted())
+                .createdAt(recruitment.getCreatedAt())
+                .build();
+    }
 }
 
 

@@ -95,14 +95,7 @@ public class RecruitmentService {
         
         PartyRecruitment saved = partyRecruitmentRepository.save(recruitment);
         
-        return CreatePartyRecruitmentsResponseDto.builder()
-                .id(saved.getId())
-                .content(saved.getContent())
-                .recruitingCount(saved.getMaxParticipants())
-                .recruitedCount(saved.getCurrentParticipants())
-                .completed(saved.getCompleted())
-                .createdAt(saved.getCreatedAt())
-                .build();
+        return CreatePartyRecruitmentsResponseDto.from(saved);
     }
 
     /**
@@ -130,10 +123,7 @@ public class RecruitmentService {
                 .map(PartyRecruitmentDto::from)
                 .collect(Collectors.toList());
 
-        return GetPartyRecruitmentsResponseDto.builder()
-                .total(recruitmentPage.getTotalElements())
-                .partyRecruitments(recruitmentList)
-                .build();
+        return GetPartyRecruitmentsResponseDto.from(recruitmentPage.getTotalElements(), recruitmentList);
     }
 
     /**
@@ -156,10 +146,7 @@ public class RecruitmentService {
                 .map(PartyRecruitmentDto::from)
                 .collect(Collectors.toList());
 
-        return GetPartyRecruitmentsResponseDto.builder()
-                .total(recruitmentPage.getTotalElements())
-                .partyRecruitments(recruitmentList)
-                .build();
+        return GetPartyRecruitmentsResponseDto.from(recruitmentPage.getTotalElements(), recruitmentList);
     }
 }
 
