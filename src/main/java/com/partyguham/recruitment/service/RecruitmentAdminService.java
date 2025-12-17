@@ -93,7 +93,7 @@ public class RecruitmentAdminService {
         partyAccessService.checkManagerOrThrow(partyId, userId);
 
         recruitment.setContent(request.getContent());
-        recruitment.setMaxParticipants(request.getRecruitingCount());
+        recruitment.setMaxParticipants(request.getMaxParticipants());
 
         return PartyRecruitmentsResponseDto.from(recruitment);
     }

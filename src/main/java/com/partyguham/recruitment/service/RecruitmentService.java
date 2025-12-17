@@ -88,7 +88,7 @@ public class RecruitmentService {
                 .party(party)
                 .position(position)
                 .content(request.getContent())
-                .maxParticipants(request.getRecruitingCount())
+                .maxParticipants(request.getMaxParticipants())
                 .currentParticipants(0)
                 .completed(false)
                 .build();
