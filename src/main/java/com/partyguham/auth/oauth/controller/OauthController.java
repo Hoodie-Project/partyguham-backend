@@ -87,7 +87,7 @@ public class OauthController {
 
         // 2) code → user
         OauthUser u = clients.get(provider.name()).fetchUserByCode(code, OAuthFlow.LOGIN);
-        System.out.print(u);
+
         // 3) 비즈 로직
         LoginResult r = oauthLoginService.handleCallback(
                 provider, u.externalId(), u.email(), u.image()
@@ -183,12 +183,12 @@ public class OauthController {
                     "error", "invalid_token"
             ));
         }
-        System.out.print(u);
+
         // 3) 가입자/신규/복구 분기 (공통 비즈니스)
         LoginResult r = oauthLoginService.handleCallback(
                 provider, u.externalId(), u.email(), u.image()
         );
-        System.out.print(r);
+
         // 4) 응답 포맷 통일
         return switch (r.type()) {
             case SIGNUP -> ResponseEntity.ok(Map.of(

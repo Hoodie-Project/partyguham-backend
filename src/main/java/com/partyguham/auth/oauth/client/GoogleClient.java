@@ -124,7 +124,7 @@ public class GoogleClient implements OauthClient {
                 .onStatus(HttpStatusCode::isError, r -> r.createException().flatMap(Mono::error))
                 .bodyToMono(Types.MAP_STR_OBJ)
                 .blockOptional().orElseThrow();
-        System.out.print(token);
+
         String access = asString(token.get("access_token"));
         if (access == null) throw new IllegalStateException("google access_token null");
         return access;
@@ -145,10 +145,10 @@ public class GoogleClient implements OauthClient {
 
     @Override
     public OauthUser fetchUserByIdToken(String idToken) {
-        // 1️⃣ JWT 검증 + 파싱 (서명, exp, iss 등 자동 검증)
+        // 1. JWT 검증 + 파싱 (서명, exp, iss 등 자동 검증)
         Jwt jwt = googleJwtDecoder.decode(idToken);
 
-        // 2️⃣ 필수 클레임 추출
+        // 2. 필수 클레임 추출
         String sub = jwt.getSubject();              // 유저 고유 ID
         String email = jwt.getClaim("email");
         String picture = jwt.getClaim("picture");
@@ -156,8 +156,8 @@ public class GoogleClient implements OauthClient {
         if (sub == null) {
             throw new IllegalStateException("google sub missing");
         }
-        System.out.print(sub);
-        // 3️⃣ 우리 도메인 유저 객체로 변환
+
+        // 3. 우리 도메인 유저 객체로 변환
         return new OauthUser(sub, email, picture);
     }
 }

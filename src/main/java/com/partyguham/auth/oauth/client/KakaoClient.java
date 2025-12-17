@@ -119,7 +119,7 @@ public class KakaoClient implements OauthClient {
                 .onStatus(HttpStatusCode::isError, r -> r.createException().flatMap(Mono::error))
                 .bodyToMono(Types.MAP_STR_OBJ)
                 .blockOptional().orElseThrow();
-        System.out.print("token" + token);
+
         String access = asString(token.get("access_token"));
         if (access == null) throw new IllegalStateException("kakao access_token null");
         return access;

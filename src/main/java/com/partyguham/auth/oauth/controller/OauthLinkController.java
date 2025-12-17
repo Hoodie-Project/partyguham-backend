@@ -4,13 +4,17 @@ import com.partyguham.auth.jwt.UserPrincipal;
 import com.partyguham.auth.oauth.client.OAuthFlow;
 import com.partyguham.auth.oauth.client.OauthClient;
 import com.partyguham.auth.oauth.dto.OauthUser;
+import com.partyguham.auth.oauth.dto.request.AppCodeLoginRequest;
 import com.partyguham.auth.oauth.entity.Provider;
 import com.partyguham.auth.oauth.service.OauthLinkService;
 import com.partyguham.auth.oauth.service.OauthStateService;
 import com.partyguham.common.annotation.ApiV2Controller;
 import com.partyguham.config.DomainProperties;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,14 +25,14 @@ import java.util.UUID;
 
 /**
  * 🔗 OAuth 계정 연동 컨트롤러
- *
+ * <p>
  * - 전제: 이미 JWT 로그인 된 상태
  * - 웹:
- *   GET  /api/v2/auth/oauth/link/{provider}           → provider 로그인 페이지로 리다이렉트
- *   GET  /api/v2/auth/oauth/link/{provider}/callback  → code 받아서 연동 후 프론트로 리다이렉트
+ * GET  /api/v2/auth/oauth/link/{provider}           → provider 로그인 페이지로 리다이렉트
+ * GET  /api/v2/auth/oauth/link/{provider}/callback  → code 받아서 연동 후 프론트로 리다이렉트
  * - 앱:
- *   POST /api/v2/auth/oauth/link/{provider}/token-link
- *        → provider access_token 으로 바로 연동
+ * POST /api/v2/auth/oauth/link/{provider}/token-link
+ * → provider access_token 으로 바로 연동
  */
 @ApiV2Controller
 @RequiredArgsConstructor// → /api/v2 prefix 부여하는 커스텀 애노테이션
@@ -51,7 +55,7 @@ public class OauthLinkController {
     /**
      * 🔹 웹 연동 시작
      * - 현재 로그인 유저 기준으로 state 생성 후
-     *   카카오/구글 authorize URL 로 리다이렉트
+     * 카카오/구글 authorize URL 로 리다이렉트
      */
     @GetMapping("/{provider}/link")
     public void startLink(
@@ -134,27 +138,36 @@ public class OauthLinkController {
     /**
      * 🔹 앱 연동
      * - 앱에서 이미 provider access_token 을 들고 있는 경우
-     *   → 백엔드에 토큰을 넘겨서 연동
+     * → 백엔드에 토큰을 넘겨서 연동
      */
     @PostMapping("/{provider}/link")
-    public Map<String, Object> linkAccount(
+    public ResponseEntity<?> linkAccount(
             @PathVariable Provider provider,
             @AuthenticationPrincipal UserPrincipal user,
-            @RequestBody Map<String, String> body
+            @Valid @RequestBody AppCodeLoginRequest req
     ) {
-        String providerToken = body.get("accessToken");
-        if (providerToken == null) {
-            throw new IllegalArgumentException("accessToken is required");
-        }
-
-        // 1) provider access_token 으로 사용자 정보 조회
         OauthClient client = clients.get(provider.name());
         if (client == null) {
-            throw new IllegalArgumentException("unsupported provider: " + provider);
+            return ResponseEntity.badRequest().body(Map.of(
+                    "type", "error",
+                    "error", "unsupported_provider"
+            ));
         }
 
-        OauthUser u = client.fetchUserByAccessToken(providerToken);
-
+        OauthUser u;
+        try {
+            u = switch (provider) {
+                case GOOGLE -> client.fetchUserByIdToken(req.token());       // id_token
+                case KAKAO -> client.fetchUserByAccessToken(req.token());   // access_token
+                default -> throw new IllegalArgumentException("unsupported provider");
+            };
+        } catch (Exception e) {
+            // 토큰 검증/조회 실패
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
+                    "type", "error",
+                    "error", "invalid_token"
+            ));
+        }
         // 2) 현재 로그인한 userId와 OAuth 계정 연결
         oauthLinkService.linkAccount(
                 user.getId(),
@@ -162,10 +175,10 @@ public class OauthLinkController {
                 u.externalId()
         );
 
-        return Map.of(
+        return ResponseEntity.ok(Map.of(
                 "linked", true,
                 "provider", provider.name(),
                 "externalId", u.externalId()
-        );
+        ));
     }
 }
