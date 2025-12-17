@@ -31,8 +31,8 @@ import java.util.UUID;
  * GET  /api/v2/auth/oauth/link/{provider}           → provider 로그인 페이지로 리다이렉트
  * GET  /api/v2/auth/oauth/link/{provider}/callback  → code 받아서 연동 후 프론트로 리다이렉트
  * - 앱:
- * POST /api/v2/auth/oauth/link/{provider}/token-link
- * → provider access_token 으로 바로 연동
+ * POST /api/v2/auth/oauth/link/{provider}/link
+ * → provider access_token, id_token 으로 바로 연동
  */
 @ApiV2Controller
 @RequiredArgsConstructor// → /api/v2 prefix 부여하는 커스텀 애노테이션
@@ -41,13 +41,9 @@ public class OauthLinkController {
 
     // "KAKAO", "GOOGLE" 이름으로 등록된 OauthClient 빈들을 주입받음
     private final Map<String, OauthClient> clients;
-
     // state ↔ (provider, userId) 저장용 서비스 (Redis)
     private final OauthStateService oauthStateService;
-
     private final OauthLinkService oauthLinkService;
-
-    // 프론트 도메인 정보 (ex: https://partyguham.com)
     private final DomainProperties domain;
 
     // ===== 1) 웹: 연동 시작 =====
@@ -177,8 +173,7 @@ public class OauthLinkController {
 
         return ResponseEntity.ok(Map.of(
                 "linked", true,
-                "provider", provider.name(),
-                "externalId", u.externalId()
+                "provider", provider.name()
         ));
     }
 }
