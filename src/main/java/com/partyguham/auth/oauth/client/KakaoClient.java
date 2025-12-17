@@ -3,9 +3,10 @@ package com.partyguham.auth.oauth.client;
 import com.partyguham.auth.oauth.dto.OauthUser;
 import com.partyguham.auth.oauth.props.OauthProps;
 import com.partyguham.auth.oauth.props.OauthProviderProps;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -29,11 +30,21 @@ import java.util.Objects;
  *   - SDK 등으로 받은 access_token 을 그대로 fetchUserByAccessToken 에 전달
  */
 @Component("KAKAO")
-@RequiredArgsConstructor
 public class KakaoClient implements OauthClient {
 
     private final WebClient web;
     private final OauthProps props;
+    private final JwtDecoder kakaoJwtDecoder;
+
+    public KakaoClient(
+            WebClient web,
+            OauthProps props,
+            @Qualifier("kakaoJwtDecoder") JwtDecoder googleJwtDecoder
+    ) {
+        this.web = web;
+        this.props = props;
+        this.kakaoJwtDecoder = googleJwtDecoder;
+    }
 
     private OauthProviderProps p() {
         return props.getKakao();
@@ -108,7 +119,7 @@ public class KakaoClient implements OauthClient {
                 .onStatus(HttpStatusCode::isError, r -> r.createException().flatMap(Mono::error))
                 .bodyToMono(Types.MAP_STR_OBJ)
                 .blockOptional().orElseThrow();
-
+        System.out.print("token" + token);
         String access = asString(token.get("access_token"));
         if (access == null) throw new IllegalStateException("kakao access_token null");
         return access;

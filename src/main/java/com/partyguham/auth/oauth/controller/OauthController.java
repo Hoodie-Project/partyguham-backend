@@ -3,6 +3,7 @@ package com.partyguham.auth.oauth.controller;
 import com.partyguham.auth.oauth.LoginResult;
 import com.partyguham.auth.oauth.UserErrorType;
 import com.partyguham.auth.oauth.client.OAuthFlow;
+import com.partyguham.auth.oauth.dto.request.AppCodeLoginRequest;
 import com.partyguham.auth.oauth.entity.Provider;
 import com.partyguham.auth.oauth.client.OauthClient;
 import com.partyguham.auth.oauth.dto.OauthUser;
@@ -11,6 +12,7 @@ import com.partyguham.auth.oauth.service.OauthLoginService;
 import com.partyguham.common.annotation.ApiV2Controller;
 import com.partyguham.config.DomainProperties;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
@@ -85,7 +87,7 @@ public class OauthController {
 
         // 2) code → user
         OauthUser u = clients.get(provider.name()).fetchUserByCode(code, OAuthFlow.LOGIN);
-
+        System.out.print(u);
         // 3) 비즈 로직
         LoginResult r = oauthLoginService.handleCallback(
                 provider, u.externalId(), u.email(), u.image()
@@ -131,7 +133,7 @@ public class OauthController {
 
         // 2) 쿼리 파라미터는 error/email/deletedAt만
         String url = UriComponentsBuilder.fromHttpUrl(domain.homeUrl())
-                .queryParam("error", r.errorType().name()) // USER_DELETED_30D
+                .queryParam("error",  UserErrorType.USER_DELETED_30D) // USER_DELETED_30D
                 .queryParam("email", r.email())
                 .queryParam("deletedAt", r.deletedAt())
                 .build(true)
@@ -144,40 +146,54 @@ public class OauthController {
     /** 삭제/비활성 등 에러 상태: 에러 코드만 쿼리로 리다이렉트 */
     private void handleErrorRedirect(HttpServletResponse res, LoginResult r) throws IOException {
         String url = UriComponentsBuilder.fromHttpUrl(domain.homeUrl())
-                .queryParam("error", r.errorType().name())
+                .queryParam("error", UserErrorType.USER_FORBIDDEN_DISABLED)
                 .build(true)
                 .toUriString();
         res.sendRedirect(url);
     }
 
     /**
-     * (앱) provider access_token 직접 전달 → user 조회 → 비즈 → 응답(JSON)
+     * 카카오 - access token
+     * 구글 - id_token
      */
     @PostMapping("/{provider}/login")
-    public ResponseEntity<?> appLogin(@PathVariable Provider provider,
-                                      @RequestBody Map<String, String> body) {
+    public ResponseEntity<?> appCodeLogin(@PathVariable Provider provider,
+                                          @Valid @RequestBody AppCodeLoginRequest req) {
 
-        String providerAccessToken = body.get("accessToken");
-        if (providerAccessToken == null || providerAccessToken.isBlank()) {
-            return ResponseEntity.badRequest()
-                    .body(Map.of("error", "missing_access_token"));
+        // 1) provider에 맞는 client 조회 (빈이 @Component("GOOGLE") 같은 이름으로 등록돼 있어야 함)
+        OauthClient client = clients.get(provider.name());
+        if (client == null) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "type", "error",
+                    "error", "unsupported_provider"
+            ));
         }
 
-        // 1) access_token → user
-        OauthUser u = clients.get(provider.name())
-                .fetchUserByAccessToken(providerAccessToken);
-
-        // 2) 비즈니스 로직
+        OauthUser u;
+        try {
+            u = switch (provider) {
+                case GOOGLE -> client.fetchUserByIdToken(req.token());       // id_token
+                case KAKAO  -> client.fetchUserByAccessToken(req.token());   // access_token
+                default     -> throw new IllegalArgumentException("unsupported provider");
+            };
+        } catch (Exception e) {
+            // 토큰 검증/조회 실패
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
+                    "type", "error",
+                    "error", "invalid_token"
+            ));
+        }
+        System.out.print(u);
+        // 3) 가입자/신규/복구 분기 (공통 비즈니스)
         LoginResult r = oauthLoginService.handleCallback(
                 provider, u.externalId(), u.email(), u.image()
         );
-
-        // 3) 결과 타입별 JSON 응답
+        System.out.print(r);
+        // 4) 응답 포맷 통일
         return switch (r.type()) {
             case SIGNUP -> ResponseEntity.ok(Map.of(
                     "type", "signup",
-                    "signupToken", r.signupToken(),
-                    "next", "app://signup"
+                    "signupToken", r.signupToken()
             ));
             case LOGIN -> ResponseEntity.ok(Map.of(
                     "type", "login",
@@ -186,16 +202,15 @@ public class OauthController {
             ));
             case RECOVER -> ResponseEntity.ok(Map.of(
                     "type", "recover",
-                    "error", r.errorType().name(),              // USER_DELETED_30D
+                    "error", UserErrorType.USER_DELETED_30D,
                     "recoverToken", r.recoverToken(),
                     "email", r.email(),
                     "deletedAt", r.deletedAt()
             ));
-            case ERROR -> ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(Map.of(
-                            "type", "error",
-                            "error", r.errorType().name()          // USER_DELETED, USER_FORBIDDEN_DISABLED
-                    ));
+            case ERROR -> ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of(
+                    "type", "error",
+                    "error", UserErrorType.USER_FORBIDDEN_DISABLED
+            ));
         };
     }
 }
