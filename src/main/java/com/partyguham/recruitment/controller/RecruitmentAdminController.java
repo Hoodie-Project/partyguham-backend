@@ -5,7 +5,6 @@ import com.partyguham.common.annotation.ApiV2Controller;
 import com.partyguham.common.dto.MessageResponseDto;
 import com.partyguham.recruitment.dto.request.CreatePartyRecruitmentRequestDto;
 import com.partyguham.recruitment.dto.request.PartyRecruitmentIdsBodyRequestDto;
-import com.partyguham.recruitment.dto.response.CreatePartyRecruitmentsResponseDto;
 import com.partyguham.recruitment.dto.response.PartyRecruitmentsResponseDto;
 import com.partyguham.recruitment.service.RecruitmentAdminService;
 

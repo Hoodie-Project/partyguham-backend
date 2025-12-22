@@ -21,7 +21,7 @@ public class GetPartyRecruitmentsPersonalizedRequestDto {
     private int page = 1;
     
     @Min(1)
-    private int limit = 20;
+    private int size = 20;
 
     @ValidRecruitmentSort
     private String sort = "createdAt";

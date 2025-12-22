@@ -18,8 +18,8 @@ public class PartyRecruitmentDto {
 
    private Long id;
    private String content;
-   private Integer recruitingCount;
-   private Integer recruitedCount;
+   private Integer maxParticipants;
+   private Integer currentParticipants;
    private Boolean completed;
    private String createdAt;
 
@@ -39,8 +39,8 @@ public class PartyRecruitmentDto {
        return PartyRecruitmentDto.builder()
                .id(recruitment.getId())
                .content(recruitment.getContent())
-               .recruitingCount(recruitment.getMaxParticipants())
-               .recruitedCount(recruitment.getCurrentParticipants())
+               .maxParticipants(recruitment.getMaxParticipants())
+               .currentParticipants(recruitment.getCurrentParticipants())
                .completed(recruitment.getCompleted())
                .createdAt(recruitment.getCreatedAt() != null
                        ? recruitment.getCreatedAt().toString()

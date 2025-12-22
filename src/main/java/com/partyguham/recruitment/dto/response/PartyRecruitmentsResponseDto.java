@@ -13,7 +13,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 
 /**
@@ -27,8 +26,8 @@ import java.util.List;
 public class PartyRecruitmentsResponseDto {
     private Long id;
     private String content;
-    private Integer recruitingCount;
-    private Integer recruitedCount;
+    private Integer maxParticipants;
+    private Integer currentParticipants;
     private Integer applicationCount;
     private Boolean completed;
     private LocalDateTime createdAt;
@@ -55,8 +54,8 @@ public class PartyRecruitmentsResponseDto {
         return PartyRecruitmentsResponseDto.builder()
                 .id(recruitment.getId())
                 .content(recruitment.getContent())
-                .recruitingCount(recruitment.getMaxParticipants())
-                .recruitedCount(recruitment.getCurrentParticipants())
+                .maxParticipants(recruitment.getMaxParticipants())
+                .currentParticipants(recruitment.getCurrentParticipants())
                 .applicationCount(recruitment.getPartyApplications() != null ? 
                         recruitment.getPartyApplications().size() : 0)
                 .completed(recruitment.getCompleted())

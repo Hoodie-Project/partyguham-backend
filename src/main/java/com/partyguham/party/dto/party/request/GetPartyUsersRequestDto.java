@@ -14,7 +14,7 @@ public class GetPartyUsersRequestDto {
     // 필수
     private Long partyId;
     private Integer page;     // 페이지 번호
-    private Integer limit;    // 데이터 개수
+    private Integer size;    // 데이터 개수
 
     // 정렬
     private String sort;      // createdAt (default)
@@ -29,8 +29,8 @@ public class GetPartyUsersRequestDto {
         if (this.page == null || this.page < 1)
             this.page = 1;
 
-        if (this.limit == null || this.limit < 1)
-            this.limit = 10;
+        if (this.size == null || this.size < 1)
+            this.size = 10;
 
         if (this.sort == null || this.sort.isBlank())
             this.sort = "createdAt";
@@ -42,7 +42,7 @@ public class GetPartyUsersRequestDto {
     public Pageable toPageable() {
         return PageRequest.of(
                 this.page - 1,
-                this.limit
+                this.size
         );
     }
 }

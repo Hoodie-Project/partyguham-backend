@@ -3,12 +3,10 @@ package com.partyguham.recruitment.service;
 import com.partyguham.common.entity.Status;
 import com.partyguham.common.exception.BadRequestException;
 import com.partyguham.common.exception.ConflictException;
-import com.partyguham.party.entity.Party;
 import com.partyguham.party.repository.PartyRepository;
 import com.partyguham.party.service.PartyAccessService;
 import com.partyguham.recruitment.dto.request.CreatePartyRecruitmentRequestDto;
 import com.partyguham.recruitment.dto.request.PartyRecruitmentIdsBodyRequestDto;
-import com.partyguham.recruitment.dto.response.CreatePartyRecruitmentsResponseDto;
 import com.partyguham.recruitment.dto.response.PartyRecruitmentsResponseDto;
 import com.partyguham.recruitment.entity.PartyRecruitment;
 import com.partyguham.recruitment.repository.PartyRecruitmentRepository;
@@ -33,7 +31,7 @@ public class RecruitmentAdminService {
      */
     @Transactional
     public void completePartyRecruitment(Long partyId, Long partyRecruitmentId, Long userId) {
-        Party party = partyRepository.findById(partyId)
+        partyRepository.findById(partyId)
                 .orElseThrow(() -> new BadRequestException("요청한 파티가 존재하지 않습니다."));
 
         PartyRecruitment recruitment = partyRecruitmentRepository.findById(partyRecruitmentId)
@@ -57,7 +55,7 @@ public class RecruitmentAdminService {
      */
     @Transactional
     public void completePartyRecruitmentBatch(Long partyId, Long userId, PartyRecruitmentIdsBodyRequestDto request) {
-        Party party = partyRepository.findById(partyId)
+        partyRepository.findById(partyId)
                 .orElseThrow(() -> new BadRequestException("요청한 파티가 존재하지 않습니다."));
 
         partyAccessService.checkManagerOrThrow(partyId, userId);
@@ -95,7 +93,7 @@ public class RecruitmentAdminService {
         partyAccessService.checkManagerOrThrow(partyId, userId);
 
         recruitment.setContent(request.getContent());
-        recruitment.setMaxParticipants(request.getRecruitingCount());
+        recruitment.setMaxParticipants(request.getMaxParticipants());
 
         return PartyRecruitmentsResponseDto.from(recruitment);
     }
