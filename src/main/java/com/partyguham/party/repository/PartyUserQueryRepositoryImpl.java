@@ -16,6 +16,8 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+import static com.partyguham.party.entity.QParty.party;
+import static com.partyguham.party.entity.QPartyType.partyType;
 import static com.partyguham.party.entity.QPartyUser.partyUser;
 import static com.partyguham.user.account.entity.QUser.user;
 import static com.partyguham.catalog.entity.QPosition.position;
@@ -187,5 +189,18 @@ public class PartyUserQueryRepositoryImpl implements PartyUserQueryRepository {
             case "updatedAt" -> new OrderSpecifier<>(direction, partyUser.updatedAt);
             default -> new OrderSpecifier<>(direction, partyUser.id);
         };
+    }
+
+    @Override
+    public List<PartyUser> findByUserNickname(String nickname) {
+
+        return queryFactory
+                .selectFrom(partyUser)
+                .join(partyUser.user, user).fetchJoin()
+                .join(partyUser.party, party).fetchJoin()
+                .join(partyUser.position, position).fetchJoin()
+                .join(party.partyType, partyType).fetchJoin()
+                .where(user.nickname.eq(nickname))
+                .fetch();
     }
 }

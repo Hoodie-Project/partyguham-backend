@@ -24,4 +24,5 @@ public interface PartyService {
 
     void leaveParty(Long partyId, Long userId); // 파티 나가기
 
+    UserJoinedPartyResponseDto getByNickname(String nickname);
 }
