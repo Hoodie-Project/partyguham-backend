@@ -26,4 +26,6 @@ jwt:
 
 logging:
   level:
-    root: debug
+    root: info
+    com.partyguham: debug
+    org.hibernate.SQL: debug

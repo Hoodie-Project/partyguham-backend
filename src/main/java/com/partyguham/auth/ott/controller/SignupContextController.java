@@ -1,4 +1,4 @@
-package com.partyguham.auth.oauth.controller;
+package com.partyguham.auth.ott.controller;
 
 import com.partyguham.auth.oauth.dto.response.SignupContextResponse;
 import com.partyguham.auth.ott.model.OttPayload;
@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 @ApiV2Controller
 @RequiredArgsConstructor
-@RequestMapping("/auth")
+@RequestMapping("/ott")
 public class SignupContextController {
 
     @GetMapping("/signup/context")

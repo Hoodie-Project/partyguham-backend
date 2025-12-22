@@ -21,9 +21,6 @@ public class PartyController { // create → get → search → action 순서
 
     private final PartyService partyService;
 
-    /**
-     * 파티 생성
-     */
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<PartyResponseDto> createParty(
             @RequestPart(required = false) MultipartFile image,
@@ -36,8 +33,17 @@ public class PartyController { // create → get → search → action 순서
     }
 
     /**
-     * 파티 단일 조회
+     * 닉네임으로 유저가 소속된 파티 조회
      */
+    @GetMapping("/users")
+    public ResponseEntity<UserJoinedPartyResponseDto> getPartyUsersByNickname(
+            @RequestParam String nickname
+    ) {
+        return ResponseEntity.ok(
+                partyService.getByNickname(nickname)
+        );
+    }
+
     @GetMapping("/{partyId}")
     public ResponseEntity<GetPartyResponseDto> getParty(
                                                          @PathVariable Long partyId){
@@ -45,11 +51,8 @@ public class PartyController { // create → get → search → action 순서
         return ResponseEntity.ok(partyService.getParty(partyId));
     }
 
-    /**
-     * 파티원 목록 조회
-     */
     @GetMapping("/{partyId}/users")
-    public ResponseEntity<GetPartyUserResponseDto> getPartyUsers( 
+    public ResponseEntity<GetPartyUserResponseDto> getPartyUsers(
                                                                   @PathVariable Long partyId,
                                                                   @ModelAttribute GetPartyUsersRequestDto request) {
 
@@ -59,9 +62,6 @@ public class PartyController { // create → get → search → action 순서
         return ResponseEntity.ok(partyService.getPartyUsers(request, partyId));
     }
 
-    /**
-     * 나의 파티 권한 조회
-     */
     @GetMapping("/{partyId}/users/me/authority")
     public ResponseEntity<PartyAuthorityResponseDto> getPartyAuthority(
                                                                         @PathVariable Long partyId,
@@ -70,19 +70,13 @@ public class PartyController { // create → get → search → action 순서
         return ResponseEntity.ok(partyService.getPartyAuthority(partyId, user.getId()));
     }
 
-    /**
-     * 파티 타입 목록 조회
-     */
     @GetMapping("/types")
-    public ResponseEntity<PartyTypeResponseDto> getPartyTypes() { 
+    public ResponseEntity<PartyTypeResponseDto> getPartyTypes() {
 
         return ResponseEntity.ok(partyService.getPartyTypes());
     }
 
-    /**
-     * 파티 나가기
-     */
-    @DeleteMapping("/{partyId}/users/me") 
+    @DeleteMapping("/{partyId}/users/me") //파티 나가기
     public ResponseEntity<Void> leaveParty(
             @PathVariable Long partyId,
             @AuthenticationPrincipal UserPrincipal user) {

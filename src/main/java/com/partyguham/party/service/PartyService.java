@@ -44,7 +44,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class PartyService { 
+public class PartyService {
 
     private final PartyRepository partyRepository;
     private final PartyTypeRepository partyTypeRepository;
@@ -118,7 +118,7 @@ public class PartyService {
     }
 
     public GetPartyUserResponseDto getPartyUsers(GetPartyUsersRequestDto request, Long partyId) { // 파티원 목록 조회
-        
+
         partyRepository.findById(partyId)
                 .orElseThrow(() -> new PartyNotFoundException());
 
@@ -161,7 +161,7 @@ public class PartyService {
     }
 
     public PartyAuthorityResponseDto getPartyAuthority(Long partyId, Long userId) { // 나의 파티 권한 조회
-        
+
         partyRepository.findById(partyId)
                 .orElseThrow(() -> new PartyNotFoundException());
 
@@ -239,5 +239,38 @@ public class PartyService {
                 recruitmentPage.getTotalElements(),
                 recruitmentListDto
         );
+    }
+
+    @Transactional(readOnly = true)
+    public UserJoinedPartyResponseDto getByNickname(String nickname) {
+
+        List<PartyUser> list =
+                partyUserRepository.findByUserNickname(nickname);
+
+        List<UserJoinedPartyResponseDto.PartyUserItem> items =
+                list.stream().map(pu ->
+                        UserJoinedPartyResponseDto.PartyUserItem.builder()
+                                .id(pu.getId())
+                                .createdAt(pu.getCreatedAt().toString())
+                                .position(UserJoinedPartyResponseDto.PositionDto.builder()
+                                        .main(pu.getPosition().getMain())
+                                        .sub(pu.getPosition().getSub())
+                                        .build())
+                                .party(UserJoinedPartyResponseDto.PartyDto.builder()
+                                        .id(pu.getParty().getId())
+                                        .title(pu.getParty().getTitle())
+                                        .image(pu.getParty().getImage())
+                                        .partyStatus(pu.getParty().getPartyStatus())
+                                        .partyType(UserJoinedPartyResponseDto.PartyTypeDto.builder()
+                                                .type(pu.getParty().getPartyType().getType())
+                                                .build())
+                                        .build())
+                                .build()
+                ).toList();
+
+        return UserJoinedPartyResponseDto.builder()
+                .total(items.size())
+                .partyUsers(items)
+                .build();
     }
 }
