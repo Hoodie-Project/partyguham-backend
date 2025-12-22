@@ -46,7 +46,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class PartyServiceImpl implements PartyService  { //TODO: S3 이미지 업로드
+public class PartyServiceImpl implements PartyService  {
 
     private final PartyRepository partyRepository;
     private final PartyTypeRepository partyTypeRepository;
@@ -274,6 +274,39 @@ public class PartyServiceImpl implements PartyService  { //TODO: S3 이미지 �
                         .total(recruitmentPage.getTotalElements())
                         .partyRecruitments(recruitmentListDto)
                         .build())
+                .build();
+    }
+
+    @Transactional(readOnly = true)
+    public UserJoinedPartyResponseDto getByNickname(String nickname) {
+
+        List<PartyUser> list =
+                partyUserRepository.findByUserNickname(nickname);
+
+        List<UserJoinedPartyResponseDto.PartyUserItem> items =
+                list.stream().map(pu ->
+                        UserJoinedPartyResponseDto.PartyUserItem.builder()
+                                .id(pu.getId())
+                                .createdAt(pu.getCreatedAt().toString())
+                                .position(UserJoinedPartyResponseDto.PositionDto.builder()
+                                        .main(pu.getPosition().getMain())
+                                        .sub(pu.getPosition().getSub())
+                                        .build())
+                                .party(UserJoinedPartyResponseDto.PartyDto.builder()
+                                        .id(pu.getParty().getId())
+                                        .title(pu.getParty().getTitle())
+                                        .image(pu.getParty().getImage())
+                                        .partyStatus(pu.getParty().getPartyStatus())
+                                        .partyType(UserJoinedPartyResponseDto.PartyTypeDto.builder()
+                                                .type(pu.getParty().getPartyType().getType())
+                                                .build())
+                                        .build())
+                                .build()
+                ).toList();
+
+        return UserJoinedPartyResponseDto.builder()
+                .total(items.size())
+                .partyUsers(items)
                 .build();
     }
 }

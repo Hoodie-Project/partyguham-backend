@@ -3,9 +3,11 @@ package com.partyguham.auth.oauth.client;
 import com.partyguham.auth.oauth.dto.OauthUser;
 import com.partyguham.auth.oauth.props.OauthProps;
 import com.partyguham.auth.oauth.props.OauthProviderProps;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -31,15 +33,28 @@ import java.util.Objects;
  *  - scope:    openid email profile (권장)
  */
 @Component("GOOGLE")
-@RequiredArgsConstructor
+
 public class GoogleClient implements OauthClient {
+
 
     private final WebClient web;
     private final OauthProps props;
+    private final JwtDecoder googleJwtDecoder;
+
+    public GoogleClient(
+            WebClient web,
+            OauthProps props,
+            @Qualifier("googleJwtDecoder") JwtDecoder googleJwtDecoder
+    ) {
+        this.web = web;
+        this.props = props;
+        this.googleJwtDecoder = googleJwtDecoder;
+    }
 
     private OauthProviderProps p() {
         return props.getGoogle();
     }
+
 
     /** 로그인/연동 시작 URL 생성 */
     @Override
@@ -126,5 +141,23 @@ public class GoogleClient implements OauthClient {
     private static final class Types {
         static final org.springframework.core.ParameterizedTypeReference<Map<String, Object>> MAP_STR_OBJ =
                 new org.springframework.core.ParameterizedTypeReference<>() {};
+    }
+
+    @Override
+    public OauthUser fetchUserByIdToken(String idToken) {
+        // 1. JWT 검증 + 파싱 (서명, exp, iss 등 자동 검증)
+        Jwt jwt = googleJwtDecoder.decode(idToken);
+
+        // 2. 필수 클레임 추출
+        String sub = jwt.getSubject();              // 유저 고유 ID
+        String email = jwt.getClaim("email");
+        String picture = jwt.getClaim("picture");
+
+        if (sub == null) {
+            throw new IllegalStateException("google sub missing");
+        }
+
+        // 3. 우리 도메인 유저 객체로 변환
+        return new OauthUser(sub, email, picture);
     }
 }
