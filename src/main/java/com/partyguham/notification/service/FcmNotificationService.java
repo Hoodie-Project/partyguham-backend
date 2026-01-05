@@ -205,5 +205,24 @@ public class FcmNotificationService {
         fcmService.sendToToken(fcmToken, title, body, data);
     }
 
+    /**
+     * 파티 유저 강퇴
+     */
+    public void partyMemberKickedEvent(
+            String userNickname,
+            String partyTitle,
+            String fcmToken
+    ) {
+        NotificationTemplate t = NotificationTemplate.PARTY_MEMBER_KICKED;
+        String title = t.title();
+        String body = t.body(partyTitle, userNickname);
+
+        Map<String, String> data = Map.of(
+                "type", "PARTY"
+        );
+
+        fcmService.sendToToken(fcmToken, title, body, data);
+    }
+
 
 }

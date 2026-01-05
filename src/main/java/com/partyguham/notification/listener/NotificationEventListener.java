@@ -176,4 +176,19 @@ public class NotificationEventListener {
                 event.getPartyImage()
         );
     }
+
+    /** 파티유저 강퇴 */
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void partyMemberKickedEvent(PartyMemberKickedEvent event) {
+        log.info("partyReopened");
+
+        notificationService.partyMemberKickedEvent(
+                event.getPartyUserId(),
+                event.getUserNickname(),
+                event.getPartyId(),
+                event.getPartyTitle(),
+                event.getPartyImage()
+        );
+    }
 }

@@ -137,8 +137,19 @@ public class FcmNotificationEventListener {
     /** 파티 유저 포지션 변경 */
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void PartyMemberPositionChangedEvent(PartyMemberPositionChangedEvent event) {
+    public void partyMemberPositionChangedEvent(PartyMemberPositionChangedEvent event) {
         fcmNotificationService.sendPartyMemberPositionChangedEvent(
+                event.getUserNickname(),
+                event.getPartyTitle(),
+                event.getFcmToken()
+        );
+    }
+
+    /** 파티 유저 강퇴 */
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void partyMemberKickedEvent(PartyMemberKickedEvent event) {
+        fcmNotificationService.partyMemberKickedEvent(
                 event.getUserNickname(),
                 event.getPartyTitle(),
                 event.getFcmToken()
