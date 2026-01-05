@@ -2,6 +2,7 @@ package com.partyguham.notification.listener;
 
 import com.partyguham.notification.event.*;
 import com.partyguham.notification.service.FcmNotificationService;
+import com.partyguham.notification.template.NotificationTemplate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -128,6 +129,39 @@ public class FcmNotificationEventListener {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void partyMemberLeft(PartyMemberLeftEvent event) {
         fcmNotificationService.sendPartyMemberLeft(
+                event.getUserNickname(),
+                event.getPartyTitle(),
+                event.getFcmToken()
+        );
+    }
+
+    /** 파티 유저 포지션 변경 */
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void partyMemberPositionChangedEvent(PartyMemberPositionChangedEvent event) {
+        fcmNotificationService.sendPartyMemberPositionChangedEvent(
+                event.getUserNickname(),
+                event.getPartyTitle(),
+                event.getFcmToken()
+        );
+    }
+
+    /** 파티 유저 강퇴 */
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void partyMemberKickedEvent(PartyMemberKickedEvent event) {
+        fcmNotificationService.partyMemberKickedEvent(
+                event.getUserNickname(),
+                event.getPartyTitle(),
+                event.getFcmToken()
+        );
+    }
+
+    /** 파티장 변경 */
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void partyLeaderChangedEvent(PartyLeaderChangedEvent event) {
+        fcmNotificationService.partyLeaderChangedEvent(
                 event.getUserNickname(),
                 event.getPartyTitle(),
                 event.getFcmToken()

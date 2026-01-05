@@ -186,5 +186,62 @@ public class FcmNotificationService {
         fcmService.sendToToken(fcmToken, title, body, data);
     }
 
+    /**
+     * 파티 유저 포지션 변경
+     */
+    public void sendPartyMemberPositionChangedEvent(
+            String userNickname,
+            String partyTitle,
+            String fcmToken
+    ) {
+        NotificationTemplate t = NotificationTemplate.PARTY_MEMBER_POSITION_CHANGED;
+        String title = t.title();
+        String body = t.body(partyTitle, userNickname);
+
+        Map<String, String> data = Map.of(
+                "type", "PARTY"
+        );
+
+        fcmService.sendToToken(fcmToken, title, body, data);
+    }
+
+    /**
+     * 파티 유저 강퇴
+     */
+    public void partyMemberKickedEvent(
+            String userNickname,
+            String partyTitle,
+            String fcmToken
+    ) {
+        NotificationTemplate t = NotificationTemplate.PARTY_MEMBER_KICKED;
+        String title = t.title();
+        String body = t.body(partyTitle, userNickname);
+
+        Map<String, String> data = Map.of(
+                "type", "PARTY"
+        );
+
+        fcmService.sendToToken(fcmToken, title, body, data);
+    }
+
+    /** 파티장 변경 */
+    public void partyLeaderChangedEvent(
+            String userNickname,
+            String partyTitle,
+            String fcmToken
+    ) {
+        NotificationTemplate t = NotificationTemplate.PARTY_LEADER_CHANGED;
+        String title = t.title();
+        String body = t.body(partyTitle, userNickname);
+
+        Map<String, String> data = Map.of(
+                "type", "PARTY"
+        );
+
+        fcmService.sendToToken(fcmToken, title, body, data);
+    }
+
+
+
 
 }

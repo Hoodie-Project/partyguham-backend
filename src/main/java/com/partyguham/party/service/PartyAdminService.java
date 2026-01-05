@@ -5,9 +5,7 @@ import com.partyguham.catalog.repository.PositionRepository;
 import com.partyguham.common.entity.Status;
 import com.partyguham.infra.s3.S3FileService;
 import com.partyguham.infra.s3.S3Folder;
-import com.partyguham.notification.event.PartyFinishedEvent;
-import com.partyguham.notification.event.PartyInfoUpdatedEvent;
-import com.partyguham.notification.event.PartyReopenedEvent;
+import com.partyguham.notification.event.*;
 import com.partyguham.party.dto.partyAdmin.mapper.PartyUserAdminMapper;
 import com.partyguham.party.dto.partyAdmin.request.*;
 import com.partyguham.party.dto.partyAdmin.response.*;
@@ -28,14 +26,17 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PartyAdminService {
 
+    private final ApplicationEventPublisher eventPublisher;
+
+    private final S3FileService s3FileService;
     private final PartyAccessService partyAccessService;
+
     private final PartyUserAdminMapper partyUserAdminMapper;
+
     private final PartyUserRepository partyUserRepository;
     private final PartyRepository partyRepository;
     private final PartyTypeRepository partyTypeRepository;
     private final PositionRepository positionRepository;
-    private final S3FileService s3FileService;
-    private final ApplicationEventPublisher eventPublisher;
 
 
     /**
@@ -312,6 +313,23 @@ public class PartyAdminService {
         currentMaster.setAuthority(PartyAuthority.MEMBER);
         target.setAuthority(PartyAuthority.MASTER);
 
+        // 이벤트 발행
+        List<PartyUser> members = partyUserRepository
+                .findByParty_IdAndStatus(partyId, Status.ACTIVE);
+
+        for (PartyUser member : members) {
+            PartyMemberPositionChangedEvent event = PartyMemberPositionChangedEvent.builder()
+                    .partyUserId(member.getUser().getId())
+                    .userNickname(target.getUser().getNickname())
+                    .partyId(party.getId())
+                    .partyTitle(party.getTitle())
+                    .partyImage(party.getImage())
+                    .fcmToken(member.getUser().getFcmToken())
+                    .build();
+
+            eventPublisher.publishEvent(event);
+        }
+
         return PartyDelegationResponseDto.from(party, currentMaster, target);
     }
 
@@ -339,6 +357,26 @@ public class PartyAdminService {
                     ));
             partyUser.setPosition(position);
         }
+
+        // 이벤트 발행
+        Party party = partyRepository.findById(partyId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 파티입니다. id=" + partyId));
+
+        List<PartyUser> members = partyUserRepository
+                .findByParty_IdAndStatus(partyId, Status.ACTIVE);
+
+        for (PartyUser member : members) {
+            PartyMemberPositionChangedEvent event = PartyMemberPositionChangedEvent.builder()
+                    .partyUserId(member.getUser().getId())
+                    .userNickname(partyUser.getUser().getNickname())
+                    .partyId(party.getId())
+                    .partyTitle(party.getTitle())
+                    .partyImage(party.getImage())
+                    .fcmToken(member.getUser().getFcmToken())
+                    .build();
+
+            eventPublisher.publishEvent(event);
+        }
     }
 
 
@@ -363,6 +401,26 @@ public class PartyAdminService {
 
         // 4) 소프트 삭제
         target.setStatus(Status.DELETED);
+
+        // 이벤트 발행
+        Party party = partyRepository.findById(partyId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 파티입니다. id=" + partyId));
+
+        List<PartyUser> members = partyUserRepository
+                .findByParty_IdAndStatus(partyId, Status.ACTIVE);
+
+        for (PartyUser member : members) {
+            PartyMemberKickedEvent event = PartyMemberKickedEvent.builder()
+                    .partyUserId(member.getUser().getId())
+                    .userNickname(target.getUser().getNickname())
+                    .partyId(party.getId())
+                    .partyTitle(party.getTitle())
+                    .partyImage(party.getImage())
+                    .fcmToken(member.getUser().getFcmToken())
+                    .build();
+
+            eventPublisher.publishEvent(event);
+        }
     }
 
 
