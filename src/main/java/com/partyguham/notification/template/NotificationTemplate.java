@@ -26,7 +26,7 @@ public enum NotificationTemplate {
     ),
     PARTY_LEADER_CHANGED(
             "파티장이 변경되었어요",
-            "'%s' 파티에서 파티장이 %s님이 변경되었어요."
+            "'%s' 파티에서 파티장이 %s님이 되었어요."
     ),
     PARTY_MEMBER_POSITION_CHANGED(
             "파티원의 포지션이 변경되었어요",

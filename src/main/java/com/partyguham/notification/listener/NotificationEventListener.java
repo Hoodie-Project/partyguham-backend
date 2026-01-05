@@ -191,4 +191,19 @@ public class NotificationEventListener {
                 event.getPartyImage()
         );
     }
+
+    /** 파티장 변경 */
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void partyLeaderChangedEvent(PartyLeaderChangedEvent event) {
+        log.info("partyReopened");
+
+        notificationService.partyLeaderChangedEvent(
+                event.getPartyUserId(),
+                event.getUserNickname(),
+                event.getPartyId(),
+                event.getPartyTitle(),
+                event.getPartyImage()
+        );
+    }
 }

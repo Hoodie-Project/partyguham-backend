@@ -313,6 +313,23 @@ public class PartyAdminService {
         currentMaster.setAuthority(PartyAuthority.MEMBER);
         target.setAuthority(PartyAuthority.MASTER);
 
+        // 이벤트 발행
+        List<PartyUser> members = partyUserRepository
+                .findByParty_IdAndStatus(partyId, Status.ACTIVE);
+
+        for (PartyUser member : members) {
+            PartyMemberPositionChangedEvent event = PartyMemberPositionChangedEvent.builder()
+                    .partyUserId(member.getUser().getId())
+                    .userNickname(target.getUser().getNickname())
+                    .partyId(party.getId())
+                    .partyTitle(party.getTitle())
+                    .partyImage(party.getImage())
+                    .fcmToken(member.getUser().getFcmToken())
+                    .build();
+
+            eventPublisher.publishEvent(event);
+        }
+
         return PartyDelegationResponseDto.from(party, currentMaster, target);
     }
 
