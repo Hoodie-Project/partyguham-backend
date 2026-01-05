@@ -133,4 +133,15 @@ public class FcmNotificationEventListener {
                 event.getFcmToken()
         );
     }
+
+    /** 파티 유저 포지션 변경 */
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void PartyMemberPositionChangedEvent(PartyMemberPositionChangedEvent event) {
+        fcmNotificationService.sendPartyMemberPositionChangedEvent(
+                event.getUserNickname(),
+                event.getPartyTitle(),
+                event.getFcmToken()
+        );
+    }
 }

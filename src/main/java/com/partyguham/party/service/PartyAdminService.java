@@ -7,6 +7,7 @@ import com.partyguham.infra.s3.S3FileService;
 import com.partyguham.infra.s3.S3Folder;
 import com.partyguham.notification.event.PartyFinishedEvent;
 import com.partyguham.notification.event.PartyInfoUpdatedEvent;
+import com.partyguham.notification.event.PartyMemberPositionChangedEvent;
 import com.partyguham.notification.event.PartyReopenedEvent;
 import com.partyguham.party.dto.partyAdmin.mapper.PartyUserAdminMapper;
 import com.partyguham.party.dto.partyAdmin.request.*;
@@ -338,6 +339,27 @@ public class PartyAdminService {
                             "포지션이 존재하지 않습니다. id=" + request.getPositionId()
                     ));
             partyUser.setPosition(position);
+        }
+
+        // 이벤트 발행
+        // 2) 파티 조회
+        Party party = partyRepository.findById(partyId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 파티입니다. id=" + partyId));
+
+        List<PartyUser> members = partyUserRepository
+                .findByParty_IdAndStatus(partyId, Status.ACTIVE);
+
+        for (PartyUser member : members) {
+            PartyMemberPositionChangedEvent event = PartyMemberPositionChangedEvent.builder()
+                    .partyUserId(member.getUser().getId())
+                    .userNickname(partyUser.getUser().getNickname())
+                    .partyId(party.getId())
+                    .partyTitle(party.getTitle())
+                    .partyImage(party.getImage())
+                    .fcmToken(member.getUser().getFcmToken())
+                    .build();
+
+            eventPublisher.publishEvent(event);
         }
     }
 

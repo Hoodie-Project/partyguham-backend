@@ -161,4 +161,19 @@ public class NotificationEventListener {
                 event.getPartyImage()
         );
     }
+
+    /** 파티유저 포지션 변경*/
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void partyMemberPositionChangedEvent(PartyMemberPositionChangedEvent event) {
+        log.info("partyReopened");
+
+        notificationService.partyMemberPositionChangedEvent(
+                event.getPartyUserId(),
+                event.getUserNickname(),
+                event.getPartyId(),
+                event.getPartyTitle(),
+                event.getPartyImage()
+        );
+    }
 }

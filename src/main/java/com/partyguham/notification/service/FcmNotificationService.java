@@ -186,5 +186,24 @@ public class FcmNotificationService {
         fcmService.sendToToken(fcmToken, title, body, data);
     }
 
+    /**
+     * 파티 유저 포지션 변경
+     */
+    public void sendPartyMemberPositionChangedEvent(
+            String userNickname,
+            String partyTitle,
+            String fcmToken
+    ) {
+        NotificationTemplate t = NotificationTemplate.PARTY_MEMBER_POSITION_CHANGED;
+        String title = t.title();
+        String body = t.body(partyTitle, userNickname);
+
+        Map<String, String> data = Map.of(
+                "type", "PARTY"
+        );
+
+        fcmService.sendToToken(fcmToken, title, body, data);
+    }
+
 
 }
