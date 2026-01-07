@@ -1,7 +1,8 @@
-package com.partyguham.common.exception.handler;
+package com.partyguham.common.error.exception.handler;
 
 import com.partyguham.common.dto.ErrorResponse;
-import com.partyguham.common.exception.BusinessException;
+import com.partyguham.common.error.exception.BusinessException;
+import com.partyguham.common.error.ErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -15,15 +16,18 @@ public class GlobalExceptionHandler {
             BusinessException e,
             HttpServletRequest request
     ) {
+        ErrorCode errorCode = e.getErrorCode();
+        // ErrorResponse 생성 (정적 팩토리 메서드 활용)
         ErrorResponse errorResponse = ErrorResponse.of(
-                e.getMessage(),
-                e.getCode(),
-                e.getHttpStatus().value(),
+                errorCode.getMessage(),
+                errorCode.getCode(),
+                errorCode.getStatus(),
                 request.getRequestURI()
         );
 
+        // 3. 빌더 패턴으로 가독성 있게 반환
         return ResponseEntity
-                .status(e.getHttpStatus())
+                .status(errorCode.getStatus())
                 .body(errorResponse);
     }
 

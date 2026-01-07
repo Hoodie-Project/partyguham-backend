@@ -1,4 +1,4 @@
-package com.partyguham.common.exception;
+package com.partyguham.common.error;
 
 public interface ErrorCode {
     int getStatus();
