@@ -1,5 +1,6 @@
 package com.partyguham.common.exception;
 
+import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
 /**
@@ -7,6 +8,7 @@ import org.springframework.http.HttpStatus;
  * - 모든 비즈니스 예외의 공통 부모
  * - code와 message만 관리
  */
+@Getter
 public abstract class BusinessException extends RuntimeException {
 
     private final String code;
@@ -25,12 +27,5 @@ public abstract class BusinessException extends RuntimeException {
         this.httpStatus = status;
     }
 
-    public String getCode() {
-        return code;
-    }
-
-    public HttpStatus getHttpStatus() {
-        return httpStatus;
-    }
 }
 
