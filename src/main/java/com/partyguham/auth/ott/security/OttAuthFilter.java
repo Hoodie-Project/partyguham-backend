@@ -62,8 +62,8 @@ public class OttAuthFilter extends OncePerRequestFilter {
                     );
                     SecurityContextHolder.getContext().setAuthentication(auth);
 
-                } catch (IllegalArgumentException | BadCredentialsException e) {
-                    // 타입 이상 / 토큰 검증 실패 → 그냥 인증 없이 통과 (필요하면 401 보내도 됨)
+                } catch (Exception e) {
+                    throw new BadCredentialsException("유효하지 않거나 만료된 OTT 토큰입니다.");
                 }
             }
         }
