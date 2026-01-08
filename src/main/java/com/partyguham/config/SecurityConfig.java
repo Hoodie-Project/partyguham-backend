@@ -1,5 +1,6 @@
 package com.partyguham.config;
 
+import com.partyguham.auth.filter.AuthExceptionFilter;
 import com.partyguham.auth.jwt.JwtAuthFilter;
 import com.partyguham.auth.ott.security.OttAuthFilter;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +10,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -22,6 +24,7 @@ import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
+    private final AuthExceptionFilter authExceptionFilter;
     private final OttAuthFilter ottAuthFilter;
     private final JwtAuthFilter jwtAuthFilter;
 
@@ -33,7 +36,7 @@ public class SecurityConfig {
     public SecurityFilterChain apiChain(HttpSecurity http) throws Exception {
         http
                 .securityMatcher("/api/**")          // 이 체인은 /api/** 만 적용
-                .csrf(csrf -> csrf.disable())        // REST API 이므로 CSRF OFF
+                .csrf(AbstractHttpConfigurer::disable)        // REST API 이므로 CSRF OFF
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         /* ==== 공개 테스트 API ==== */
@@ -69,11 +72,13 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 );
 
-        // OTT 인증
-        http.addFilterBefore(ottAuthFilter, UsernamePasswordAuthenticationFilter.class);
-
-        // JWT 인증
-        http.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+        http
+                // 3. JWT 필터를 표준 필터 앞에 등록
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                // 2. OTT 필터를 JWT 필터 앞에 등록
+                .addFilterBefore(ottAuthFilter, JwtAuthFilter.class)
+                // 1. 에러 필터를 OTT 필터 앞에 등록
+                .addFilterBefore(authExceptionFilter, OttAuthFilter.class);
 
         http.cors(Customizer.withDefaults());
 

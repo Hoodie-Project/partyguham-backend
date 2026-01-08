@@ -6,12 +6,15 @@ import lombok.Getter;
 /**
  * 공통 비즈니스 예외 베이스 클래스
  * - 모든 비즈니스 예외의 공통 부모
- * - code와 message만 관리
  */
+@Getter
 public abstract class BusinessException extends RuntimeException {
+
+    private final ErrorCode errorCode;
 
     protected BusinessException(ErrorCode errorCode) {
         super(errorCode.getMessage());
+        this.errorCode = errorCode;
     }
 }
 
