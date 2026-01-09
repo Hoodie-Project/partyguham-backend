@@ -24,16 +24,14 @@ public class GlobalExceptionHandler {
         ErrorCode errorCode = e.getErrorCode();
         log.warn("Business Exception : {}", errorCode.getMessage()); // 비즈니스 예외는 warn 수준 로그
 
-        ErrorResponse errorResponse = ErrorResponse.of(
-                errorCode.getMessage(),
-                errorCode.getCode(),
-                errorCode.getStatus(),
-                request.getRequestURI()
-        );
-
         return ResponseEntity
                 .status(errorCode.getStatus())
-                .body(errorResponse);
+                .body(ErrorResponse.of(
+                        errorCode.getMessage(),
+                        errorCode.getCode(),
+                        errorCode.getStatus(),
+                        request.getRequestURI()
+                ));
     }
 
     /**
