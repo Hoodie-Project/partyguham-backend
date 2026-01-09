@@ -2,9 +2,11 @@ package com.partyguham.auth.jwt;
 
 import com.partyguham.auth.exception.AuthErrorCode;
 import com.partyguham.auth.jwt.service.JwtService;
-import com.partyguham.common.error.exception.UnauthorizedException;
+import com.partyguham.common.error.exception.BusinessException;
 import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.UnsupportedJwtException;
+import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -62,9 +64,9 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             // 다음 필터로 진행
             chain.doFilter(request, response);
         } catch (ExpiredJwtException e) {
-            throw new UnauthorizedException(AuthErrorCode.EXPIRED_TOKEN);
-        } catch (Exception e) {
-            throw new UnauthorizedException(AuthErrorCode.INVALID_TOKEN);
+            throw new BusinessException(AuthErrorCode.EXPIRED_TOKEN);
+        } catch (SignatureException | MalformedJwtException | UnsupportedJwtException | IllegalArgumentException e) {
+            throw new BusinessException(AuthErrorCode.INVALID_TOKEN);
         }
 
     }

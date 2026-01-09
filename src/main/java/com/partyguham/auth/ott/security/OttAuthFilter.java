@@ -3,6 +3,7 @@ package com.partyguham.auth.ott.security;
 import com.partyguham.auth.ott.service.OttService;
 import com.partyguham.auth.ott.model.OttPayload;
 import com.partyguham.auth.ott.model.OttType;
+import com.partyguham.common.error.exception.BusinessException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -62,7 +63,11 @@ public class OttAuthFilter extends OncePerRequestFilter {
                     );
                     SecurityContextHolder.getContext().setAuthentication(auth);
 
-                } catch (Exception e) {
+                } catch (BusinessException e) {
+                    // 의도한 비즈니스 에러는 그대로 다시 던짐 (AuthExceptionFilter가 잡도록)
+                    throw e;
+                }
+                catch (Exception e) {
                     throw new BadCredentialsException("유효하지 않거나 만료된 OTT 토큰입니다.");
                 }
             }
