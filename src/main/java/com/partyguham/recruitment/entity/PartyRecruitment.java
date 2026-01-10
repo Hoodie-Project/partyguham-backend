@@ -3,6 +3,7 @@ package com.partyguham.recruitment.entity;
 import com.partyguham.catalog.entity.Position;
 import com.partyguham.common.entity.BaseEntity;
 import com.partyguham.application.entity.PartyApplication;
+import com.partyguham.common.entity.Status;
 import com.partyguham.party.entity.Party;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -57,4 +58,8 @@ public class PartyRecruitment extends BaseEntity {
 
     @OneToMany(mappedBy = "partyRecruitment", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PartyApplication> partyApplications;
+
+    public void delete() {
+        this.changeStatus(Status.DELETED);
+    }
 }

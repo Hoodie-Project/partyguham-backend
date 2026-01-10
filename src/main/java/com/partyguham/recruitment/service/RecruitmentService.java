@@ -4,7 +4,6 @@ import com.partyguham.common.entity.Status;
 import com.partyguham.party.dto.party.request.GetPartyRecruitmentsRequestDto;
 import com.partyguham.party.dto.party.response.GetPartyRecruitmentsResponseDto;
 import com.partyguham.party.entity.Party;
-import com.partyguham.party.exception.PartyNotFoundException;
 import com.partyguham.party.repository.PartyRepository;
 import com.partyguham.party.service.PartyAccessService;
 import com.partyguham.recruitment.dto.request.CreatePartyRecruitmentRequestDto;
@@ -23,7 +22,6 @@ import com.partyguham.user.profile.entity.UserCareer;
 import com.partyguham.user.profile.repository.UserCareerRepository;
 import com.partyguham.catalog.entity.Position;
 import com.partyguham.catalog.repository.PositionRepository;
-import com.partyguham.party.entity.PartyUser;
 import com.partyguham.party.repository.PartyUserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -61,7 +59,9 @@ public class RecruitmentService {
                                                                     PartyRecruitmentsRequestDto request) {
 
         partyRepository.findById(partyId)
-                .orElseThrow(() -> new PartyNotFoundException());
+                .orElseThrow(
+//                        () -> new PartyNotFoundException()
+                );
 
 
         Sort.Direction direction = request.getOrder().equalsIgnoreCase("ASC")
@@ -101,7 +101,9 @@ public class RecruitmentService {
                                                                      CreatePartyRecruitmentRequestDto request) {
         
         Party party = partyRepository.findById(partyId)
-                .orElseThrow(() -> new PartyNotFoundException());
+                .orElseThrow(
+//                        () -> new PartyNotFoundException()
+                );
 
         partyAccessService.checkManagerOrThrow(partyId, userId);
 

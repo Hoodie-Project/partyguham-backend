@@ -1,16 +1,17 @@
 package com.partyguham.recruitment.service;
 
 import com.partyguham.common.entity.Status;
-import com.partyguham.common.exception.BadRequestException;
-import com.partyguham.common.exception.ConflictException;
+import com.partyguham.common.error.exception.BusinessException;
 import com.partyguham.party.entity.Party;
+import com.partyguham.party.reader.PartyReader;
 import com.partyguham.party.repository.PartyRepository;
 import com.partyguham.party.service.PartyAccessService;
 import com.partyguham.recruitment.dto.request.CreatePartyRecruitmentRequestDto;
 import com.partyguham.recruitment.dto.request.PartyRecruitmentIdsBodyRequestDto;
-import com.partyguham.recruitment.dto.response.CreatePartyRecruitmentsResponseDto;
 import com.partyguham.recruitment.dto.response.PartyRecruitmentsResponseDto;
 import com.partyguham.recruitment.entity.PartyRecruitment;
+import com.partyguham.recruitment.exception.RecruitmentErrorCode;
+import com.partyguham.recruitment.reader.PartyRecruitmentReader;
 import com.partyguham.recruitment.repository.PartyRecruitmentRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -24,8 +25,10 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class RecruitmentAdminService {
 
+    private final PartyReader partyReader;
+    private final PartyRecruitmentReader partyRecruitmentReader;
+
     private final PartyRecruitmentRepository partyRecruitmentRepository;
-    private final PartyRepository partyRepository;
     private final PartyAccessService partyAccessService;
 
     /**
@@ -33,20 +36,18 @@ public class RecruitmentAdminService {
      */
     @Transactional
     public void completePartyRecruitment(Long partyId, Long partyRecruitmentId, Long userId) {
-        Party party = partyRepository.findById(partyId)
-                .orElseThrow(() -> new BadRequestException("요청한 파티가 존재하지 않습니다."));
+        Party party = partyReader.readParty(partyId);
 
-        PartyRecruitment recruitment = partyRecruitmentRepository.findById(partyRecruitmentId)
-                .orElseThrow(() -> new BadRequestException("요청한 파티 모집공고가 존재하지 않습니다."));
+        PartyRecruitment recruitment = partyRecruitmentReader.read(partyRecruitmentId);
 
         if (!recruitment.getParty().getId().equals(partyId)) {
-            throw new BadRequestException("해당 파티의 모집공고가 아닙니다.");
+            throw new BusinessException(RecruitmentErrorCode.PR_NOT_BELONG_TO_PARTY);
         }
 
         partyAccessService.checkManagerOrThrow(partyId, userId);
 
         if (recruitment.getCompleted()) {
-            throw new ConflictException("이미 완료된 모집공고입니다.");
+            throw new BusinessException(RecruitmentErrorCode.PR_COMPLETED_CONFLICT);
         }
 
         recruitment.setCompleted(true);
@@ -57,8 +58,7 @@ public class RecruitmentAdminService {
      */
     @Transactional
     public void completePartyRecruitmentBatch(Long partyId, Long userId, PartyRecruitmentIdsBodyRequestDto request) {
-        Party party = partyRepository.findById(partyId)
-                .orElseThrow(() -> new BadRequestException("요청한 파티가 존재하지 않습니다."));
+        Party party = partyReader.readParty(partyId);
 
         partyAccessService.checkManagerOrThrow(partyId, userId);
        
@@ -81,9 +81,8 @@ public class RecruitmentAdminService {
             Long partyRecruitmentId, 
             Long userId,
             CreatePartyRecruitmentRequestDto request) {
-        
-        partyRepository.findById(partyId)
-                .orElseThrow(() -> new BadRequestException("요청한 파티가 존재하지 않습니다."));
+
+        partyReader.readParty(partyId);
         
         PartyRecruitment recruitment = partyRecruitmentRepository.findById(partyRecruitmentId)
                 .orElseThrow(() -> new EntityNotFoundException("파티 모집공고가 없습니다."));
@@ -105,8 +104,7 @@ public class RecruitmentAdminService {
      */
     @Transactional
     public void deletePartyRecruitment(Long partyId, Long partyRecruitmentId, Long userId) {
-        partyRepository.findById(partyId)
-                .orElseThrow(() -> new BadRequestException("요청한 파티가 존재하지 않습니다."));
+        Party party = partyReader.readParty(partyId);
 
         PartyRecruitment recruitment = partyRecruitmentRepository.findById(partyRecruitmentId)
                 .orElseThrow(() -> new EntityNotFoundException("파티 모집공고가 없습니다."));
@@ -118,7 +116,7 @@ public class RecruitmentAdminService {
         partyAccessService.checkManagerOrThrow(partyId, userId);
 
         // 소프트 삭제: status를 DELETED로 변경
-        recruitment.setStatus(Status.DELETED);
+        recruitment.delete();
     }
 
     /**
@@ -126,8 +124,7 @@ public class RecruitmentAdminService {
      */
     @Transactional
     public void deletePartyRecruitmentBatch(Long partyId, Long userId, PartyRecruitmentIdsBodyRequestDto request) {
-        partyRepository.findById(partyId)
-                .orElseThrow(() -> new BadRequestException("요청한 파티가 존재하지 않습니다."));
+        Party party = partyReader.readParty(partyId);
 
         partyAccessService.checkManagerOrThrow(partyId, userId);
 
@@ -142,7 +139,7 @@ public class RecruitmentAdminService {
                 throw new IllegalArgumentException("해당 파티의 모집공고가 아닙니다. ID: " + recruitment.getId());
             }
             // 소프트 삭제: status를 DELETED로 변경
-            recruitment.setStatus(Status.DELETED);
+            recruitment.delete();
         }
     }
 }
