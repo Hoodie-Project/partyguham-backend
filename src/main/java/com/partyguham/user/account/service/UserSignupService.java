@@ -4,6 +4,7 @@ import com.partyguham.auth.jwt.service.JwtService;
 import com.partyguham.auth.oauth.repository.OauthAccountRepository;
 import com.partyguham.user.account.dto.request.SignUpRequest;
 import com.partyguham.user.account.dto.response.SignUpResponse;
+import com.partyguham.user.account.reader.UserReader;
 import com.partyguham.user.account.repository.UserRepository;
 import com.partyguham.user.profile.entity.UserProfile;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class UserSignupService {
 
+    private final UserReader userReader;
     private final UserRepository userRepository;
     private final OauthAccountRepository oauthAccountRepository;
     private final JwtService jwtService;
@@ -37,11 +39,9 @@ public class UserSignupService {
         String externalId = ott.externalId();
         String email = ott.email();
         String image = ott.image();
+        String nickname = req.getNickname();
 
-        // 1) 닉네임 중복 체크 (필요하면)
-        if (userRepository.existsByNickname(req.getNickname())) {
-            throw new IllegalStateException("중복된 닉네임입니다.");
-        }
+        userReader.validateNicknameDuplicate(nickname);
 
         // 2) 아직 연결 안 된 OAuthAccount 찾아오기 (없으면 에러)
         OauthAccount oauthAccount = oauthAccountRepository

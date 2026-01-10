@@ -3,6 +3,7 @@ package com.partyguham.user.account.service;
 
 import com.partyguham.common.entity.Status;
 import com.partyguham.user.account.entity.User;
+import com.partyguham.user.account.reader.UserReader;
 import com.partyguham.user.account.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -12,18 +13,13 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class UserRecoverService {
 
-    private final UserRepository userRepository;
+    private final UserReader userReader;
 
     @Transactional
     public User recoverUser(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("user not found"));
+        User user = userReader.read(userId);
 
-        if (user.getStatus() != Status.INACTIVE) {
-            throw new IllegalStateException("복구 대상이 아닌 유저입니다.");
-        }
-
-        user.setStatus(Status.ACTIVE);
+        user.restore();
         // 필요하면 복구 로그 기록 등
 
         return user;

@@ -2,6 +2,7 @@ package com.partyguham.user.account.service;
 
 import com.partyguham.infra.fcm.FcmService;
 import com.partyguham.user.account.entity.User;
+import com.partyguham.user.account.reader.UserReader;
 import com.partyguham.user.account.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -14,14 +15,14 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class UserFcmService {
 
+    private final UserReader userReader;
     private final UserRepository userRepository;
     private final FcmService fcmService;
 
     @Transactional
     public void saveToken(Long userId, String token) {
-        User u = userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("user not found"));
-        u.setFcmToken(token);
+        User user = userReader.read(userId);
+        user.updateFcmToken(token);
     }
 
     public void sendTestToUser(Long userId) {

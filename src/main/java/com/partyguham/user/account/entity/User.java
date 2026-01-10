@@ -2,7 +2,9 @@ package com.partyguham.user.account.entity;
 
 import com.partyguham.auth.oauth.entity.OauthAccount;
 import com.partyguham.common.entity.BaseEntity;
-import com.partyguham.user.profile.entity.UserLocation;
+import com.partyguham.common.entity.Status;
+import com.partyguham.common.error.exception.BusinessException;
+import com.partyguham.user.exception.UserErrorCode;
 import com.partyguham.user.profile.entity.UserProfile;
 import jakarta.persistence.*;
 import lombok.*;
@@ -12,37 +14,72 @@ import java.util.*;
 
 @Entity
 @Table(name = "users")
-@Getter @Setter
+@Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @SuperBuilder
 public class User extends BaseEntity {
-    @Id @GeneratedValue(strategy=GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
-    @Column(unique=true)
+    @Column(unique = true)
     String externalId;
 
     @Column(length = 255)
     private String fcmToken;
 
-    @Column(unique=true)
+    @Column(unique = true)
     String email;
 
-    @Column(nullable=false, length=15)
+    @Column(nullable = false, length = 15)
     String nickname;
 
-    @OneToOne(mappedBy="user", cascade=CascadeType.ALL, orphanRemoval=true, fetch=FetchType.LAZY)
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private UserProfile profile;
 
     @Builder.Default
-    @OneToMany(mappedBy="user", cascade=CascadeType.REMOVE, orphanRemoval=true)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<OauthAccount> oauths = new ArrayList<>();
 
-    public void attachProfile(UserProfile p){
-        this.profile=p;
+    public void attachProfile(UserProfile p) {
+        this.profile = p;
         p.setUser(this);
     }
 
+    /**
+     * 회원 탈퇴를 처리합니다.
+     * 공통 상태를 DELETED로 변경하고, 개인정보를 마스킹 처리합니다.
+     */
+    public void withdraw() {
+        if (this.getStatus() == Status.DELETED) {
+            throw new BusinessException(UserErrorCode.USER_ALREADY_WITHDRAWN) {
+            };
+        }
+
+        this.changeStatus(Status.DELETED);
+// 복구 가능성을 생각해야함
+//        this.email = "deleted_" + this.getId();
+//        this.nickname = "탈퇴유저#" + this.getId();
+    }
+
+    /**
+     * 회원 복구를 처리합니다.
+     */
+    public void restore() {
+        if (this.getStatus() != Status.INACTIVE) {
+            throw new BusinessException(UserErrorCode.USER_PERMANENTLY_DELETED);
+        }
+
+        this.changeStatus(Status.ACTIVE);
+    }
+
+    /**
+     * fcmToken 업데이트
+     * @param fcmToken
+     */
+    public void updateFcmToken(String fcmToken) {
+        this.fcmToken = fcmToken;
+    }
 
 }
