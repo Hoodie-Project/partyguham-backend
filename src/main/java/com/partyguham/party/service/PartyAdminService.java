@@ -10,6 +10,7 @@ import com.partyguham.party.dto.partyAdmin.mapper.PartyUserAdminMapper;
 import com.partyguham.party.dto.partyAdmin.request.*;
 import com.partyguham.party.dto.partyAdmin.response.*;
 import com.partyguham.party.entity.*;
+import com.partyguham.party.reader.PartyReader;
 import com.partyguham.party.repository.PartyRepository;
 import com.partyguham.party.repository.PartyTypeRepository;
 import com.partyguham.party.repository.PartyUserRepository;
@@ -26,6 +27,8 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class PartyAdminService {
+
+    private final PartyReader partyReader;
 
     private final ApplicationEventPublisher eventPublisher;
 
@@ -128,16 +131,16 @@ public class PartyAdminService {
         List<PartyUser> members = partyUserRepository
                 .findByParty_IdAndStatus(partyId, Status.ACTIVE);
 
-            for (PartyUser member : members) {
-                PartyFinishedEvent event = PartyFinishedEvent.builder()
-                        .partyId(party.getId())
-                        .partyTitle(party.getTitle())
-                        .partyUserId(member.getUser().getId())
-                        .fcmToken(member.getUser().getFcmToken())
-                        .build();
+        for (PartyUser member : members) {
+            PartyFinishedEvent event = PartyFinishedEvent.builder()
+                    .partyId(party.getId())
+                    .partyTitle(party.getTitle())
+                    .partyUserId(member.getUser().getId())
+                    .fcmToken(member.getUser().getFcmToken())
+                    .build();
 
-                eventPublisher.publishEvent(event);
-            }
+            eventPublisher.publishEvent(event);
+        }
 
 
         return UpdatePartyResponseDto.from(party);
@@ -270,7 +273,7 @@ public class PartyAdminService {
 //        }
     }
 
-
+    @Transactional
     public PartyDelegationResponseDto delegateParty(Long partyId,
                                                     Long userId,
                                                     PartyDelegationRequestDto request) {
@@ -279,9 +282,7 @@ public class PartyAdminService {
         partyAccessService.checkMasterOrThrow(partyId, userId);
 
         // 2) 파티 존재 확인 (optional이지만 방어적으로 한 번 더)
-        Party party = partyRepository.findById(partyId)
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "존재하지 않는 파티입니다. id=" + partyId));
+        Party party = partyReader.readParty(partyId);
 
         // 3) 현재 파티장 PartyUser 찾기
         PartyUser currentMaster = partyUserRepository
@@ -319,7 +320,7 @@ public class PartyAdminService {
                 .findByParty_IdAndStatus(partyId, Status.ACTIVE);
 
         for (PartyUser member : members) {
-            PartyMemberPositionChangedEvent event = PartyMemberPositionChangedEvent.builder()
+            PartyLeaderChangedEvent event = PartyLeaderChangedEvent.builder()
                     .partyUserId(member.getUser().getId())
                     .userNickname(target.getUser().getNickname())
                     .partyId(party.getId())
@@ -351,13 +352,13 @@ public class PartyAdminService {
                 ));
 
         // 3) 포지션 변경 (optional)
-        if (request.getPositionId() != null) {
-            Position position = positionRepository.findById(request.getPositionId())
-                    .orElseThrow(() -> new IllegalArgumentException(
-                            "포지션이 존재하지 않습니다. id=" + request.getPositionId()
-                    ));
-            partyUser.setPosition(position);
-        }
+
+        Position position = positionRepository.findById(request.getPositionId())
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "포지션이 존재하지 않습니다. id=" + request.getPositionId()
+                ));
+        partyUser.setPosition(position);
+
 
         // 이벤트 발행
         Party party = partyRepository.findById(partyId)
@@ -370,6 +371,7 @@ public class PartyAdminService {
             PartyMemberPositionChangedEvent event = PartyMemberPositionChangedEvent.builder()
                     .partyUserId(member.getUser().getId())
                     .userNickname(partyUser.getUser().getNickname())
+                    .position(position.getMain() + " " + position.getSub())
                     .partyId(party.getId())
                     .partyTitle(party.getTitle())
                     .partyImage(party.getImage())
@@ -380,7 +382,7 @@ public class PartyAdminService {
         }
     }
 
-
+    @Transactional
     public void deletePartyUser(Long partyId,
                                 Long partyUserId,
                                 Long userId) {

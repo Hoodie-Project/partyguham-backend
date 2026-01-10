@@ -6,9 +6,11 @@ import com.partyguham.catalog.entity.Position;
 import com.partyguham.infra.s3.S3FileService;
 import com.partyguham.infra.s3.S3Folder;
 import com.partyguham.notification.event.PartyMemberLeftEvent;
+import com.partyguham.party.dto.party.PartiesDto;
+import com.partyguham.party.dto.party.PartyUserDto;
 import com.partyguham.party.dto.party.request.GetPartiesRequest;
-import com.partyguham.party.dto.party.request.GetPartyUsersRequestDto;
-import com.partyguham.party.dto.party.request.PartyCreateRequestDto;
+import com.partyguham.party.dto.party.request.GetPartyUsersRequest;
+import com.partyguham.party.dto.party.request.PartyCreateRequest;
 import com.partyguham.party.dto.party.response.*;
 import com.partyguham.party.entity.Party;
 import com.partyguham.party.entity.PartyAuthority;
@@ -56,7 +58,7 @@ public class PartyService  {
     private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
-    public PartyResponseDto createParty(PartyCreateRequestDto request, Long userId, MultipartFile image) {
+    public PartyResponseDto createParty(PartyCreateRequest request, Long userId, MultipartFile image) {
 
         // 1) 파티 타입 조회 (존재 여부 확인)
         PartyType partyType = partyReader.readType(request.getPartyTypeId());
@@ -121,7 +123,7 @@ public class PartyService  {
         return GetPartyResponseDto.from(party);
     }
 
-    public GetPartyUserResponseDto getPartyUsers(GetPartyUsersRequestDto request, Long partyId) { // 파티원 목록 조회
+    public GetPartyUserResponseDto getPartyUsers(GetPartyUsersRequest request, Long partyId) { // 파티원 목록 조회
         Party party = partyReader.readParty(partyId);
 
         // 기본값 적용
