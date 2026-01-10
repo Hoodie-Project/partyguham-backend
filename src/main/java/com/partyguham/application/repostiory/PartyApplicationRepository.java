@@ -2,14 +2,25 @@ package com.partyguham.application.repostiory;
 
 import com.partyguham.application.entity.PartyApplication;
 import com.partyguham.application.entity.PartyApplicationStatus;
+import com.partyguham.common.entity.Status;
 import com.partyguham.recruitment.entity.PartyRecruitment;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
 public interface PartyApplicationRepository extends JpaRepository<PartyApplication, Long> {
+
+    Optional<PartyApplication> findByIdAndStatusNot(Long id, Status status);
+
+    @Query("select pa from PartyApplication pa " +
+            "join fetch pa.partyRecruitment pr " +
+            "join fetch pr.party p " +
+            "where pa.id = :id and pa.status != :status")
+    Optional<PartyApplication> findWithDetailsById(@Param("id") Long id, @Param("status") Status status);
 
     // 한 유저가 같은 모집에 두 번 지원 못하게
     boolean existsByUser_IdAndPartyRecruitment_Id(Long partyUserId,

@@ -2,7 +2,6 @@ package com.partyguham.party.service;
 
 import com.partyguham.party.entity.PartyAuthority;
 import com.partyguham.party.entity.PartyUser;
-import com.partyguham.party.exception.PartyAccessDeniedException;
 import com.partyguham.party.repository.PartyUserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,14 +21,16 @@ public class PartyAccessService {
     /** 파티 유저 엔티티 조회 (없으면 예외) */
     private PartyUser getPartyUserOrThrow(Long partyId, Long userId) {
         return partyUserRepository.findByPartyIdAndUserId(partyId, userId)
-                .orElseThrow(() ->
-                        new PartyAccessDeniedException(partyId, userId, "NOT_MEMBER"));
+                .orElseThrow(
+//                        () ->
+//                        new PartyAccessDeniedException(partyId, userId, "NOT_MEMBER")
+                );
     }
 
     /** 단순히 파티에 속해있는지만 확인 */
     public void checkMemberOrThrow(Long partyId, Long userId) {
         if (!partyUserRepository.existsByPartyIdAndUserId(partyId, userId)) {
-            throw new PartyAccessDeniedException(partyId, userId, "NOT_MEMBER");
+//            throw new PartyAccessDeniedException(partyId, userId, "NOT_MEMBER");
         }
     }
 
@@ -41,7 +42,7 @@ public class PartyAccessService {
                 PartyAuthority.DEPUTY
         );
         if (!allowed.contains(pu.getAuthority())) {
-            throw new PartyAccessDeniedException(partyId, userId, "NEED_MANAGER_AUTHORITY");
+//            throw new PartyAccessDeniedException(partyId, userId, "NEED_MANAGER_AUTHORITY");
         }
     }
 
@@ -49,7 +50,7 @@ public class PartyAccessService {
     public void checkMasterOrThrow(Long partyId, Long userId) {
         PartyUser pu = getPartyUserOrThrow(partyId, userId);
         if (pu.getAuthority() != PartyAuthority.MASTER) {
-            throw new PartyAccessDeniedException(partyId, userId, "NEED_MASTER_AUTHORITY");
+//            throw new PartyAccessDeniedException(partyId, userId, "NEED_MASTER_AUTHORITY");
         }
     }
 

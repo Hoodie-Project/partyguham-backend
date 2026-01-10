@@ -11,7 +11,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public class PartyApplicantSearchRequestDto {
+public class PartyApplicantSearchRequest {
 
     /**
      * 페이지 (1부터 시작)

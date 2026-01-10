@@ -2,6 +2,9 @@ package com.partyguham.party.entity;
 
 import com.partyguham.catalog.entity.Position; //확인필요
 import com.partyguham.common.entity.BaseEntity;
+import com.partyguham.common.entity.Status;
+import com.partyguham.common.error.exception.BusinessException;
+import com.partyguham.party.exception.PartyUserErrorCode;
 import com.partyguham.user.account.entity.User;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -15,7 +18,7 @@ import lombok.experimental.SuperBuilder;
 @Setter
 @SuperBuilder
 @NoArgsConstructor
-@SequenceGenerator(name="party_user_seq_gen", sequenceName="party_user_seq_gen", allocationSize=50)
+@SequenceGenerator(name = "party_user_seq_gen", sequenceName = "party_user_seq_gen", allocationSize = 50)
 public class PartyUser extends BaseEntity {
 
     @Id
@@ -37,4 +40,17 @@ public class PartyUser extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private PartyAuthority authority;
+
+    public void leave() {
+        if (this.authority == PartyAuthority.MASTER) {
+            throw new BusinessException(PartyUserErrorCode.INVALID_LEAVE_REQUEST_BY_LEADER);
+        }
+
+        this.changeStatus(Status.DELETED);
+    }
+
+    public void delete() {
+        this.changeStatus(Status.DELETED);
+    }
 }
+

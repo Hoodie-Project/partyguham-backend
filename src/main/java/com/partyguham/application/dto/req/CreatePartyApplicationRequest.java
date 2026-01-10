@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class CreatePartyApplicationRequestDto {
+public class CreatePartyApplicationRequest {
 
     /**
      * 지원 메시지

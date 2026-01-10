@@ -13,6 +13,7 @@ import com.partyguham.party.entity.*;
 import com.partyguham.party.repository.PartyRepository;
 import com.partyguham.party.repository.PartyTypeRepository;
 import com.partyguham.party.repository.PartyUserRepository;
+import com.partyguham.recruitment.entity.PartyRecruitment;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.*;
@@ -243,18 +244,18 @@ public class PartyAdminService {
         }
 
         // 4) 파티 자체 삭제 처리
-        party.setStatus(Status.DELETED);
+        party.delete();
 
         // 5) 파티 관련 모집글 전부 삭제 처리
         if (party.getPartyRecruitments() != null) {
             party.getPartyRecruitments()
-                    .forEach(r -> r.setStatus(Status.DELETED));
+                    .forEach(PartyRecruitment::delete);
         }
 
         // 6) 파티원 이력도 삭제 처리
         if (party.getPartyUsers() != null) {
             party.getPartyUsers()
-                    .forEach(pu -> pu.setStatus(Status.DELETED));
+                    .forEach(PartyUser::delete);
         }
 
         // 7) 🆕 연관 지원내역(PartyApplication) 전체 삭제
@@ -400,7 +401,7 @@ public class PartyAdminService {
         }
 
         // 4) 소프트 삭제
-        target.setStatus(Status.DELETED);
+        target.delete();
 
         // 이벤트 발행
         Party party = partyRepository.findById(partyId)
@@ -454,6 +455,6 @@ public class PartyAdminService {
         }
 
         // 4) 모두 소프트 삭제
-        partyUsers.forEach(pu -> pu.setStatus(Status.DELETED));
+        partyUsers.forEach(PartyUser::delete);
     }
 }

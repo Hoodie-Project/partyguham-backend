@@ -1,5 +1,6 @@
 package com.partyguham.party.service;
 
+import com.partyguham.catalog.reader.PositionReader;
 import com.partyguham.common.entity.Status;
 import com.partyguham.catalog.entity.Position;
 import com.partyguham.catalog.repository.PositionRepository;
@@ -14,12 +15,8 @@ import com.partyguham.party.entity.Party;
 import com.partyguham.party.entity.PartyAuthority;
 import com.partyguham.party.entity.PartyType;
 import com.partyguham.party.entity.PartyUser;
-import com.partyguham.party.exception.PartyAccessDeniedException;
-import com.partyguham.party.exception.PartyNotFoundException;
-import com.partyguham.party.exception.PartyTypeNotFoundException;
-import com.partyguham.party.exception.PartyUserNotFoundException;
-import com.partyguham.party.exception.PositionNotFoundException;
-import com.partyguham.party.exception.UserNotFoundException;
+import com.partyguham.party.reader.PartyReader;
+import com.partyguham.party.reader.PartyUserReader;
 import com.partyguham.party.repository.PartyRepository;
 import com.partyguham.party.repository.PartyTypeRepository;
 import com.partyguham.party.repository.PartyUserRepository;
@@ -27,7 +24,7 @@ import com.partyguham.recruitment.dto.response.PartyRecruitmentSearchDto;
 import com.partyguham.recruitment.entity.PartyRecruitment;
 import com.partyguham.recruitment.repository.PartyRecruitmentRepository;
 import com.partyguham.user.account.entity.User;
-import com.partyguham.user.account.repository.UserRepository;
+import com.partyguham.user.account.reader.UserReader;
 import com.partyguham.user.profile.repository.UserCareerRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -44,12 +41,15 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class PartyService {
+public class PartyService  {
+
+    private final UserReader userReader;
+    private final PartyReader partyReader;
+    private final PartyUserReader partyUserReader;
+    private final PositionReader positionReader;
 
     private final PartyRepository partyRepository;
     private final PartyTypeRepository partyTypeRepository;
-    private final PositionRepository positionRepository;
-    private final UserRepository userRepository;
     private final PartyUserRepository partyUserRepository;
     private final UserCareerRepository userCareerRepository;
     private final PartyRecruitmentRepository partyRecruitmentRepository;
@@ -59,20 +59,23 @@ public class PartyService {
     @Transactional
     public PartyResponseDto createParty(PartyCreateRequestDto request, Long userId, MultipartFile image) {
 
-        PartyType partyType = partyTypeRepository.findById(request.getPartyTypeId())
-                .orElseThrow(() -> new PartyTypeNotFoundException(request.getPartyTypeId()));
+        // 1) 파티 타입 조회 (존재 여부 확인)
+        PartyType partyType = partyReader.readType(request.getPartyTypeId());
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException(userId));
 
-        Position position = positionRepository.findById(request.getPositionId())
-                .orElseThrow(() -> new PositionNotFoundException(request.getPositionId()));
+        // 2) 파티장 역할을 맡을 유저 조회
+        User user = userReader.read(userId);
 
+        // 3) 파티장 기본 포지션 조회
+        Position position = positionReader.read(request.getPositionId());
+
+        // 4) 이미지가 있으면 업로드 후 키 저장
         String imageKey = null;
         if (image != null && !image.isEmpty()) {
             imageKey = s3FileService.upload(image, S3Folder.PARTY);
         }
 
+        // 5) 파티 엔티티 생성
         Party party = Party.builder()
                 .title(request.getTitle())
                 .content(request.getContent())
@@ -82,6 +85,7 @@ public class PartyService {
 
         partyRepository.save(party);
 
+        // 6) 파티장 PartyUser 생성
         PartyUser masterUser = PartyUser.builder()
                 .party(party)
                 .user(user)
@@ -91,14 +95,20 @@ public class PartyService {
 
         partyUserRepository.save(masterUser);
 
-        return PartyResponseDto.from(party);
+        // 7) 결과 반환
+        return PartyResponseDto.of(party);
     }
 
     public GetPartiesResponseDto getParties(GetPartiesRequestDto request) { // 파티 목록 조회
         Pageable pageable = PageRequest.of(
                 request.getPage() - 1,
-                request.getSize(),
-                Sort.by(request.getOrder(), request.getSort())
+                request.getLimit(),
+                Sort.by(
+                        request.getOrder().equalsIgnoreCase("ASC")
+                                ? Sort.Direction.ASC
+                                : Sort.Direction.DESC,
+                        request.getSort()
+                )
         );
 
         Page<Party> page = partyRepository.searchParties(request, pageable);
@@ -107,27 +117,29 @@ public class PartyService {
                 .map(PartiesDto::from)
                 .toList();
 
-        return GetPartiesResponseDto.fromPage(page.getTotalElements(), parties);
+        GetPartiesResponseDto response = GetPartiesResponseDto.builder()
+                .total(page.getTotalElements())
+                .parties(parties)
+                .build();
+
+        return response;
     }
 
     public GetPartyResponseDto getParty(Long partyId) { // 파티 단일 조회
-        Party party = partyRepository.findById(partyId)
-                .orElseThrow(() -> new PartyNotFoundException());
+        Party party = partyReader.readParty(partyId);
 
         return GetPartyResponseDto.from(party);
     }
 
     public GetPartyUserResponseDto getPartyUsers(GetPartyUsersRequestDto request, Long partyId) { // 파티원 목록 조회
-
-        partyRepository.findById(partyId)
-                .orElseThrow(() -> new PartyNotFoundException());
+        Party party = partyReader.readParty(partyId);
 
         // 기본값 적용
         request.applyDefaultValues();
 
         Pageable pageable = PageRequest.of(
                 request.getPage() - 1,
-                request.getSize()
+                request.getLimit()
         );
 
         Page<PartyUser> page = partyUserRepository.findPartyUsers(
@@ -157,17 +169,17 @@ public class PartyService {
                 })
                 .toList();
 
-        return GetPartyUserResponseDto.from(partyAdmin, partyUserList);
+        return GetPartyUserResponseDto.builder()
+                .partyAdmin(partyAdmin)
+                .partyUser(partyUserList)
+                .build();
     }
 
     public PartyAuthorityResponseDto getPartyAuthority(Long partyId, Long userId) { // 나의 파티 권한 조회
 
-        partyRepository.findById(partyId)
-                .orElseThrow(() -> new PartyNotFoundException());
+        Party party = partyReader.readParty(partyId);
 
-        // PartyUser 조회
-        PartyUser partyUser = partyUserRepository.findByPartyIdAndUserId(partyId, userId)
-                .orElseThrow(() -> new PartyUserNotFoundException(partyId, userId));
+        PartyUser partyUser = partyUserReader.getMember(partyId, userId);
 
         return PartyAuthorityResponseDto.from(partyUser);
     }
@@ -180,19 +192,13 @@ public class PartyService {
 
     @Transactional
     public void leaveParty(Long partyId, Long userId) { // 파티 나가기
+        // 파티 존재 확인
+        Party party = partyReader.readParty(partyId);
 
-        Party party = partyRepository.findById(partyId)
-                .orElseThrow(() -> new PartyNotFoundException());
+        // PartyUser 조회 및 삭제
+        PartyUser leftUser = partyUserReader.getMember(partyId, userId);
 
-        PartyUser leftUser = partyUserRepository.findByPartyIdAndUserId(partyId, userId)
-                .orElseThrow(() -> new PartyUserNotFoundException(partyId, userId));
-
-        if (leftUser.getAuthority() == PartyAuthority.MASTER) {
-            throw new PartyAccessDeniedException("파티장은 파티를 나갈 수 없습니다.");
-        }
-
-        // 소프트 삭제: status를 DELETED로 변경
-        leftUser.setStatus(Status.DELETED);
+        leftUser.leave();
 
         // 이벤트 발행
         List<PartyUser> members = partyUserRepository
@@ -212,8 +218,8 @@ public class PartyService {
         }
     }
 
-    public GetSearchResponseDto searchParties(int page, int size, String titleSearch) { // 파티/모집공고 통합검색
-        Pageable pageable = PageRequest.of(page - 1, size);
+    public GetSearchResponseDto searchParties(int page, int limit, String titleSearch) { // 파티/모집공고 통합검색
+        Pageable pageable = PageRequest.of(page - 1, limit);
 
         // Party 검색
         Page<Party> partyPage = partyRepository.findByTitleKeyword(titleSearch, pageable);
@@ -233,12 +239,16 @@ public class PartyService {
                 .map(PartyRecruitmentSearchDto::from)
                 .toList();
 
-        return GetSearchResponseDto.from(
-                partyPage.getTotalElements(),
-                partyListDto,
-                recruitmentPage.getTotalElements(),
-                recruitmentListDto
-        );
+        return GetSearchResponseDto.builder()
+                .party(GetSearchResponseDto.PartySearchDto.builder()
+                        .total(partyPage.getTotalElements())
+                        .parties(partyListDto)
+                        .build())
+                .partyRecruitment(GetSearchResponseDto.PartyRecruitmentSearchResultDto.builder()
+                        .total(recruitmentPage.getTotalElements())
+                        .partyRecruitments(recruitmentListDto)
+                        .build())
+                .build();
     }
 
     @Transactional(readOnly = true)

@@ -1,6 +1,9 @@
 package com.partyguham.party.entity;
 
 import com.partyguham.common.entity.BaseEntity;
+import com.partyguham.common.entity.Status;
+import com.partyguham.common.error.exception.BusinessException;
+import com.partyguham.party.exception.PartyUserErrorCode;
 import com.partyguham.recruitment.entity.PartyRecruitment;
 import jakarta.persistence.*;
 import lombok.*;
@@ -46,5 +49,9 @@ public class Party extends BaseEntity {
 
     @OneToMany(mappedBy = "party", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PartyRecruitment> partyRecruitments;
+
+    public void delete() {
+        this.changeStatus(Status.DELETED);
+    }
 
 }

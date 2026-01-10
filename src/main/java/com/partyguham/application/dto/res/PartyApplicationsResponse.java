@@ -12,7 +12,7 @@ import java.util.List;
  */
 @Getter
 @Builder
-public class PartyApplicationsResponseDto {
+public class PartyApplicationsResponse {
 
     /**
      * 필터 + 페이징 후 전체 개수
@@ -42,13 +42,13 @@ public class PartyApplicationsResponseDto {
         private String image; // 프로필 이미지 URL or key
     }
 
-    public static PartyApplicationsResponseDto fromEntities(List<PartyApplication> apps,
+    public static PartyApplicationsResponse fromEntities(List<PartyApplication> apps,
                                                             long total) {
         List<PartyApplicationUserDto> items = apps.stream()
-                .map(PartyApplicationsResponseDto::toUserDto)
+                .map(PartyApplicationsResponse::toUserDto)
                 .toList();
 
-        return PartyApplicationsResponseDto.builder()
+        return PartyApplicationsResponse.builder()
                 .total(total)
                 .applications(items)
                 .build();

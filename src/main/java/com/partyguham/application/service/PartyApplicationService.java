@@ -1,15 +1,15 @@
 package com.partyguham.application.service;
 
-import com.partyguham.application.dto.req.CreatePartyApplicationRequestDto;
-import com.partyguham.application.dto.req.PartyApplicantSearchRequestDto;
-import com.partyguham.application.dto.res.PartyApplicationMeResponseDto;
-import com.partyguham.application.dto.res.PartyApplicationsResponseDto;
+import com.partyguham.application.dto.req.CreatePartyApplicationRequest;
+import com.partyguham.application.dto.req.PartyApplicantSearchRequest;
+import com.partyguham.application.dto.res.PartyApplicationMeResponse;
+import com.partyguham.application.dto.res.PartyApplicationsResponse;
 import com.partyguham.application.entity.PartyApplication;
 import com.partyguham.application.entity.PartyApplicationStatus;
+import com.partyguham.application.reader.PartyApplicationReader;
 import com.partyguham.application.repostiory.PartyApplicationQueryRepository;
 import com.partyguham.application.repostiory.PartyApplicationRepository;
 import com.partyguham.common.entity.Status;
-import com.partyguham.common.exception.NotFoundException;
 import com.partyguham.notification.event.*;
 import com.partyguham.party.entity.Party;
 import com.partyguham.party.entity.PartyAuthority;
@@ -34,6 +34,8 @@ import java.util.List;
 @Transactional
 public class PartyApplicationService {
 
+    private final PartyApplicationReader partyApplicationReader;
+
     private final PartyAccessService partyAccessService;
     private final PartyUserRepository partyUserRepository;
     private final UserRepository userRepository;
@@ -52,7 +54,7 @@ public class PartyApplicationService {
     public void applyToRecruitment(Long partyId,
                                    Long recruitmentId,
                                    Long userId,
-                                   CreatePartyApplicationRequestDto request) {
+                                   CreatePartyApplicationRequest request) {
         // 1) 유저 조회 (기본 방어)
         User applicantUser
                 = userRepository.findById(userId)
@@ -113,7 +115,7 @@ public class PartyApplicationService {
         eventPublisher.publishEvent(event);
     }
 
-    public PartyApplicationMeResponseDto getMyApplication(Long partyId,
+    public PartyApplicationMeResponse getMyApplication(Long partyId,
                                                           Long recruitmentId,
                                                           Long userId) {
 
@@ -121,11 +123,13 @@ public class PartyApplicationService {
                 .findByPartyRecruitment_IdAndPartyRecruitment_Party_IdAndUser_Id(
                         recruitmentId, partyId, userId
                 )
-                .orElseThrow(() -> new NotFoundException(
-                        "해당 모집에 대한 나의 지원 내역이 없습니다."
-                ));
+                .orElseThrow(
+//                        () -> new NotFoundException(
+//                        "해당 모집에 대한 나의 지원 내역이 없습니다."
+//                )
+                );
 
-        return PartyApplicationMeResponseDto.from(app);
+        return PartyApplicationMeResponse.from(app);
     }
 
     @Transactional
@@ -161,10 +165,10 @@ public class PartyApplicationService {
     }
 
     @Transactional(readOnly = true)
-    public PartyApplicationsResponseDto getPartyApplications(Long partyId,
+    public PartyApplicationsResponse getPartyApplications(Long partyId,
                                                              Long partyRecruitmentId,
                                                              Long userId,
-                                                             PartyApplicantSearchRequestDto request) {
+                                                             PartyApplicantSearchRequest request) {
 
         // 1) 권한 체크 (파티장/부파티장)
         partyAccessService.checkManagerOrThrow(partyId, userId);
@@ -179,7 +183,7 @@ public class PartyApplicationService {
                 .searchApplicants(partyId, partyRecruitmentId, request, pageable);
 
         // 4) DTO 변환
-        return PartyApplicationsResponseDto.fromEntities(
+        return PartyApplicationsResponse.fromEntities(
                 pageResult.getContent(),
                 pageResult.getTotalElements()
         );
@@ -195,7 +199,7 @@ public class PartyApplicationService {
         partyAccessService.checkManagerOrThrow(partyId, managerUserId);
 
         // 2) 지원 엔티티 조회 + 소속 파티 검증
-        PartyApplication app = getApplicationForPartyOrThrow(partyId, applicationId);
+        PartyApplication app = partyApplicationReader.readWithParty(partyId, applicationId);
 
         // 3) 상태 검증
         if (app.getApplicationStatus() != PartyApplicationStatus.PENDING) {
@@ -225,7 +229,7 @@ public class PartyApplicationService {
         partyAccessService.checkManagerOrThrow(partyId, managerUserId);
 
         // 2) 지원 엔티티 조회 + 소속 파티 검증
-        PartyApplication app = getApplicationForPartyOrThrow(partyId, applicationId);
+        PartyApplication app = partyApplicationReader.readWithParty(partyId, applicationId);
 
         // 3) 상태 검증
         if (app.getApplicationStatus() != PartyApplicationStatus.PENDING) {
@@ -247,33 +251,13 @@ public class PartyApplicationService {
     }
 
     /**
-     * 공통: 지원 엔티티 조회 + 파티 일치 여부 검증
-     */
-    private PartyApplication getApplicationForPartyOrThrow(Long partyId, Long applicationId) {
-        PartyApplication app = partyApplicationRepository.findById(applicationId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 지원입니다. id=" + applicationId));
-
-        // BaseEntity.status 가 DELETED 인 경우 방어
-        if (app.getStatus() == Status.DELETED) {
-            throw new IllegalStateException("삭제된 지원입니다.");
-        }
-
-        Long appPartyId = app.getPartyRecruitment().getParty().getId();
-        if (!appPartyId.equals(partyId)) {
-            throw new IllegalArgumentException("해당 파티의 지원이 아닙니다.");
-        }
-
-        return app;
-    }
-
-    /**
      * 지원자 최종 수락: PROCESSING -> APPROVED
      * + 여기서 파티 합류 처리
      */
     @Transactional
     public void approveByApplicant(Long partyId, Long applicationId, Long applicantUserId) {
         // 1) 지원 조회 + 파티 일치 여부 검증
-        PartyApplication app = getApplicationForPartyOrThrow(partyId, applicationId);
+        PartyApplication app = partyApplicationReader.readWithParty(partyId, applicationId);
 
         // 2) 이 지원이 "내 것"인지 확인
         Long appUserId = app.getUser().getId();
@@ -389,7 +373,7 @@ public class PartyApplicationService {
     @Transactional
     public void rejectByApplicant(Long partyId, Long applicationId, Long applicantUserId) {
 
-        PartyApplication app = getApplicationForPartyOrThrow(partyId, applicationId);
+        PartyApplication app = partyApplicationReader.readWithParty(partyId, applicationId);
 
         Long appUserId = app.getUser().getId();
         if (!appUserId.equals(applicantUserId)) {
