@@ -2,7 +2,7 @@ package com.partyguham.party.controller;
 
 import com.partyguham.auth.jwt.UserPrincipal;
 import com.partyguham.common.annotation.ApiV2Controller;
-import com.partyguham.party.dto.party.request.GetPartiesRequestDto;
+import com.partyguham.party.dto.party.request.GetPartiesRequest;
 import com.partyguham.party.dto.party.request.GetPartyRecruitmentsRequestDto;
 import com.partyguham.party.dto.party.response.GetPartiesResponseDto;
 import com.partyguham.party.dto.party.response.GetPartyRecruitmentsResponseDto;
@@ -34,7 +34,7 @@ public class PartyHomeController {
      */
     @GetMapping
     public ResponseEntity<GetPartiesResponseDto> getParties(
-            @ModelAttribute @Valid GetPartiesRequestDto parties) {
+            @ModelAttribute @Valid GetPartiesRequest parties) {
 
         return ResponseEntity.ok(partyService.getParties(parties));
     }

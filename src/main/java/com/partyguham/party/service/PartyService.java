@@ -3,11 +3,10 @@ package com.partyguham.party.service;
 import com.partyguham.catalog.reader.PositionReader;
 import com.partyguham.common.entity.Status;
 import com.partyguham.catalog.entity.Position;
-import com.partyguham.catalog.repository.PositionRepository;
 import com.partyguham.infra.s3.S3FileService;
 import com.partyguham.infra.s3.S3Folder;
 import com.partyguham.notification.event.PartyMemberLeftEvent;
-import com.partyguham.party.dto.party.request.GetPartiesRequestDto;
+import com.partyguham.party.dto.party.request.GetPartiesRequest;
 import com.partyguham.party.dto.party.request.GetPartyUsersRequestDto;
 import com.partyguham.party.dto.party.request.PartyCreateRequestDto;
 import com.partyguham.party.dto.party.response.*;
@@ -96,19 +95,14 @@ public class PartyService  {
         partyUserRepository.save(masterUser);
 
         // 7) 결과 반환
-        return PartyResponseDto.of(party);
+        return PartyResponseDto.from(party);
     }
 
-    public GetPartiesResponseDto getParties(GetPartiesRequestDto request) { // 파티 목록 조회
+    public GetPartiesResponseDto getParties(GetPartiesRequest request) { // 파티 목록 조회
         Pageable pageable = PageRequest.of(
                 request.getPage() - 1,
-                request.getLimit(),
-                Sort.by(
-                        request.getOrder().equalsIgnoreCase("ASC")
-                                ? Sort.Direction.ASC
-                                : Sort.Direction.DESC,
-                        request.getSort()
-                )
+                request.getSize(),
+                Sort.by(request.getOrder(), request.getSort())
         );
 
         Page<Party> page = partyRepository.searchParties(request, pageable);
@@ -117,13 +111,9 @@ public class PartyService  {
                 .map(PartiesDto::from)
                 .toList();
 
-        GetPartiesResponseDto response = GetPartiesResponseDto.builder()
-                .total(page.getTotalElements())
-                .parties(parties)
-                .build();
-
-        return response;
+        return GetPartiesResponseDto.fromPage(page.getTotalElements(), parties);
     }
+
 
     public GetPartyResponseDto getParty(Long partyId) { // 파티 단일 조회
         Party party = partyReader.readParty(partyId);
@@ -139,7 +129,7 @@ public class PartyService  {
 
         Pageable pageable = PageRequest.of(
                 request.getPage() - 1,
-                request.getLimit()
+                request.getSize()
         );
 
         Page<PartyUser> page = partyUserRepository.findPartyUsers(
