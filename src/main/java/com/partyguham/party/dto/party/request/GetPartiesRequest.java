@@ -14,7 +14,7 @@ import org.springframework.data.domain.Sort.Direction;
  */
 @Getter
 @Setter
-public class GetPartiesRequestDto { 
+public class GetPartiesRequest {
     @NotNull
     @Min(1)
     private Integer page = 1;

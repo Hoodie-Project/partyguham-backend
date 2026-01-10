@@ -1,10 +1,8 @@
 package com.partyguham.recruitment.service;
 
-import com.partyguham.common.entity.Status;
 import com.partyguham.common.error.exception.BusinessException;
 import com.partyguham.party.entity.Party;
 import com.partyguham.party.reader.PartyReader;
-import com.partyguham.party.repository.PartyRepository;
 import com.partyguham.party.service.PartyAccessService;
 import com.partyguham.recruitment.dto.request.CreatePartyRecruitmentRequestDto;
 import com.partyguham.recruitment.dto.request.PartyRecruitmentIdsBodyRequestDto;
@@ -94,7 +92,7 @@ public class RecruitmentAdminService {
         partyAccessService.checkManagerOrThrow(partyId, userId);
 
         recruitment.setContent(request.getContent());
-        recruitment.setMaxParticipants(request.getRecruitingCount());
+        recruitment.setMaxParticipants(request.getMaxParticipants());
 
         return PartyRecruitmentsResponseDto.from(recruitment);
     }

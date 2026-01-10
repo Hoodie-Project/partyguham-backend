@@ -1,7 +1,7 @@
 package com.partyguham.party.repository;
 
 import com.partyguham.common.entity.Status;
-import com.partyguham.party.dto.party.request.GetPartiesRequestDto;
+import com.partyguham.party.dto.party.request.GetPartiesRequest;
 import com.partyguham.party.entity.Party;
 import com.partyguham.party.entity.QParty;
 import com.querydsl.core.BooleanBuilder;
@@ -79,7 +79,7 @@ public class PartyRepositoryImpl implements PartyCustomRepository {
     }
 
     @Override
-    public Page<Party> searchParties(GetPartiesRequestDto request, Pageable pageable) {
+    public Page<Party> searchParties(GetPartiesRequest request, Pageable pageable) {
         QParty party = QParty.party;
         BooleanBuilder builder = new BooleanBuilder();
 
@@ -121,7 +121,7 @@ public class PartyRepositoryImpl implements PartyCustomRepository {
         return new PageImpl<>(results, pageable, total != null ? total : 0L);
     }
 
-    private OrderSpecifier<?> getOrderSpecifier(GetPartiesRequestDto request) {
+    private OrderSpecifier<?> getOrderSpecifier(GetPartiesRequest request) {
         QParty party = QParty.party;
         Direction dir = request.getOrder(); 
         Order order = (dir == Direction.ASC) ? Order.ASC : Order.DESC;
