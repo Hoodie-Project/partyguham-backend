@@ -8,15 +8,15 @@ import java.time.LocalDateTime;
 
 @Getter
 @Builder
-public class PartyApplicationMeResponseDto {
+public class PartyApplicationMeResponse {
 
     private Long id;           // 지원 PK
     private String status;     // pending / approved / rejected ...
     private LocalDateTime createdAt; // 지원 시각
     private String message;    // 내가 쓴 메세지
 
-    public static PartyApplicationMeResponseDto from(PartyApplication app) {
-        return PartyApplicationMeResponseDto.builder()
+    public static PartyApplicationMeResponse from(PartyApplication app) {
+        return PartyApplicationMeResponse.builder()
                 .id(app.getId())
                 .status(app.getApplicationStatus().name().toLowerCase())
                 .createdAt(app.getCreatedAt())

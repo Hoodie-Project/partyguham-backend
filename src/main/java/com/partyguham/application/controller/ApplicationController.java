@@ -1,8 +1,8 @@
 package com.partyguham.application.controller;
 
-import com.partyguham.application.dto.req.CreatePartyApplicationRequestDto;
-import com.partyguham.application.dto.res.MessageResponseDto;
-import com.partyguham.application.dto.res.PartyApplicationMeResponseDto;
+import com.partyguham.application.dto.req.CreatePartyApplicationRequest;
+import com.partyguham.application.dto.res.MessageResponse;
+import com.partyguham.application.dto.res.PartyApplicationMeResponse;
 import com.partyguham.application.service.PartyApplicationService;
 import com.partyguham.auth.jwt.UserPrincipal;
 import com.partyguham.common.annotation.ApiV2Controller;
@@ -24,7 +24,7 @@ public class ApplicationController {
             @PathVariable Long partyId,
             @PathVariable Long partyRecruitmentId,
             @AuthenticationPrincipal UserPrincipal user,
-            @RequestBody CreatePartyApplicationRequestDto request
+            @RequestBody CreatePartyApplicationRequest request
     ) {
         partyApplicationService.applyToRecruitment(partyId, partyRecruitmentId, user.getId(), request);
         return ResponseEntity.noContent().build(); // 204
@@ -32,7 +32,7 @@ public class ApplicationController {
 
     /** 모집에 대한 나의 지원 내역 조회 */
     @GetMapping("/recruitments/{partyRecruitmentId}/applications/me")
-    public ResponseEntity<PartyApplicationMeResponseDto> getMyPartyApplication(
+    public ResponseEntity<PartyApplicationMeResponse> getMyPartyApplication(
             @PathVariable Long partyId,
             @PathVariable Long partyRecruitmentId,
             @AuthenticationPrincipal UserPrincipal user
@@ -59,23 +59,23 @@ public class ApplicationController {
 
     /** 지원자 최종 수락: PROCESSING -> APPROVED (+ 파티 합류) */
     @PostMapping("/applications/{partyApplicationId}/approval")
-    public ResponseEntity<MessageResponseDto> approveMyApplication(
+    public ResponseEntity<MessageResponse> approveMyApplication(
             @PathVariable Long partyId,
             @PathVariable Long partyApplicationId,
             @AuthenticationPrincipal UserPrincipal user
     ) {
         partyApplicationService.approveByApplicant(partyId, partyApplicationId, user.getId());
-        return ResponseEntity.ok(MessageResponseDto.of("파티 합류에 동의했습니다."));
+        return ResponseEntity.ok(MessageResponse.of("파티 합류에 동의했습니다."));
     }
 
     /** 지원자 최종 거절: PROCESSING -> REJECTED */
     @PostMapping("/applications/{partyApplicationId}/rejection")
-    public ResponseEntity<MessageResponseDto> rejectMyApplication(
+    public ResponseEntity<MessageResponse> rejectMyApplication(
             @PathVariable Long partyId,
             @PathVariable Long partyApplicationId,
             @AuthenticationPrincipal UserPrincipal user
     ) {
         partyApplicationService.rejectByApplicant(partyId, partyApplicationId, user.getId());
-        return ResponseEntity.ok(MessageResponseDto.of("참여를 거절했습니다."));
+        return ResponseEntity.ok(MessageResponse.of("참여를 거절했습니다."));
     }
 }

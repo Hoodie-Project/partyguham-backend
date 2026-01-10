@@ -1,6 +1,6 @@
 package com.partyguham.application.repostiory;
 
-import com.partyguham.application.dto.req.PartyApplicantSearchRequestDto;
+import com.partyguham.application.dto.req.PartyApplicantSearchRequest;
 import com.partyguham.application.entity.PartyApplication;
 import com.partyguham.application.entity.PartyApplicationStatus;
 import com.partyguham.common.entity.Status;
@@ -32,7 +32,7 @@ public class PartyApplicationQueryRepository {
      */
     public Page<PartyApplication> searchApplicants(Long partyId,
                                                    Long recruitmentId,
-                                                   PartyApplicantSearchRequestDto request,
+                                                   PartyApplicantSearchRequest request,
                                                    Pageable pageable) {
 
         // 정렬 방향
