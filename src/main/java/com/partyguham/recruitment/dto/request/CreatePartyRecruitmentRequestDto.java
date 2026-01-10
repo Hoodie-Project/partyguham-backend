@@ -27,8 +27,7 @@ public class CreatePartyRecruitmentRequestDto {
     private String content;
 
     @Min(value = 1, message = "recruiting_count 는 최소 1명 이상이어야 합니다.")
-    @JsonProperty("recruiting_count")
-    private int recruitingCount;
+    private int maxParticipants;
 }
 
 

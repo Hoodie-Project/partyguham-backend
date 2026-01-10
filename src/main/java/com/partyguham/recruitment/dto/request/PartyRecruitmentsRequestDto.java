@@ -1,8 +1,12 @@
 package com.partyguham.recruitment.dto.request;
 
+import com.partyguham.common.validation.ValidMainPosition;
+import com.partyguham.common.validation.ValidRecruitmentSort;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import jakarta.annotation.Nullable;
+import jakarta.validation.constraints.NotNull;
+
+import org.springframework.data.domain.Sort.Direction;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
@@ -20,16 +24,16 @@ import lombok.Setter;
 @Builder
 public class PartyRecruitmentsRequestDto {
 
-    @Builder.Default
+    @ValidRecruitmentSort
     private String sort = "createdAt";
 
-    @Builder.Default
-    private String order = "ASC";
+    private Direction order = Direction.ASC;       
 
-    @Nullable
+    @ValidMainPosition
     private String main;
 
-    private Boolean completed; // 프론트 변경요청
+    @NotNull
+    private Boolean completed = false; // 프론트 변경요청
 
 }
 

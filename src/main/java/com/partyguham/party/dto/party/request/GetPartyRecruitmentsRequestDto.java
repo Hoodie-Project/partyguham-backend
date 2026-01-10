@@ -19,7 +19,7 @@ public class GetPartyRecruitmentsRequestDto {
     private Integer page = 1;             
     
     @Min(1)
-    private Integer limit = 20;        
+    private Integer size = 5;        
     
     @ValidRecruitmentSort
     private String sort = "createdAt";         

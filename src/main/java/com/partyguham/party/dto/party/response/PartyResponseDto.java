@@ -19,7 +19,7 @@ public class PartyResponseDto {
     private String updatedAt;
 
 
-    public static PartyResponseDto of(Party party) {
+    public static PartyResponseDto from(Party party) {
         return PartyResponseDto.builder()
                 .id(party.getId())
                 .title(party.getTitle())

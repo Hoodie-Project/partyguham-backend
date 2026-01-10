@@ -1,5 +1,6 @@
 package com.partyguham.party.repository;
 
+import com.partyguham.common.entity.Status;
 import com.partyguham.party.dto.party.request.GetPartiesRequestDto;
 import com.partyguham.party.entity.Party;
 import com.partyguham.party.entity.QParty;
@@ -13,6 +14,7 @@ import jakarta.persistence.PersistenceContext;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -81,6 +83,9 @@ public class PartyRepositoryImpl implements PartyCustomRepository {
         QParty party = QParty.party;
         BooleanBuilder builder = new BooleanBuilder();
 
+        // 레코드 상태가 DELETED 가 아닌 파티만 조회
+        builder.and(party.status.ne(Status.DELETED));
+
         // PartyStatus 필터링
         if (request.getPartyStatus() != null) {
             builder.and(party.partyStatus.eq(request.getPartyStatus()));
@@ -118,20 +123,15 @@ public class PartyRepositoryImpl implements PartyCustomRepository {
 
     private OrderSpecifier<?> getOrderSpecifier(GetPartiesRequestDto request) {
         QParty party = QParty.party;
-        
-        // 기본 정렬: createdAt DESC
-        Order direction = Order.DESC;
-        
-        if (request.getOrder() != null) {
-            direction = request.getOrder().equalsIgnoreCase("ASC") ? Order.ASC : Order.DESC;
-        }
+        Direction dir = request.getOrder(); 
+        Order order = (dir == Direction.ASC) ? Order.ASC : Order.DESC;
 
         // 정렬 필드
         String sortField = request.getSort() != null ? request.getSort() : "createdAt";
         
         return switch (sortField) {
-            case "createdAt" -> new OrderSpecifier<>(direction, party.createdAt);
-            default -> new OrderSpecifier<>(direction, party.createdAt);
+            case "createdAt" -> new OrderSpecifier<>(order, party.createdAt);
+            default -> new OrderSpecifier<>(order, party.createdAt);
         };
     }
 }

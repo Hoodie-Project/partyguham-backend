@@ -30,11 +30,11 @@ public class PartyHomeController {
     private final PartyService partyService;
     private final RecruitmentService RecruitmentService;
     /**
-     * 파티 목록 조회
+     * 파티 목록 조회 
      */
     @GetMapping
     public ResponseEntity<GetPartiesResponseDto> getParties(
-            @ModelAttribute GetPartiesRequestDto parties) {
+            @ModelAttribute @Valid GetPartiesRequestDto parties) {
 
         return ResponseEntity.ok(partyService.getParties(parties));
     }
@@ -49,10 +49,10 @@ public class PartyHomeController {
     @GetMapping("/search")
     public ResponseEntity<GetSearchResponseDto> searchParties(
             @RequestParam int page,
-            @RequestParam int limit,
+            @RequestParam int size,
             @RequestParam(required = false) String titleSearch) {
 
-        return ResponseEntity.ok(partyService.searchParties(page, limit, titleSearch));
+        return ResponseEntity.ok(partyService.searchParties(page, size, titleSearch));
     }
 
     /**
