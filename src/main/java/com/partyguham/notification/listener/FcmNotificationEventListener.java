@@ -142,6 +142,7 @@ public class FcmNotificationEventListener {
         fcmNotificationService.sendPartyMemberPositionChangedEvent(
                 event.getUserNickname(),
                 event.getPartyTitle(),
+                event.getPosition(),
                 event.getFcmToken()
         );
     }
