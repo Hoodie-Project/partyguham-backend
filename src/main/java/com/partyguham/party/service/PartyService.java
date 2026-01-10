@@ -58,7 +58,7 @@ public class PartyService  {
     private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
-    public PartyResponseDto createParty(PartyCreateRequest request, Long userId, MultipartFile image) {
+    public PartyResponse createParty(PartyCreateRequest request, Long userId, MultipartFile image) {
 
         // 1) 파티 타입 조회 (존재 여부 확인)
         PartyType partyType = partyReader.readType(request.getPartyTypeId());
@@ -97,10 +97,10 @@ public class PartyService  {
         partyUserRepository.save(masterUser);
 
         // 7) 결과 반환
-        return PartyResponseDto.from(party);
+        return PartyResponse.from(party);
     }
 
-    public GetPartiesResponseDto getParties(GetPartiesRequest request) { // 파티 목록 조회
+    public GetPartiesResponse getParties(GetPartiesRequest request) { // 파티 목록 조회
         Pageable pageable = PageRequest.of(
                 request.getPage() - 1,
                 request.getSize(),
@@ -113,17 +113,17 @@ public class PartyService  {
                 .map(PartiesDto::from)
                 .toList();
 
-        return GetPartiesResponseDto.fromPage(page.getTotalElements(), parties);
+        return GetPartiesResponse.fromPage(page.getTotalElements(), parties);
     }
 
 
-    public GetPartyResponseDto getParty(Long partyId) { // 파티 단일 조회
+    public GetPartyResponse getParty(Long partyId) { // 파티 단일 조회
         Party party = partyReader.readParty(partyId);
 
-        return GetPartyResponseDto.from(party);
+        return GetPartyResponse.from(party);
     }
 
-    public GetPartyUserResponseDto getPartyUsers(GetPartyUsersRequest request, Long partyId) { // 파티원 목록 조회
+    public GetPartyUserResponse getPartyUsers(GetPartyUsersRequest request, Long partyId) { // 파티원 목록 조회
         Party party = partyReader.readParty(partyId);
 
         // 기본값 적용
@@ -161,25 +161,25 @@ public class PartyService  {
                 })
                 .toList();
 
-        return GetPartyUserResponseDto.builder()
+        return GetPartyUserResponse.builder()
                 .partyAdmin(partyAdmin)
                 .partyUser(partyUserList)
                 .build();
     }
 
-    public PartyAuthorityResponseDto getPartyAuthority(Long partyId, Long userId) { // 나의 파티 권한 조회
+    public PartyAuthorityResponse getPartyAuthority(Long partyId, Long userId) { // 나의 파티 권한 조회
 
         Party party = partyReader.readParty(partyId);
 
         PartyUser partyUser = partyUserReader.getMember(partyId, userId);
 
-        return PartyAuthorityResponseDto.from(partyUser);
+        return PartyAuthorityResponse.from(partyUser);
     }
 
-    public PartyTypeResponseDto getPartyTypes() { // 파티 타입 목록 조회
+    public PartyTypeResponse getPartyTypes() { // 파티 타입 목록 조회
         List<PartyType> partyTypes = partyTypeRepository.findAll();
 
-        return PartyTypeResponseDto.from(partyTypes);
+        return PartyTypeResponse.from(partyTypes);
     }
 
     @Transactional
@@ -210,7 +210,7 @@ public class PartyService  {
         }
     }
 
-    public GetSearchResponseDto searchParties(int page, int limit, String titleSearch) { // 파티/모집공고 통합검색
+    public GetSearchResponse searchParties(int page, int limit, String titleSearch) { // 파티/모집공고 통합검색
         Pageable pageable = PageRequest.of(page - 1, limit);
 
         // Party 검색
@@ -231,12 +231,12 @@ public class PartyService  {
                 .map(PartyRecruitmentSearchDto::from)
                 .toList();
 
-        return GetSearchResponseDto.builder()
-                .party(GetSearchResponseDto.PartySearchDto.builder()
+        return GetSearchResponse.builder()
+                .party(GetSearchResponse.PartySearchDto.builder()
                         .total(partyPage.getTotalElements())
                         .parties(partyListDto)
                         .build())
-                .partyRecruitment(GetSearchResponseDto.PartyRecruitmentSearchResultDto.builder()
+                .partyRecruitment(GetSearchResponse.PartyRecruitmentSearchResultDto.builder()
                         .total(recruitmentPage.getTotalElements())
                         .partyRecruitments(recruitmentListDto)
                         .build())
@@ -244,33 +244,33 @@ public class PartyService  {
     }
 
     @Transactional(readOnly = true)
-    public UserJoinedPartyResponseDto getByNickname(String nickname) {
+    public UserJoinedPartyResponse getByNickname(String nickname) {
 
         List<PartyUser> list =
                 partyUserRepository.findByUserNickname(nickname);
 
-        List<UserJoinedPartyResponseDto.PartyUserItem> items =
+        List<UserJoinedPartyResponse.PartyUserItem> items =
                 list.stream().map(pu ->
-                        UserJoinedPartyResponseDto.PartyUserItem.builder()
+                        UserJoinedPartyResponse.PartyUserItem.builder()
                                 .id(pu.getId())
                                 .createdAt(pu.getCreatedAt().toString())
-                                .position(UserJoinedPartyResponseDto.PositionDto.builder()
+                                .position(UserJoinedPartyResponse.PositionDto.builder()
                                         .main(pu.getPosition().getMain())
                                         .sub(pu.getPosition().getSub())
                                         .build())
-                                .party(UserJoinedPartyResponseDto.PartyDto.builder()
+                                .party(UserJoinedPartyResponse.PartyDto.builder()
                                         .id(pu.getParty().getId())
                                         .title(pu.getParty().getTitle())
                                         .image(pu.getParty().getImage())
                                         .partyStatus(pu.getParty().getPartyStatus())
-                                        .partyType(UserJoinedPartyResponseDto.PartyTypeDto.builder()
+                                        .partyType(UserJoinedPartyResponse.PartyTypeDto.builder()
                                                 .type(pu.getParty().getPartyType().getType())
                                                 .build())
                                         .build())
                                 .build()
                 ).toList();
 
-        return UserJoinedPartyResponseDto.builder()
+        return UserJoinedPartyResponse.builder()
                 .total(items.size())
                 .partyUsers(items)
                 .build();

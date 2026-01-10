@@ -8,7 +8,7 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PartyAuthorityResponseDto {
+public class PartyAuthorityResponse {
 
     private Long id;
     private PartyAuthority authority; // @JsonValue로 자동 직렬화 (master / deputy / member)
@@ -24,8 +24,8 @@ public class PartyAuthorityResponseDto {
         private String sub;
     }
 
-    public static PartyAuthorityResponseDto from(PartyUser partyUser) {
-        return PartyAuthorityResponseDto.builder()
+    public static PartyAuthorityResponse from(PartyUser partyUser) {
+        return PartyAuthorityResponse.builder()
                 .id(partyUser.getId())
                 .authority(partyUser.getAuthority())
                 .position(

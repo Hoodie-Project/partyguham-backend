@@ -7,7 +7,7 @@ import java.util.List;
 
 @Getter
 @Builder
-public class UserJoinedPartyResponseDto {
+public class UserJoinedPartyResponse {
 
     private long total;
     private List<PartyUserItem> partyUsers;

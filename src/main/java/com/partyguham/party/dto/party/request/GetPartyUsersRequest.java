@@ -9,7 +9,7 @@ import org.springframework.data.domain.Pageable;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class GetPartyUsersRequestDto {
+public class GetPartyUsersRequest {
 
     // 필수
     private Long partyId;

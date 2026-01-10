@@ -1,4 +1,4 @@
-package com.partyguham.party.dto.party.response;
+package com.partyguham.party.dto.party;
 
 import com.partyguham.party.entity.PartyAuthority;
 import com.partyguham.party.entity.PartyUser;

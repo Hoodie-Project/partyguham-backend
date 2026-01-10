@@ -12,13 +12,13 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class GetPartyRecruitmentsResponseDto {
+public class GetPartyRecruitmentsResponse {
 
     private Long total;
     private List<PartyRecruitmentDto> partyRecruitments;
 
-    public static GetPartyRecruitmentsResponseDto from(Long total, List<PartyRecruitmentDto> partyRecruitments) {
-        return GetPartyRecruitmentsResponseDto.builder()
+    public static GetPartyRecruitmentsResponse from(Long total, List<PartyRecruitmentDto> partyRecruitments) {
+        return GetPartyRecruitmentsResponse.builder()
                 .total(total)
                 .partyRecruitments(partyRecruitments)
                 .build();

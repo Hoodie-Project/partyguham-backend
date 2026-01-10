@@ -3,10 +3,10 @@ package com.partyguham.party.controller;
 import com.partyguham.auth.jwt.UserPrincipal;
 import com.partyguham.common.annotation.ApiV2Controller;
 import com.partyguham.party.dto.party.request.GetPartiesRequest;
-import com.partyguham.party.dto.party.request.GetPartyRecruitmentsRequestDto;
-import com.partyguham.party.dto.party.response.GetPartiesResponseDto;
-import com.partyguham.party.dto.party.response.GetPartyRecruitmentsResponseDto;
-import com.partyguham.party.dto.party.response.GetSearchResponseDto;
+import com.partyguham.party.dto.party.request.GetPartyRecruitmentsRequest;
+import com.partyguham.party.dto.party.response.GetPartiesResponse;
+import com.partyguham.party.dto.party.response.GetPartyRecruitmentsResponse;
+import com.partyguham.party.dto.party.response.GetSearchResponse;
 import com.partyguham.party.service.PartyService;
 import com.partyguham.recruitment.dto.request.GetPartyRecruitmentsPersonalizedRequestDto;
 import com.partyguham.recruitment.service.RecruitmentService;
@@ -33,7 +33,7 @@ public class PartyHomeController {
      * 파티 목록 조회 
      */
     @GetMapping
-    public ResponseEntity<GetPartiesResponseDto> getParties(
+    public ResponseEntity<GetPartiesResponse> getParties(
             @ModelAttribute @Valid GetPartiesRequest parties) {
 
         return ResponseEntity.ok(partyService.getParties(parties));
@@ -47,7 +47,7 @@ public class PartyHomeController {
      * (default: 생성일 기준, 내림차순 정렬)
      */
     @GetMapping("/search")
-    public ResponseEntity<GetSearchResponseDto> searchParties(
+    public ResponseEntity<GetSearchResponse> searchParties(
             @RequestParam int page,
             @RequestParam int size,
             @RequestParam(required = false) String titleSearch) {
@@ -59,7 +59,7 @@ public class PartyHomeController {
      * 파티 모집 공고 목록 조회
      */
     @GetMapping("/recruitments")
-    public ResponseEntity<GetPartyRecruitmentsResponseDto> getRecruitments(@ModelAttribute @Valid GetPartyRecruitmentsRequestDto request) {
+    public ResponseEntity<GetPartyRecruitmentsResponse> getRecruitments(@ModelAttribute @Valid GetPartyRecruitmentsRequest request) {
 
         return ResponseEntity.ok(RecruitmentService.getRecruitments(request));
     }
@@ -69,7 +69,7 @@ public class PartyHomeController {
      * 개인화 - 파티 모집 공고 목록 조회
      */
     @GetMapping("/recruitments/personalized")
-    public ResponseEntity<GetPartyRecruitmentsResponseDto> getRecruitmentsPersonalized(
+    public ResponseEntity<GetPartyRecruitmentsResponse> getRecruitmentsPersonalized(
             @AuthenticationPrincipal UserPrincipal user,
             @ModelAttribute @Valid GetPartyRecruitmentsPersonalizedRequestDto request) {
         return ResponseEntity.ok(RecruitmentService.getPersonalizedRecruitments(user.getId(), request));

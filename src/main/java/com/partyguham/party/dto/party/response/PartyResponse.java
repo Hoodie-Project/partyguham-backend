@@ -1,33 +1,26 @@
 package com.partyguham.party.dto.party.response;
 
+
 import com.partyguham.party.entity.Party;
 import com.partyguham.party.entity.PartyStatus;
-import lombok.*;
+import lombok.Getter;
+import lombok.experimental.SuperBuilder;
 
 @Getter
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class GetPartyResponseDto {
-
+@SuperBuilder
+public class PartyResponse {
     private Long id;
-    private PartyTypeDto partyType;
     private String title;
     private String content;
     private String image;
-    private PartyStatus partyStatus;
+    private PartyStatus partyStatus; // PartyStatus enum
     private String createdAt;
     private String updatedAt;
 
-    public static GetPartyResponseDto from(Party party) {
-        return GetPartyResponseDto.builder()
+
+    public static PartyResponse from(Party party) {
+        return PartyResponse.builder()
                 .id(party.getId())
-                .partyType(
-                        PartyTypeDto.builder()
-                                .id(party.getPartyType().getId())
-                                .type(party.getPartyType().getType())
-                                .build()
-                )
                 .title(party.getTitle())
                 .content(party.getContent())
                 .image(party.getImage())
