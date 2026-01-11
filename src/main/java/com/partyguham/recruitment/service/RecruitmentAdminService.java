@@ -4,9 +4,9 @@ import com.partyguham.common.error.exception.BusinessException;
 import com.partyguham.party.entity.Party;
 import com.partyguham.party.reader.PartyReader;
 import com.partyguham.party.service.PartyAccessService;
-import com.partyguham.recruitment.dto.request.CreatePartyRecruitmentRequestDto;
-import com.partyguham.recruitment.dto.request.PartyRecruitmentIdsBodyRequestDto;
-import com.partyguham.recruitment.dto.response.PartyRecruitmentsResponseDto;
+import com.partyguham.recruitment.dto.request.CreatePartyRecruitmentRequest;
+import com.partyguham.recruitment.dto.request.PartyRecruitmentIdsBodyRequest;
+import com.partyguham.recruitment.dto.response.PartyRecruitmentsResponse;
 import com.partyguham.recruitment.entity.PartyRecruitment;
 import com.partyguham.recruitment.exception.RecruitmentErrorCode;
 import com.partyguham.recruitment.reader.PartyRecruitmentReader;
@@ -55,7 +55,7 @@ public class RecruitmentAdminService {
      * 파티 모집공고 배치 완료 처리
      */
     @Transactional
-    public void completePartyRecruitmentBatch(Long partyId, Long userId, PartyRecruitmentIdsBodyRequestDto request) {
+    public void completePartyRecruitmentBatch(Long partyId, Long userId, PartyRecruitmentIdsBodyRequest request) {
         Party party = partyReader.readParty(partyId);
 
         partyAccessService.checkManagerOrThrow(partyId, userId);
@@ -74,11 +74,11 @@ public class RecruitmentAdminService {
      * 파티 모집공고 수정
      */
     @Transactional
-    public PartyRecruitmentsResponseDto updatePartyRecruitment(
+    public PartyRecruitmentsResponse updatePartyRecruitment(
             Long partyId, 
             Long partyRecruitmentId, 
             Long userId,
-            CreatePartyRecruitmentRequestDto request) {
+            CreatePartyRecruitmentRequest request) {
 
         partyReader.readParty(partyId);
         
@@ -94,7 +94,7 @@ public class RecruitmentAdminService {
         recruitment.setContent(request.getContent());
         recruitment.setMaxParticipants(request.getMaxParticipants());
 
-        return PartyRecruitmentsResponseDto.from(recruitment);
+        return PartyRecruitmentsResponse.from(recruitment);
     }
 
     /**
@@ -121,7 +121,7 @@ public class RecruitmentAdminService {
      * 파티 모집 다수 삭제
      */
     @Transactional
-    public void deletePartyRecruitmentBatch(Long partyId, Long userId, PartyRecruitmentIdsBodyRequestDto request) {
+    public void deletePartyRecruitmentBatch(Long partyId, Long userId, PartyRecruitmentIdsBodyRequest request) {
         Party party = partyReader.readParty(partyId);
 
         partyAccessService.checkManagerOrThrow(partyId, userId);

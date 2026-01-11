@@ -1,18 +1,16 @@
 package com.partyguham.recruitment.service;
 
-import com.partyguham.party.dto.party.request.GetPartyRecruitmentsRequestDto;
-import com.partyguham.party.dto.party.response.GetPartyRecruitmentsResponseDto;
+import com.partyguham.party.dto.party.request.GetPartyRecruitmentsRequest;
+import com.partyguham.party.dto.party.response.GetPartyRecruitmentsResponse;
 import com.partyguham.party.entity.Party;
 import com.partyguham.party.reader.PartyReader;
-import com.partyguham.party.repository.PartyRepository;
 import com.partyguham.party.service.PartyAccessService;
-import com.partyguham.recruitment.dto.request.CreatePartyRecruitmentRequestDto;
-import com.partyguham.recruitment.dto.request.GetPartyRecruitmentsPersonalizedRequestDto;
-import com.partyguham.recruitment.dto.request.PartyRecruitmentsRequestDto;
-import com.partyguham.recruitment.dto.response.CreatePartyRecruitmentsResponseDto;
-import com.partyguham.recruitment.dto.response.PartyRecruitmentDto;
-import com.partyguham.recruitment.dto.response.PartyRecruitmentResponseDto;
-import com.partyguham.recruitment.dto.response.PartyRecruitmentsResponseDto;
+import com.partyguham.recruitment.dto.request.CreatePartyRecruitmentRequest;
+import com.partyguham.recruitment.dto.request.GetPartyRecruitmentsPersonalizedRequest;
+import com.partyguham.recruitment.dto.request.PartyRecruitmentsRequest;
+import com.partyguham.recruitment.dto.response.CreatePartyRecruitmentsResponse;
+import com.partyguham.recruitment.dto.response.PartyRecruitmentResponse;
+import com.partyguham.recruitment.dto.response.PartyRecruitmentsResponse;
 import com.partyguham.recruitment.entity.PartyRecruitment;
 import com.partyguham.recruitment.repository.PartyRecruitmentRepository;
 import com.partyguham.user.account.entity.User;
@@ -56,8 +54,8 @@ public class RecruitmentService {
      * <p>
      * 특정 파티에 대한 파티모집 목록을 조회합니다.
      */
-    public List<PartyRecruitmentsResponseDto> getPartyRecruitments(Long partyId,
-                                                                   PartyRecruitmentsRequestDto request) {
+    public List<PartyRecruitmentsResponse> getPartyRecruitments(Long partyId,
+                                                                   PartyRecruitmentsRequest request) {
 
         partyReader.readParty(partyId);
 
@@ -65,7 +63,7 @@ public class RecruitmentService {
         List<PartyRecruitment> recruitments = partyRecruitmentRepository.searchRecruitmentsByPartyId(partyId, request);
 
         return recruitments.stream()
-                .map(PartyRecruitmentsResponseDto::from)
+                .map(PartyRecruitmentsResponse::from)
                 .toList();
     }
 
@@ -73,9 +71,9 @@ public class RecruitmentService {
      * 파티 모집공고 생성
      */
     @Transactional
-    public CreatePartyRecruitmentsResponseDto createPartyRecruitment(Long partyId,
+    public CreatePartyRecruitmentsResponse createPartyRecruitment(Long partyId,
                                                                      Long userId,
-                                                                     CreatePartyRecruitmentRequestDto request) {
+                                                                     CreatePartyRecruitmentRequest request) {
 
         Party party = partyReader.readParty(partyId);
 
@@ -95,17 +93,17 @@ public class RecruitmentService {
 
         PartyRecruitment saved = partyRecruitmentRepository.save(recruitment);
 
-        return CreatePartyRecruitmentsResponseDto.from(saved);
+        return CreatePartyRecruitmentsResponse.from(saved);
     }
 
     /**
      * 파티 모집공고 단일 조회
      */
-    public PartyRecruitmentResponseDto getPartyRecruitment(Long partyRecruitmentId) {
+    public PartyRecruitmentResponse getPartyRecruitment(Long partyRecruitmentId) {
         PartyRecruitment recruitment = partyRecruitmentRepository.findById(partyRecruitmentId)
                 .orElseThrow(() -> new EntityNotFoundException("파티 모집공고가 없습니다."));
 
-        return PartyRecruitmentResponseDto.from(recruitment);
+        return PartyRecruitmentResponse.from(recruitment);
     }
 
     /**
@@ -113,23 +111,23 @@ public class RecruitmentService {
      * <p>
      * 전체 파티모집 공고를 조회합니다.
      */
-    public GetPartyRecruitmentsResponseDto getRecruitments(GetPartyRecruitmentsRequestDto request) {
+    public GetPartyRecruitmentsResponse getRecruitments(GetPartyRecruitmentsRequest request) {
         Pageable pageable = PageRequest.of(request.getPage() - 1, request.getSize(), Sort.by(request.getOrder(), request.getSort()));
 
         //필터링 진행 (QueryDSL로 처리) - main, completed (페이징 처리 포함)
         Page<PartyRecruitment> recruitmentPage = partyRecruitmentRepository.searchRecruitments(request, pageable);
 
-        List<PartyRecruitmentDto> recruitmentList = recruitmentPage.getContent().stream()
-                .map(PartyRecruitmentDto::from)
+        List<PartyRecruitmentResponse> recruitmentList = recruitmentPage.getContent().stream()
+                .map(PartyRecruitmentResponse::from)
                 .collect(Collectors.toList());
 
-        return GetPartyRecruitmentsResponseDto.from(recruitmentPage.getTotalElements(), recruitmentList);
+        return GetPartyRecruitmentsResponse.from(recruitmentPage.getTotalElements(), recruitmentList);
     }
 
     /**
      * 개인화된 파티 모집 공고 목록 조회 (유저의 PartyUser position의 main과 일치하는 모집공고만 조회)
      */
-    public GetPartyRecruitmentsResponseDto getPersonalizedRecruitments(Long userId, GetPartyRecruitmentsPersonalizedRequestDto request) {
+    public GetPartyRecruitmentsResponse getPersonalizedRecruitments(Long userId, GetPartyRecruitmentsPersonalizedRequest request) {
         Pageable pageable = PageRequest.of(request.getPage() - 1, request.getSize(), Sort.by(request.getOrder(), request.getSort()));
 
         User user = userRepository.findById(userId)
@@ -142,10 +140,10 @@ public class RecruitmentService {
 
         Page<PartyRecruitment> recruitmentPage = partyRecruitmentRepository.searchRecruitmentsPersonalized(request, positionId, pageable);
 
-        List<PartyRecruitmentDto> recruitmentList = recruitmentPage.getContent().stream()
-                .map(PartyRecruitmentDto::from)
+        List<PartyRecruitmentResponse> recruitmentList = recruitmentPage.getContent().stream()
+                .map(PartyRecruitmentResponse::from)
                 .collect(Collectors.toList());
 
-        return GetPartyRecruitmentsResponseDto.from(recruitmentPage.getTotalElements(), recruitmentList);
+        return GetPartyRecruitmentsResponse.from(recruitmentPage.getTotalElements(), recruitmentList);
     }
 }

@@ -15,7 +15,7 @@ import org.springframework.data.domain.Sort.Direction;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class GetPartyRecruitmentsPersonalizedRequestDto {
+public class GetPartyRecruitmentsPersonalizedRequest {
 
     @Min(1)
     private int page = 1;

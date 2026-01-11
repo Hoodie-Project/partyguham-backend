@@ -23,7 +23,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class PartyRecruitmentsResponseDto {
+public class PartyRecruitmentsResponse {
     private Long id;
     private String content;
     private Integer maxParticipants;
@@ -43,15 +43,15 @@ public class PartyRecruitmentsResponseDto {
     }
 
     /**
-     * PartyRecruitment 엔티티를 PartyRecruitmentsResponseDto로 변환하는 정적 팩토리 메서드
+     * PartyRecruitment 엔티티를 PartyRecruitmentsResponse로 변환하는 정적 팩토리 메서드
      */
-    public static PartyRecruitmentsResponseDto from(PartyRecruitment recruitment) {
+    public static PartyRecruitmentsResponse from(PartyRecruitment recruitment) {
         PositionDto positionDto = PositionDto.builder()
                 .main(recruitment.getPosition().getMain())
                 .sub(recruitment.getPosition().getSub())
                 .build();
 
-        return PartyRecruitmentsResponseDto.builder()
+        return PartyRecruitmentsResponse.builder()
                 .id(recruitment.getId())
                 .content(recruitment.getContent())
                 .maxParticipants(recruitment.getMaxParticipants())

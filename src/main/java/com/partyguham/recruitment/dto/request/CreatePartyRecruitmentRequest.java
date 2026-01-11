@@ -8,7 +8,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * 파티 모집글 생성 요청 DTO
@@ -19,7 +18,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CreatePartyRecruitmentRequestDto {
+public class CreatePartyRecruitmentRequest {
     @NotNull(message = "positionId 는 필수값입니다.")
     private Long positionId;
 

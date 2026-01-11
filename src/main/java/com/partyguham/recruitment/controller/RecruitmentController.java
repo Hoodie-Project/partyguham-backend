@@ -27,9 +27,9 @@ public class RecruitmentController {
      * 특정 파티에 대한 파티 모집 목록을 조회하는 요청입니다.
      */
     @GetMapping("/{partyId}/recruitments")
-    public ResponseEntity<List<PartyRecruitmentsResponseDto>> getPartyRecruitment(
+    public ResponseEntity<List<PartyRecruitmentsResponse>> getPartyRecruitment(
             @PathVariable Long partyId,
-            @ModelAttribute @Valid PartyRecruitmentsRequestDto request) {
+            @ModelAttribute @Valid PartyRecruitmentsRequest request) {
 
         return ResponseEntity.ok(partyRecruitmentService.getPartyRecruitments(partyId, request));
     }
@@ -38,10 +38,10 @@ public class RecruitmentController {
      * 파티 모집 공고 생성 API
      */
     @PostMapping("/{partyId}/recruitments")
-    public ResponseEntity<CreatePartyRecruitmentsResponseDto> createPartyRecruitment(
+    public ResponseEntity<CreatePartyRecruitmentsResponse> createPartyRecruitment(
             @PathVariable Long partyId,
             @AuthenticationPrincipal UserPrincipal user,
-            @RequestBody @Valid CreatePartyRecruitmentRequestDto request) {
+            @RequestBody @Valid CreatePartyRecruitmentRequest request) {
 
         return ResponseEntity.ok(partyRecruitmentService.createPartyRecruitment(partyId, user.getId(), request));
     }
@@ -50,7 +50,7 @@ public class RecruitmentController {
      * 파티 모집 단일 조회 API
      */
     @GetMapping("/recruitments/{partyRecruitmentId}")
-    public ResponseEntity<PartyRecruitmentResponseDto> getPartyRecruitment(@PathVariable Long partyRecruitmentId) {
+    public ResponseEntity<PartyRecruitmentResponse> getPartyRecruitment(@PathVariable Long partyRecruitmentId) {
                 return ResponseEntity.ok(partyRecruitmentService.getPartyRecruitment(partyRecruitmentId));
             }
 

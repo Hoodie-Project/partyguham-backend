@@ -22,7 +22,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class PartyRecruitmentsRequestDto {
+public class PartyRecruitmentsRequest {
 
     @ValidRecruitmentSort
     private String sort = "createdAt";

@@ -3,9 +3,9 @@ package com.partyguham.recruitment.controller;
 import com.partyguham.auth.jwt.UserPrincipal;
 import com.partyguham.common.annotation.ApiV2Controller;
 import com.partyguham.common.dto.MessageResponse;
-import com.partyguham.recruitment.dto.request.CreatePartyRecruitmentRequestDto;
-import com.partyguham.recruitment.dto.request.PartyRecruitmentIdsBodyRequestDto;
-import com.partyguham.recruitment.dto.response.PartyRecruitmentsResponseDto;
+import com.partyguham.recruitment.dto.request.CreatePartyRecruitmentRequest;
+import com.partyguham.recruitment.dto.request.PartyRecruitmentIdsBodyRequest;
+import com.partyguham.recruitment.dto.response.PartyRecruitmentsResponse;
 import com.partyguham.recruitment.service.RecruitmentAdminService;
 
 import jakarta.validation.Valid;
@@ -53,7 +53,7 @@ public class RecruitmentAdminController {
     public ResponseEntity<Void> completePartyRecruitmentBatch(
             @PathVariable Long partyId,
             @AuthenticationPrincipal UserPrincipal user,
-            @RequestBody @Valid PartyRecruitmentIdsBodyRequestDto request
+            @RequestBody @Valid PartyRecruitmentIdsBodyRequest request
     ) {
         recruitmentAdminService.completePartyRecruitmentBatch(partyId, user.getId(), request);
         return ResponseEntity.ok(null);
@@ -69,11 +69,11 @@ public class RecruitmentAdminController {
      * @return 수정된 파티 모집 데이터
      */
     @PatchMapping("/{partyRecruitmentId}") // 파티 모집 수정
-    public ResponseEntity<PartyRecruitmentsResponseDto> updatePartyRecruitment(
+    public ResponseEntity<PartyRecruitmentsResponse> updatePartyRecruitment(
             @PathVariable Long partyId,
             @PathVariable Long partyRecruitmentId,
             @AuthenticationPrincipal UserPrincipal user,
-            @RequestBody @Valid CreatePartyRecruitmentRequestDto request
+            @RequestBody @Valid CreatePartyRecruitmentRequest request
     ) {
         return ResponseEntity.ok(recruitmentAdminService.updatePartyRecruitment(partyId, partyRecruitmentId, user.getId(), request));
     }
@@ -108,7 +108,7 @@ public class RecruitmentAdminController {
     public ResponseEntity<Void> deletePartyRecruitmentBatch(
             @PathVariable Long partyId,
             @AuthenticationPrincipal UserPrincipal user,
-            @RequestBody @Valid PartyRecruitmentIdsBodyRequestDto request
+            @RequestBody @Valid PartyRecruitmentIdsBodyRequest request
     ) {
         recruitmentAdminService.deletePartyRecruitmentBatch(partyId, user.getId(), request);
         return ResponseEntity.noContent().build();
