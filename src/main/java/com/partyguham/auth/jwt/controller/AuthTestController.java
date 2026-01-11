@@ -34,7 +34,7 @@ public class AuthTestController {
             @RequestParam String nickname
     ) {
         // 1) 유저 조회 or 생성
-        User user = userRepository.findByNickname(nickname)
+        User user = userRepository.findByNicknameIgnoreCase(nickname)
                 .orElseGet(() -> {
                     String randomEmail = "dev+" + nickname + "+" +
                             UUID.randomUUID().toString().substring(0, 8) +

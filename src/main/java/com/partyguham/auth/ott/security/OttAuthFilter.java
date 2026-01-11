@@ -15,7 +15,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.util.WebUtils;
 
 import java.io.IOException;
 import java.util.List;
@@ -47,8 +49,8 @@ public class OttAuthFilter extends OncePerRequestFilter {
                 try {
                     OttType type = OttType.valueOf(typeHeader);
 
-                    // 🔥 여기서 바로 Redis 검증 + 1회용 소비
-                    OttPayload payload = ottService.consume(type, token);
+                    // 여기서 바로 Redis 검증  - 1회용 소비는 아님
+                    OttPayload payload = ottService.peek(type, token);
 
                     String role = switch (payload.type()) {
                         case SIGNUP -> "ROLE_SIGNUP";
@@ -76,21 +78,18 @@ public class OttAuthFilter extends OncePerRequestFilter {
         chain.doFilter(req, res);
     }
 
-    /** Bearer 토큰 또는 쿠키에서 추출 */
+    /** 헤더 또는 쿠키에서 추출 */
     private String resolveToken(HttpServletRequest req) {
-        // 1) Authorization: Bearer xxx
-        String auth = req.getHeader("Authorization");
-        if (auth != null && auth.startsWith("Bearer ")) {
-            return auth.substring(7);
+        // 1) Header: X-OTT-Token
+        String ottHeader = req.getHeader("X-OTT-Token");
+        if (StringUtils.hasLength(ottHeader)) {
+            return ottHeader;
         }
 
         // 2) Cookie: ott=<token>
-        if (req.getCookies() != null) {
-            for (Cookie c : req.getCookies()) {
-                if ("ott".equals(c.getName())) {
-                    return c.getValue();
-                }
-            }
+        Cookie cookie = WebUtils.getCookie(req, "ott");
+        if (cookie != null) {
+            return cookie.getValue();
         }
 
         return null;

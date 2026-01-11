@@ -7,4 +7,8 @@ package com.partyguham.auth.ott.model;
  * - RECOVER: 계정복구용
  * - LINK: 소셜계정 연결용 등
  */
-public enum OttType { SIGNUP, RECOVER, LINK }
+public enum OttType {
+    SIGNUP,
+    RECOVER,
+    LINK
+}
