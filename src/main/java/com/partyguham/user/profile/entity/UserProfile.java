@@ -2,7 +2,9 @@ package com.partyguham.user.profile.entity;
 
 import com.partyguham.user.account.entity.User;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
@@ -11,6 +13,7 @@ import java.time.LocalDate;
 @Table(name="user_profiles",
         uniqueConstraints=@UniqueConstraint(name="uk_profile_nickname", columnNames="nickname"))
 @Getter
+//@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Setter
 public class UserProfile {
     @Id

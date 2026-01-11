@@ -1,6 +1,7 @@
 package com.partyguham.user.profile.service;
 
 import com.partyguham.user.account.entity.User;
+import com.partyguham.user.account.reader.UserReader;
 import com.partyguham.user.account.repository.UserRepository;
 import com.partyguham.user.profile.dto.request.UserProfileUpdateRequest;
 import com.partyguham.user.profile.dto.response.UserProfileResponse;
@@ -16,6 +17,8 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class UserProfileService {
 
+    private final UserReader userReader;
+
     private final UserRepository userRepository;
     private final UserPersonalityService userPersonalityService;
     private final UserCareerService userCareerService;
@@ -23,8 +26,7 @@ public class UserProfileService {
 
     @Transactional(readOnly = true)
     public UserProfileResponse getMyProfile(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("user not found"));
+        User user = userReader.read(userId);
 
         UserProfile profile = user.getProfile(); // null 가능
 
@@ -48,8 +50,7 @@ public class UserProfileService {
 
     @Transactional(readOnly = true)
     public UserProfileResponse getProfileByNickname(String nickname) {
-        User user = userRepository.findByNickname(nickname)
-                .orElseThrow(() -> new EntityNotFoundException("user not found"));
+        User user = userReader.readByNickname(nickname);
 
         UserProfile profile = user.getProfile(); // null 가능
 
@@ -74,8 +75,7 @@ public class UserProfileService {
     @Transactional
     public void updateProfile(Long userId, UserProfileUpdateRequest req) {
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("user not found"));
+        User user = userReader.read(userId);
 
         UserProfile profile = user.getProfile();
         if (profile == null) {
@@ -108,7 +108,5 @@ public class UserProfileService {
         if (req.getPortfolio() != null) {
             profile.setPortfolio(req.getPortfolio());
         }
-
-        // 변경 감지(Dirty Checking) 자동 반영됨
     }
 }

@@ -2,6 +2,7 @@ package com.partyguham.user.profile.service;
 
 import com.partyguham.catalog.entity.Location;
 import com.partyguham.catalog.repository.LocationRepository;
+import com.partyguham.user.account.reader.UserReader;
 import com.partyguham.user.profile.dto.request.UserLocationBulkRequest;
 import com.partyguham.user.profile.dto.response.UserLocationResponse;
 import com.partyguham.user.profile.entity.UserLocation;
@@ -21,7 +22,8 @@ public class UserLocationService {
 
     private static final int MAX_LOCATIONS = 3;
 
-    private final UserRepository userRepository;
+    private final UserReader userReader;
+
     private final LocationRepository locationRepository;
     private final UserLocationRepository userLocationRepository;
 
@@ -57,8 +59,7 @@ public class UserLocationService {
         }
 
         // 3) 유저 조회
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("user not found"));
+        User user = userReader.read(userId);
 
         // 4) 기존 관심지역 삭제
         List<UserLocation> oldList = userLocationRepository.findByUserId(userId);

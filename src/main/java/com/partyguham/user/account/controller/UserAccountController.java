@@ -6,6 +6,7 @@ import com.partyguham.common.annotation.ApiV2Controller;
 import com.partyguham.user.account.dto.request.SignUpRequest;
 import com.partyguham.user.account.dto.response.MyOauthAccountResponse;
 import com.partyguham.user.account.dto.response.SignUpResponse;
+import com.partyguham.user.account.reader.UserReader;
 import com.partyguham.user.account.service.UserService;
 import com.partyguham.user.account.service.UserSignupService;
 import jakarta.servlet.http.HttpServletResponse;
@@ -24,19 +25,22 @@ import java.util.List;
 @RequestMapping("users")
 public class UserAccountController {
 
+    private final UserReader userReader;
+
     private final UserSignupService userSignupService;
     private final UserService userService;
 
-    @PreAuthorize("hasRole('SIGNUP')")
     @GetMapping("/check-nickname")
     public ResponseEntity<String> checkNickname(@RequestParam String nickname) {
         if (!StringUtils.hasText(nickname)) return ResponseEntity.badRequest().body("닉네임 누락");
-        if (nickname == null) return ResponseEntity.status(409).body("중복된 닉네임 입니다.");
+
+//        ottService.peek(OttType.SIGNUP, token);
+        userReader.validateNicknameDuplicate(nickname);
+
         return ResponseEntity.ok("사용가능한 닉네임 입니다.");
     }
 
     // 닉네임 예약 (회원가입 토큰 필요)
-//    @PreAuthorize("hasRole('SIGNUP')")
 //    @PostMapping("/api/v2/users/reserve-nickname")
 //    public ResponseEntity<Void> reserve(@AuthenticationPrincipal OttPayload p,
 //                                        @RequestBody Map<String,String> body) {
