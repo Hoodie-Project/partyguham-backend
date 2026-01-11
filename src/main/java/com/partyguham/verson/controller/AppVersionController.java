@@ -53,8 +53,7 @@ public class AppVersionController {
      * 예: GET /api/v2/app/versions/latest?platform=android
      */
     @GetMapping("/latest")
-    public AppVersionResponse latest(@RequestParam String platform) {
-        AppPlatform p = AppPlatform.from(platform); // "android"/"ios" → Enum
-        return service.getLatest(p);
+    public AppVersionResponse latest(@RequestParam AppPlatform platform) {
+        return service.getLatest(platform);
     }
 }

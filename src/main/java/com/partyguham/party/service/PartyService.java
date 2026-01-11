@@ -21,7 +21,7 @@ import com.partyguham.party.reader.PartyUserReader;
 import com.partyguham.party.repository.PartyRepository;
 import com.partyguham.party.repository.PartyTypeRepository;
 import com.partyguham.party.repository.PartyUserRepository;
-import com.partyguham.recruitment.dto.response.PartyRecruitmentSearchDto;
+import com.partyguham.recruitment.dto.response.PartyRecruitmentSearchResponse;
 import com.partyguham.recruitment.entity.PartyRecruitment;
 import com.partyguham.recruitment.repository.PartyRecruitmentRepository;
 import com.partyguham.user.account.entity.User;
@@ -227,8 +227,8 @@ public class PartyService  {
         Page<PartyRecruitment> recruitmentPage = partyIds.isEmpty()
                 ? Page.empty(pageable)
                 : partyRecruitmentRepository.findByPartyIdIn(partyIds, pageable);
-        List<PartyRecruitmentSearchDto> recruitmentListDto = recruitmentPage.getContent().stream()
-                .map(PartyRecruitmentSearchDto::from)
+        List<PartyRecruitmentSearchResponse> recruitmentListDto = recruitmentPage.getContent().stream()
+                .map(PartyRecruitmentSearchResponse::from)
                 .toList();
 
         return GetSearchResponse.builder()

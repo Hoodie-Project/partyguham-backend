@@ -8,7 +8,7 @@ import com.partyguham.party.dto.party.response.GetPartiesResponse;
 import com.partyguham.party.dto.party.response.GetPartyRecruitmentsResponse;
 import com.partyguham.party.dto.party.response.GetSearchResponse;
 import com.partyguham.party.service.PartyService;
-import com.partyguham.recruitment.dto.request.GetPartyRecruitmentsPersonalizedRequestDto;
+import com.partyguham.recruitment.dto.request.GetPartyRecruitmentsPersonalizedRequest;
 import com.partyguham.recruitment.service.RecruitmentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -71,7 +71,7 @@ public class PartyHomeController {
     @GetMapping("/recruitments/personalized")
     public ResponseEntity<GetPartyRecruitmentsResponse> getRecruitmentsPersonalized(
             @AuthenticationPrincipal UserPrincipal user,
-            @ModelAttribute @Valid GetPartyRecruitmentsPersonalizedRequestDto request) {
+            @ModelAttribute @Valid GetPartyRecruitmentsPersonalizedRequest request) {
         return ResponseEntity.ok(RecruitmentService.getPersonalizedRecruitments(user.getId(), request));
     }
 

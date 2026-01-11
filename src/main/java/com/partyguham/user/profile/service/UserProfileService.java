@@ -84,7 +84,7 @@ public class UserProfileService {
 
         // gender
         if (req.getGender() != null) {
-            profile.setGender(Gender.from(req.getGender()));
+            profile.setGender(req.getGender());
         }
 
         if (req.getGenderVisible() != null) {

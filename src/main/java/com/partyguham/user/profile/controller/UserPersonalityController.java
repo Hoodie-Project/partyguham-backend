@@ -2,9 +2,8 @@ package com.partyguham.user.profile.controller;
 
 import com.partyguham.auth.jwt.UserPrincipal;
 import com.partyguham.common.annotation.ApiV2Controller;
-import com.partyguham.user.profile.dto.request.PersonalityAnswerRequest;
 import com.partyguham.user.profile.dto.response.PersonalityAnswerResponse;
-import com.partyguham.user.profile.dto.response.PersonalityBulkAnswerRequest;
+import com.partyguham.user.profile.dto.request.PersonalityBulkAnswerRequest;
 import com.partyguham.user.profile.service.UserPersonalityService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
