@@ -192,11 +192,12 @@ public class FcmNotificationService {
     public void sendPartyMemberPositionChangedEvent(
             String userNickname,
             String partyTitle,
+            String position,
             String fcmToken
     ) {
         NotificationTemplate t = NotificationTemplate.PARTY_MEMBER_POSITION_CHANGED;
         String title = t.title();
-        String body = t.body(partyTitle, userNickname);
+        String body = t.body(partyTitle, userNickname, position);
 
         Map<String, String> data = Map.of(
                 "type", "PARTY"

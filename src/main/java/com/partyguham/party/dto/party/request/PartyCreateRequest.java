@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class PartyCreateRequestDto {
+public class PartyCreateRequest {
     private String title;
     private String content;
     private Long partyTypeId;

@@ -171,6 +171,7 @@ public class NotificationEventListener {
         notificationService.partyMemberPositionChangedEvent(
                 event.getPartyUserId(),
                 event.getUserNickname(),
+                event.getPosition(),
                 event.getPartyId(),
                 event.getPartyTitle(),
                 event.getPartyImage()

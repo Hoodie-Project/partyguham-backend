@@ -1,37 +1,40 @@
 package com.partyguham.party.dto.party.response;
 
+import com.partyguham.party.dto.party.PartyTypeDto;
 import com.partyguham.party.entity.Party;
 import com.partyguham.party.entity.PartyStatus;
 import lombok.*;
 
 @Getter
-@Setter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class PartyDto {
+public class GetPartyResponse {
+
     private Long id;
+    private PartyTypeDto partyType;
     private String title;
+    private String content;
     private String image;
     private PartyStatus partyStatus;
-    private PartyTypeDto partyType;
+    private String createdAt;
+    private String updatedAt;
 
-    /**
-     * Party 엔티티를 PartyDto로 변환하는 정적 팩토리 메서드
-     * (간소화된 버전 - Recruitment 등에서 사용)
-     */
-    public static PartyDto from(Party party) {
-        return PartyDto.builder()
+    public static GetPartyResponse from(Party party) {
+        return GetPartyResponse.builder()
                 .id(party.getId())
-                .title(party.getTitle())
-                .image(party.getImage())
-                .partyStatus(party.getPartyStatus())
                 .partyType(
                         PartyTypeDto.builder()
                                 .id(party.getPartyType().getId())
                                 .type(party.getPartyType().getType())
                                 .build()
                 )
+                .title(party.getTitle())
+                .content(party.getContent())
+                .image(party.getImage())
+                .partyStatus(party.getPartyStatus())
+                .createdAt(party.getCreatedAt().toString())
+                .updatedAt(party.getUpdatedAt().toString())
                 .build();
     }
 }

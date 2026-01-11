@@ -1,10 +1,10 @@
 package com.partyguham.recruitment.repository;
 
 import com.partyguham.common.entity.Status;
-import com.partyguham.party.dto.party.request.GetPartyRecruitmentsRequestDto;
+import com.partyguham.party.dto.party.request.GetPartyRecruitmentsRequest;
 import com.partyguham.party.entity.QParty;
-import com.partyguham.recruitment.dto.request.GetPartyRecruitmentsPersonalizedRequestDto;
-import com.partyguham.recruitment.dto.request.PartyRecruitmentsRequestDto;
+import com.partyguham.recruitment.dto.request.GetPartyRecruitmentsPersonalizedRequest;
+import com.partyguham.recruitment.dto.request.PartyRecruitmentsRequest;
 import com.partyguham.recruitment.entity.PartyRecruitment;
 import com.partyguham.recruitment.entity.QPartyRecruitment;
 import com.querydsl.core.BooleanBuilder;
@@ -39,7 +39,7 @@ public class PartyRecruitmentRepositoryImpl implements PartyRecruitmentCustomRep
      * [파티모집] 특정 파티의 모집공고 조회 
      */
     @Override
-    public List<PartyRecruitment> searchRecruitmentsByPartyId(Long partyId, PartyRecruitmentsRequestDto request) {
+    public List<PartyRecruitment> searchRecruitmentsByPartyId(Long partyId, PartyRecruitmentsRequest request) {
         QPartyRecruitment recruitment = QPartyRecruitment.partyRecruitment;
         QParty party = QParty.party;
         
@@ -75,12 +75,12 @@ public class PartyRecruitmentRepositoryImpl implements PartyRecruitmentCustomRep
 
     /**
      * [라운지] 전체 모집공고 조회 
-     * 
+
      * titleSearch의 경우, 모집공고내용이 아닌 파티 제목을 기준으로 필터링됩니다.
      * 따라서 해당 제목을 가진 파티의 모집공고가 조회됩니다.
      */
     @Override
-    public Page<PartyRecruitment> searchRecruitments(GetPartyRecruitmentsRequestDto request, Pageable pageable) {
+    public Page<PartyRecruitment> searchRecruitments(GetPartyRecruitmentsRequest request, Pageable pageable) {
         QPartyRecruitment recruitment = QPartyRecruitment.partyRecruitment;
         QParty party = QParty.party;
         
@@ -136,7 +136,7 @@ public class PartyRecruitmentRepositoryImpl implements PartyRecruitmentCustomRep
     }
 
     @Override
-    public Page<PartyRecruitment> searchRecruitmentsPersonalized(GetPartyRecruitmentsPersonalizedRequestDto request,
+    public Page<PartyRecruitment> searchRecruitmentsPersonalized(GetPartyRecruitmentsPersonalizedRequest request,
                                                                  Long positionId,
                                                                  Pageable pageable) {
         QPartyRecruitment recruitment = QPartyRecruitment.partyRecruitment;

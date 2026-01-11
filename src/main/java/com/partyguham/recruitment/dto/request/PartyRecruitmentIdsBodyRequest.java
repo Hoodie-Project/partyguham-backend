@@ -18,7 +18,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class PartyRecruitmentIdsBodyRequestDto {
+public class PartyRecruitmentIdsBodyRequest {
     
     @NotEmpty(message = "최소 1개 이상의 모집 공고 ID가 포함되어야 합니다.")
     private List<Long> partyRecruitmentIds;

@@ -3,6 +3,7 @@ package com.partyguham.user.profile.service;
 import com.partyguham.catalog.entity.Position;
 import com.partyguham.catalog.repository.PositionRepository;
 import com.partyguham.user.account.entity.User;
+import com.partyguham.user.account.reader.UserReader;
 import com.partyguham.user.account.repository.UserRepository;
 import com.partyguham.user.profile.dto.request.UserCareerBulkCreateRequest;
 import com.partyguham.user.profile.dto.request.UserCareerCreateRequest;
@@ -21,14 +22,14 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UserCareerService {
 
-    private final UserRepository userRepository;
+    private static final int MAX_CAREERS = 2;
+    private static final int MAX_YEARS = 10;
+    private static final int MIN_YEARS = 1;
+
+    private final UserReader userReader;
+
     private final PositionRepository positionRepository;
     private final UserCareerRepository userCareerRepository;
-
-    private User getUserOrThrow(Long userId) {
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("user not found"));
-    }
 
     private Position getPositionOrThrow(Long positionId) {
         return positionRepository.findById(positionId)
@@ -40,7 +41,7 @@ public class UserCareerService {
      */
     @Transactional(readOnly = true)
     public List<CareerResponse> getMyCareers(Long userId) {
-        User user = getUserOrThrow(userId);
+        User user = userReader.read(userId);
 
         return userCareerRepository.findByUser(user).stream()
                 .map(CareerResponse::from)  // 공통 변환 로직 사용
@@ -55,7 +56,7 @@ public class UserCareerService {
      */
     @Transactional
     public List<CareerResponse> upsertMyCareers(Long userId, UserCareerBulkCreateRequest req) {
-        User user = getUserOrThrow(userId);
+        User user = userReader.read(userId);
 
         if (req.getCareers() == null || req.getCareers().isEmpty()) {
             throw new IllegalArgumentException("careers is empty");
@@ -108,7 +109,7 @@ public class UserCareerService {
      */
     @Transactional
     public CareerResponse updateYears(Long userId, Long careerId, Integer years) {
-        User user = getUserOrThrow(userId);
+        User user = userReader.read(userId);
 
         UserCareer uc = userCareerRepository.findById(careerId)
                 .orElseThrow(() -> new IllegalArgumentException("career not found"));
@@ -126,7 +127,7 @@ public class UserCareerService {
     // DELETE: 특정 경력 삭제
     @Transactional
     public void deleteCareer(Long userId, Long careerId) {
-        User user = getUserOrThrow(userId);
+        User user = userReader.read(userId);
         UserCareer uc = userCareerRepository.findById(careerId)
                 .orElseThrow(() -> new IllegalArgumentException("career not found"));
 

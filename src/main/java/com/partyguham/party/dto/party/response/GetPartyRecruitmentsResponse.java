@@ -1,6 +1,6 @@
 package com.partyguham.party.dto.party.response;
 
-import com.partyguham.recruitment.dto.response.PartyRecruitmentDto;
+import com.partyguham.recruitment.dto.response.PartyRecruitmentResponse;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,13 +12,13 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class GetPartyRecruitmentsResponseDto {
+public class GetPartyRecruitmentsResponse {
 
     private Long total;
-    private List<PartyRecruitmentDto> partyRecruitments;
+    private List<PartyRecruitmentResponse> partyRecruitments;
 
-    public static GetPartyRecruitmentsResponseDto from(Long total, List<PartyRecruitmentDto> partyRecruitments) {
-        return GetPartyRecruitmentsResponseDto.builder()
+    public static GetPartyRecruitmentsResponse from(Long total, List<PartyRecruitmentResponse> partyRecruitments) {
+        return GetPartyRecruitmentsResponse.builder()
                 .total(total)
                 .partyRecruitments(partyRecruitments)
                 .build();

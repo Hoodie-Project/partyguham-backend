@@ -104,7 +104,7 @@ public class OauthController {
 
     /** 회원가입 필요: signupToken 쿠키 + /signup 으로 이동 */
     private void handleSignup(HttpServletResponse res, LoginResult r) throws IOException {
-        ResponseCookie ott = ResponseCookie.from("signupToken", r.signupToken())
+        ResponseCookie ott = ResponseCookie.from("ott", r.signupToken())
                 .httpOnly(true).secure(true).sameSite("None").path("/").maxAge(900).build();
         res.addHeader("Set-Cookie", ott.toString());
         res.sendRedirect(domain.signupUrl());
@@ -122,7 +122,7 @@ public class OauthController {
     /** 복구 플로우: recoverToken은 쿠키, 나머지는 쿼리 파라미터로 /home 리다이렉트 */
     private void handleRecover(HttpServletResponse res, LoginResult r) throws IOException {
         // 1) recoverToken 쿠키로 내려주기
-        ResponseCookie recover = ResponseCookie.from("recoverToken", r.recoverToken())
+        ResponseCookie recover = ResponseCookie.from("ott", r.recoverToken())
                 .httpOnly(true)
                 .secure(true)          // https 환경이 아니면 일단 false로 테스트해봐도 됨
                 .sameSite("strict")      // cross-site면 None, 동일 도메인이면 Lax/Strict도 가능
@@ -192,16 +192,16 @@ public class OauthController {
         // 4) 응답 포맷 통일
         return switch (r.type()) {
             case SIGNUP -> ResponseEntity.ok(Map.of(
-                    "type", "signup",
+                    "type", "SIGNUP",
                     "signupToken", r.signupToken()
             ));
             case LOGIN -> ResponseEntity.ok(Map.of(
-                    "type", "login",
+                    "type", "LOGIN",
                     "accessToken", r.accessToken(),
                     "refreshToken", r.refreshToken()
             ));
             case RECOVER -> ResponseEntity.ok(Map.of(
-                    "type", "recover",
+                    "type", "RECOVER",
                     "error", UserErrorType.USER_DELETED_30D,
                     "recoverToken", r.recoverToken(),
                     "email", r.email(),

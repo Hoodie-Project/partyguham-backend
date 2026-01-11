@@ -13,7 +13,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class GetPartyRecruitmentsRequestDto {
+public class GetPartyRecruitmentsRequest {
 
     @Min(1)
     private Integer page = 1;             

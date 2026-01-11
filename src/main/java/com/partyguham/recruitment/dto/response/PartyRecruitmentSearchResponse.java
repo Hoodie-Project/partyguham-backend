@@ -2,14 +2,14 @@ package com.partyguham.recruitment.dto.response;
 
 import com.partyguham.recruitment.entity.PartyRecruitment;
 import com.partyguham.catalog.dto.response.PositionResponse;
-import com.partyguham.party.dto.party.response.PartyDto;
+import com.partyguham.party.dto.party.PartyDto;
 import lombok.*;
 
 @Getter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PartyRecruitmentSearchDto {
+public class PartyRecruitmentSearchResponse {
     private Long id;
     private String content;
     private Integer maxParticipants;
@@ -20,7 +20,7 @@ public class PartyRecruitmentSearchDto {
     private PartyDto party;
     private PositionResponse position;
 
-    public static PartyRecruitmentSearchDto from(PartyRecruitment partyRecruitment) {
+    public static PartyRecruitmentSearchResponse from(PartyRecruitment partyRecruitment) {
         // 모집된 인원 수 = currentParticipants
         // 모집 중인 인원 수 = maxParticipants - currentParticipants
         int currentCount = partyRecruitment.getCurrentParticipants() != null ?
@@ -28,7 +28,7 @@ public class PartyRecruitmentSearchDto {
         int maxCount = partyRecruitment.getMaxParticipants() != null ?
                 partyRecruitment.getMaxParticipants() : 0;
 
-        return PartyRecruitmentSearchDto.builder()
+        return PartyRecruitmentSearchResponse.builder()
                 .id(partyRecruitment.getId())
                 .content(partyRecruitment.getContent())
                 .maxParticipants(maxCount)

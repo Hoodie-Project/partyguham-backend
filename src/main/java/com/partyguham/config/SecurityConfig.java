@@ -46,8 +46,7 @@ public class SecurityConfig {
                                 "/api/v2/locations",
                                 "/api/v2/personalities",
                                 "/api/v2/positions",
-                                "/api/v2/auth/oauth/**",
-                                "/api/v2/"
+                                "/api/v2/auth/oauth/**"
                         ).permitAll()
 
                         /* ==== 파티 관련 공개 API (인증 불필요) ==== */
@@ -62,6 +61,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/v2/parties/admin/{partyId}/recruitments/batch-status").permitAll()
 
                         // OTT로 보호할 엔드포인트
+                        .requestMatchers("/api/v2/users/check-nickname")
+                        .hasRole("SIGNUP")
+
                         .requestMatchers("/api/v2/users/recover/**")
                         .hasRole("RECOVER")
 

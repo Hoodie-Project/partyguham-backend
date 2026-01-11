@@ -4,7 +4,6 @@ import com.partyguham.auth.oauth.entity.OauthAccount;
 import com.partyguham.common.entity.BaseEntity;
 import com.partyguham.common.entity.Status;
 import com.partyguham.common.error.exception.BusinessException;
-import com.partyguham.user.exception.UserErrorCode;
 import com.partyguham.user.profile.entity.UserProfile;
 import jakarta.persistence.*;
 import lombok.*;
@@ -12,8 +11,11 @@ import lombok.experimental.SuperBuilder;
 
 import java.util.*;
 
+import static com.partyguham.user.exception.UserErrorCode.*;
+
 @Entity
-@Table(name = "users")
+@Table(name = "users",
+        indexes = @Index(name = "idx_nickname_lower", columnList = "lower(nickname)", unique = true))
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
@@ -32,7 +34,7 @@ public class User extends BaseEntity {
     @Column(unique = true)
     String email;
 
-    @Column(nullable = false, length = 15)
+    @Column(nullable = false, unique = true, length = 15)
     String nickname;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
@@ -48,27 +50,27 @@ public class User extends BaseEntity {
     }
 
     /**
-     * 회원 탈퇴를 처리합니다.
+     * 회원 탈퇴
      * 공통 상태를 DELETED로 변경하고, 개인정보를 마스킹 처리합니다.
      */
     public void withdraw() {
         if (this.getStatus() == Status.DELETED) {
-            throw new BusinessException(UserErrorCode.USER_ALREADY_WITHDRAWN) {
+            throw new BusinessException(USER_ALREADY_WITHDRAWN) {
             };
         }
 
         this.changeStatus(Status.DELETED);
-// 복구 가능성을 생각해야함
-//        this.email = "deleted_" + this.getId();
-//        this.nickname = "탈퇴유저#" + this.getId();
+        // 복구 가능성을 생각해야함
+        // this.email = "deleted_" + this.getId();
+        // this.nickname = "탈퇴유저#" + this.getId();
     }
 
     /**
-     * 회원 복구를 처리합니다.
+     * 회원 복구
      */
     public void restore() {
         if (this.getStatus() != Status.INACTIVE) {
-            throw new BusinessException(UserErrorCode.USER_PERMANENTLY_DELETED);
+            throw new BusinessException(USER_PERMANENTLY_DELETED);
         }
 
         this.changeStatus(Status.ACTIVE);
@@ -76,10 +78,20 @@ public class User extends BaseEntity {
 
     /**
      * fcmToken 업데이트
+     *
      * @param fcmToken
      */
     public void updateFcmToken(String fcmToken) {
         this.fcmToken = fcmToken;
+    }
+
+    /**
+     * fcmToken 검증
+     */
+    public void validateFcmToken() {
+        if (this.fcmToken == null || this.fcmToken.isBlank()) {
+            throw new BusinessException(FCM_TOKEN_NOT_FOUND);
+        }
     }
 
 }

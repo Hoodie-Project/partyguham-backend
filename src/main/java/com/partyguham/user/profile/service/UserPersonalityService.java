@@ -5,11 +5,11 @@ import com.partyguham.catalog.entity.PersonalityQuestion;
 import com.partyguham.catalog.repository.PersonalityOptionRepository;
 import com.partyguham.catalog.repository.PersonalityQuestionRepository;
 import com.partyguham.user.account.entity.User;
+import com.partyguham.user.account.reader.UserReader;
 import com.partyguham.user.account.repository.UserRepository;
-import com.partyguham.user.profile.dto.request.PersonalityAnswerRequest;
 import com.partyguham.user.profile.dto.response.PersonalityAnswerItem;
 import com.partyguham.user.profile.dto.response.PersonalityAnswerResponse;
-import com.partyguham.user.profile.dto.response.PersonalityBulkAnswerRequest;
+import com.partyguham.user.profile.dto.request.PersonalityBulkAnswerRequest;
 import com.partyguham.user.profile.entity.UserPersonality;
 import com.partyguham.user.profile.repository.UserPersonalityRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -31,7 +31,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UserPersonalityService {
 
-    private final UserRepository userRepository;
+    private final UserReader userReader;
+
     private final PersonalityQuestionRepository questionRepository;
     private final PersonalityOptionRepository optionRepository;
     private final UserPersonalityRepository userPersonalityRepository;
@@ -45,9 +46,7 @@ public class UserPersonalityService {
     @Transactional
     public List<PersonalityAnswerResponse> saveAnswers(Long userId, PersonalityBulkAnswerRequest req) {
 
-        // 0) 유저 존재 여부 확인
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("user not found"));
+        User user = userReader.read(userId);
 
         // 1) 요청 유효성 체크
         List<PersonalityAnswerItem> items = Optional.ofNullable(req.personalities())

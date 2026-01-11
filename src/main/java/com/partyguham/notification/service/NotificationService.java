@@ -450,6 +450,7 @@ public class NotificationService {
     public void partyMemberPositionChangedEvent(
             Long partyUserId,
             String userNickname,
+            String position,
             Long partyId,
             String partyTitle,
             String partyImage
@@ -462,7 +463,7 @@ public class NotificationService {
         // 2) 제목/메시지/링크 구성
         NotificationTemplate t = NotificationTemplate.PARTY_MEMBER_POSITION_CHANGED;
         String title = t.title();
-        String body = t.body(partyTitle, userNickname);
+        String body = t.body(partyTitle, userNickname, position);
         String link = "/party/" + partyId + "#PartyPeopleTab";
 
         User userRef = entityManager.getReference(User.class, partyUserId);

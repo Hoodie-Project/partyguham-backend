@@ -2,8 +2,8 @@ package com.partyguham.party.controller;
 
 import com.partyguham.auth.jwt.UserPrincipal;
 import com.partyguham.common.annotation.ApiV2Controller;
-import com.partyguham.party.dto.party.request.GetPartyUsersRequestDto;
-import com.partyguham.party.dto.party.request.PartyCreateRequestDto;
+import com.partyguham.party.dto.party.request.GetPartyUsersRequest;
+import com.partyguham.party.dto.party.request.PartyCreateRequest;
 import com.partyguham.party.dto.party.response.*;
 import com.partyguham.party.service.PartyService;
 import jakarta.validation.Valid;
@@ -22,9 +22,9 @@ public class PartyController { // create → get → search → action 순서
     private final PartyService partyService;
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<PartyResponseDto> createParty(
+    public ResponseEntity<PartyResponse> createParty(
             @RequestPart(required = false) MultipartFile image,
-            @ModelAttribute @Valid PartyCreateRequestDto request,
+            @ModelAttribute @Valid PartyCreateRequest request,
             @AuthenticationPrincipal UserPrincipal user
     ) {
         return ResponseEntity.ok(
@@ -36,7 +36,7 @@ public class PartyController { // create → get → search → action 순서
      * 닉네임으로 유저가 소속된 파티 조회
      */
     @GetMapping("/users")
-    public ResponseEntity<UserJoinedPartyResponseDto> getPartyUsersByNickname(
+    public ResponseEntity<UserJoinedPartyResponse> getPartyUsersByNickname(
             @RequestParam String nickname
     ) {
         return ResponseEntity.ok(
@@ -45,16 +45,16 @@ public class PartyController { // create → get → search → action 순서
     }
 
     @GetMapping("/{partyId}")
-    public ResponseEntity<GetPartyResponseDto> getParty(
+    public ResponseEntity<GetPartyResponse> getParty(
                                                          @PathVariable Long partyId){
 
         return ResponseEntity.ok(partyService.getParty(partyId));
     }
 
     @GetMapping("/{partyId}/users")
-    public ResponseEntity<GetPartyUserResponseDto> getPartyUsers(
+    public ResponseEntity<GetPartyUserResponse> getPartyUsers(
                                                                   @PathVariable Long partyId,
-                                                                  @ModelAttribute GetPartyUsersRequestDto request) {
+                                                                  @ModelAttribute GetPartyUsersRequest request) {
 
         request.setPartyId(partyId);
         request.applyDefaultValues();
@@ -63,7 +63,7 @@ public class PartyController { // create → get → search → action 순서
     }
 
     @GetMapping("/{partyId}/users/me/authority")
-    public ResponseEntity<PartyAuthorityResponseDto> getPartyAuthority(
+    public ResponseEntity<PartyAuthorityResponse> getPartyAuthority(
                                                                         @PathVariable Long partyId,
                                                                         @AuthenticationPrincipal UserPrincipal user) {
 
@@ -71,7 +71,7 @@ public class PartyController { // create → get → search → action 순서
     }
 
     @GetMapping("/types")
-    public ResponseEntity<PartyTypeResponseDto> getPartyTypes() {
+    public ResponseEntity<PartyTypeResponse> getPartyTypes() {
 
         return ResponseEntity.ok(partyService.getPartyTypes());
     }

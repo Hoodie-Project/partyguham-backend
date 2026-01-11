@@ -1,5 +1,6 @@
 package com.partyguham.user.account.service;
 
+import com.partyguham.common.error.exception.BusinessException;
 import com.partyguham.infra.fcm.FcmService;
 import com.partyguham.user.account.entity.User;
 import com.partyguham.user.account.reader.UserReader;
@@ -27,12 +28,8 @@ public class UserFcmService {
 
     public void sendTestToUser(Long userId) {
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("user not found"));
-
-        if (user.getFcmToken() == null || user.getFcmToken().isBlank()) {
-            throw new IllegalStateException("User does not have a registered FCM token");
-        }
+        User user = userReader.read(userId);
+        user.validateFcmToken();
 
         fcmService.sendToToken(
                 user.getFcmToken(),

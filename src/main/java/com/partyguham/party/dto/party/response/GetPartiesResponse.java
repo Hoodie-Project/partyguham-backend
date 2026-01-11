@@ -1,6 +1,7 @@
 package com.partyguham.party.dto.party.response;
 
 
+import com.partyguham.party.dto.party.PartiesDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -12,13 +13,13 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class GetPartiesResponseDto {
+public class GetPartiesResponse {
 
     private long total;
     private List<PartiesDto> parties;
 
-    public static GetPartiesResponseDto fromPage(long total, List<PartiesDto> parties) {
-        return GetPartiesResponseDto.builder()
+    public static GetPartiesResponse fromPage(long total, List<PartiesDto> parties) {
+        return GetPartiesResponse.builder()
                 .total(total)
                 .parties(parties)
                 .build();

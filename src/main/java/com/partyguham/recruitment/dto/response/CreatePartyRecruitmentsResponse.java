@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CreatePartyRecruitmentsResponseDto {
+public class CreatePartyRecruitmentsResponse {
 
     private Long id;
     private String content;
@@ -24,8 +24,8 @@ public class CreatePartyRecruitmentsResponseDto {
     private Boolean completed;
     private LocalDateTime createdAt;
 
-    public static CreatePartyRecruitmentsResponseDto from(PartyRecruitment recruitment) {
-        return CreatePartyRecruitmentsResponseDto.builder()
+    public static CreatePartyRecruitmentsResponse from(PartyRecruitment recruitment) {
+        return CreatePartyRecruitmentsResponse.builder()
                 .id(recruitment.getId())
                 .content(recruitment.getContent())
                 .maxParticipants(recruitment.getMaxParticipants())

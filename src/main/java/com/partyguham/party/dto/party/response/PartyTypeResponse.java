@@ -1,5 +1,6 @@
 package com.partyguham.party.dto.party.response;
 
+import com.partyguham.party.dto.party.PartyTypeDto;
 import com.partyguham.party.entity.PartyType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,11 +13,11 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PartyTypeResponseDto {
+public class PartyTypeResponse {
 
     private List<PartyTypeDto> partyTypes;
 
-    public static PartyTypeResponseDto from(List<PartyType> partyTypes) {
+    public static PartyTypeResponse from(List<PartyType> partyTypes) {
         List<PartyTypeDto> partyTypeDtos = partyTypes.stream()
                 .map(partyType -> PartyTypeDto.builder()
                         .id(partyType.getId())
@@ -24,7 +25,7 @@ public class PartyTypeResponseDto {
                         .build())
                 .toList();
 
-        return PartyTypeResponseDto.builder()
+        return PartyTypeResponse.builder()
                 .partyTypes(partyTypeDtos)
                 .build();
     }
