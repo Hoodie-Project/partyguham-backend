@@ -1,12 +1,9 @@
 package com.partyguham.user.profile.service;
 
 import com.partyguham.user.account.entity.User;
-import com.partyguham.user.account.reader.UserReader;
-import com.partyguham.user.account.repository.UserRepository;
 import com.partyguham.user.profile.dto.request.UserProfileUpdateRequest;
 import com.partyguham.user.profile.dto.response.UserProfileResponse;
-import com.partyguham.user.profile.entity.Gender;
-import com.partyguham.user.profile.entity.UserProfile;
+import com.partyguham.user.profile.reader.UserProfileReader;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,29 +14,27 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class UserProfileService {
 
-    private final UserReader userReader;
+    private final UserProfileReader UserProfileReader;
 
-    private final UserRepository userRepository;
     private final UserPersonalityService userPersonalityService;
     private final UserCareerService userCareerService;
     private final UserLocationService userLocationService;
 
     @Transactional(readOnly = true)
     public UserProfileResponse getMyProfile(Long userId) {
-        User user = userReader.read(userId);
-
-        UserProfile profile = user.getProfile(); // null 가능
+        User user = UserProfileReader.read(userId);
 
         return new UserProfileResponse(
                 user.getEmail(),
                 user.getNickname(),
-                profile != null ? profile.getBirth() : null,
-                profile != null && profile.isBirthVisible(),
-                profile != null ? profile.getGender() : null,
-                profile != null && profile.isGenderVisible(),
-                profile != null ? profile.getPortfolioTitle() : null,
-                profile != null ? profile.getPortfolio() : null,
-                profile != null ? profile.getImage() : null,
+
+                user.getProfile() != null ? user.getProfile().getBirth() : null,
+                user.getProfile() != null && user.getProfile().isBirthVisible(),
+                user.getProfile() != null ? user.getProfile().getGender() : null,
+                user.getProfile() != null && user.getProfile().isGenderVisible(),
+                user.getProfile() != null ? user.getProfile().getPortfolioTitle() : null,
+                user.getProfile() != null ? user.getProfile().getPortfolio() : null,
+                user.getProfile() != null ? user.getProfile().getImage() : null,
                 user.getCreatedAt(),
                 user.getUpdatedAt(),
                 userPersonalityService.getMyAnswers(userId),
@@ -50,63 +45,53 @@ public class UserProfileService {
 
     @Transactional(readOnly = true)
     public UserProfileResponse getProfileByNickname(String nickname) {
-        User user = userReader.readByNickname(nickname);
+        User user = UserProfileReader.readByNickname(nickname);
 
-        UserProfile profile = user.getProfile(); // null 가능
+        Long userId = user.getId();
 
-        return new UserProfileResponse(
-                user.getEmail(),
-                user.getNickname(),
-                profile != null ? profile.getBirth() : null,
-                profile != null && profile.isBirthVisible(),
-                profile != null ? profile.getGender() : null,
-                profile != null && profile.isGenderVisible(),
-                profile != null ? profile.getPortfolioTitle() : null,
-                profile != null ? profile.getPortfolio() : null,
-                profile != null ? profile.getImage() : null,
-                user.getCreatedAt(),
-                user.getUpdatedAt(),
-                userPersonalityService.getMyAnswers(user.getId()),
-                userCareerService.getMyCareers(user.getId()),
-                userLocationService.getMyLocations(user.getId())
-        );
+        // 2. 각 도메인 서비스로부터 부가 정보 조회
+        var personalities = userPersonalityService.getMyAnswers(userId);
+        var careers = userCareerService.getMyCareers(userId);
+        var locations = userLocationService.getMyLocations(userId);
+
+        // 3. DTO 팩토리 메서드로 조합하여 반환
+        return UserProfileResponse.from(user, personalities, careers, locations);
     }
 
     @Transactional
     public void updateProfile(Long userId, UserProfileUpdateRequest req) {
 
-        User user = userReader.read(userId);
+        User user = UserProfileReader.read(userId);
 
-        UserProfile profile = user.getProfile();
-        if (profile == null) {
+        if (user.getProfile() == null) {
             throw new EntityNotFoundException("profile not found");
         }
 
         // gender
         if (req.getGender() != null) {
-            profile.setGender(req.getGender());
+            user.getProfile().setGender(req.getGender());
         }
 
         if (req.getGenderVisible() != null) {
-            profile.setGenderVisible(req.getGenderVisible());
+            user.getProfile().setGenderVisible(req.getGenderVisible());
         }
 
         // birth
         if (req.getBirth() != null) {
-            profile.setBirth(req.getBirth());
+            user.getProfile().setBirth(req.getBirth());
         }
 
         if (req.getBirthVisible() != null) {
-            profile.setBirthVisible(req.getBirthVisible());
+            user.getProfile().setBirthVisible(req.getBirthVisible());
         }
 
         // portfolio
         if (req.getPortfolioTitle() != null) {
-            profile.setPortfolioTitle(req.getPortfolioTitle());
+            user.getProfile().setPortfolioTitle(req.getPortfolioTitle());
         }
 
         if (req.getPortfolio() != null) {
-            profile.setPortfolio(req.getPortfolio());
+            user.getProfile().setPortfolio(req.getPortfolio());
         }
     }
 }

@@ -3,7 +3,7 @@ package com.partyguham.user.account.entity;
 import com.partyguham.auth.oauth.entity.OauthAccount;
 import com.partyguham.common.entity.BaseEntity;
 import com.partyguham.common.entity.Status;
-import com.partyguham.common.error.exception.BusinessException;
+import com.partyguham.common.exception.BusinessException;
 import com.partyguham.user.profile.entity.UserProfile;
 import jakarta.persistence.*;
 import lombok.*;
