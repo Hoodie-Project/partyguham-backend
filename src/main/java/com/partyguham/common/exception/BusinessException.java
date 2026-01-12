@@ -1,4 +1,4 @@
-package com.partyguham.common.error.exception;
+package com.partyguham.common.exception;
 
 import com.partyguham.common.error.ErrorCode;
 import lombok.Getter;
