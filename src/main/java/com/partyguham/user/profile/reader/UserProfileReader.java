@@ -3,13 +3,17 @@ package com.partyguham.user.profile.reader;
 import com.partyguham.common.exception.BusinessException;
 import com.partyguham.user.account.entity.User;
 import com.partyguham.user.account.repository.UserRepository;
+import com.partyguham.user.profile.entity.CareerType;
+import com.partyguham.user.profile.entity.UserCareer;
 import com.partyguham.user.profile.entity.UserLocation;
+import com.partyguham.user.profile.repository.UserCareerRepository;
 import com.partyguham.user.profile.repository.UserLocationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 import static com.partyguham.user.exception.UserErrorCode.*;
 
@@ -20,28 +24,58 @@ public class UserProfileReader {
 
     private final UserRepository userRepository;
     private final UserLocationRepository userLocationRepository;
+    private final UserCareerRepository userCareerRepository;
+
     /**
      * 기본 조회: ID로 유저를 찾고, 없으면 전용 예외를 던집니다.
+     * @param userId 유저 고유 ID
+     * @return 조회된 User 엔티티
+     * @throws BusinessException USER_NOT_FOUND (404)
      */
     public User read(Long userId) {
         return userRepository.findByIdWithProfile(userId)
                 .orElseThrow(() -> new BusinessException(USER_NOT_FOUND));
     }
 
+    /**
+     * 닉네임으로 유저 조회: 프로필 정보와 함께 유저를 조회합니다.
+     * @param nickname 유저 닉네임
+     * @return 조회된 User 엔티티
+     * @throws BusinessException USER_NOT_FOUND (404)
+     */
     public User readByNickname(String nickname) {
         return userRepository.findByNicknameWithProfile(nickname)
                 .orElseThrow(() -> new BusinessException(USER_NOT_FOUND));
     }
 
+    /**
+     * 유저별 관심 지역 목록 조회
+     * @param userId 유저 고유 ID
+     * @return 해당 유저의 UserLocation 엔티티 리스트
+     */
     public List<UserLocation> readLocationByUserId(Long userId) {
         return userLocationRepository.findByUserId(userId);
     }
 
+    /**
+     * 관심 지역 단건 조회
+     * @param userLocationId 관심 지역 고유 ID
+     * @return 조회된 UserLocation 엔티티
+     * @throws BusinessException USER_LOCATION_NOT_FOUND (404)
+     */
     public UserLocation readLocationById(Long userLocationId) {
         return userLocationRepository.findById(userLocationId)
                 .orElseThrow(() -> new BusinessException(USER_LOCATION_NOT_FOUND));
     }
 
+    /**
+     * 관심 지역 조회 및 소유권 검증:
+     * 특정 관심 지역이 해당 유저의 것인지 확인합니다.
+     * @param userId 유저 고유 ID
+     * @param userLocationId 관심 지역 고유 ID
+     * @return 검증된 UserLocation 엔티티
+     * @throws BusinessException USER_LOCATION_ACCESS_DENIED (403)
+     */
     public UserLocation readLocationAndValidateOwner(Long userId, Long userLocationId) {
         UserLocation ul = readLocationById(userLocationId);
         if (!ul.getUser().getId().equals(userId)) {
@@ -50,4 +84,50 @@ public class UserProfileReader {
         return ul;
     }
 
+    /**
+     * 유저의 모든 경력 목록 조회
+     * @param userId 유저 고유 ID
+     * @return 해당 유저의 UserCareer 엔티티 리스트
+     */
+    public List<UserCareer> readCareersByUserId(Long userId) {
+        return userCareerRepository.findByUserId(userId);
+    }
+
+    /**
+     * 경력 단건 조회
+     * @param careerId 경력 고유 ID
+     * @return 조회된 UserCareer 엔티티
+     * @throws BusinessException USER_CAREER_NOT_FOUND (404)
+     */
+    public UserCareer readCareerById(Long careerId) {
+        return userCareerRepository.findById(careerId)
+                .orElseThrow(() -> new BusinessException(USER_CAREER_NOT_FOUND));
+    }
+
+    /**
+     * 특정 경력 타입(PRIMARY/SECONDARY) 조회:
+     * 유저에게 해당 타입의 경력이 등록되어 있는지 확인합니다.
+     * @param userId 유저 고유 ID
+     * @param type 경력 타입 (대표/부경력 등)
+     * @return UserCareer를 포함한 Optional 객체
+     */
+    public Optional<UserCareer> readCareerByType(Long userId, CareerType type) {
+        return userCareerRepository.findByUserIdAndCareerType(userId, type);
+    }
+
+    /**
+     * 경력 조회 및 소유권 검증:
+     * 특정 경력 정보가 해당 유저의 것인지 확인합니다.
+     * @param careerId 경력 고유 ID
+     * @param userId 유저 고유 ID
+     * @return 검증된 UserCareer 엔티티
+     * @throws BusinessException USER_CAREER_ACCESS_DENIED (403)
+     */
+    public UserCareer readCareerAndValidateOwner(Long careerId, Long userId) {
+        UserCareer uc = readCareerById(careerId);
+        if (!uc.getUser().getId().equals(userId)) {
+            throw new BusinessException(USER_CAREER_ACCESS_DENIED);
+        }
+        return uc;
+    }
 }

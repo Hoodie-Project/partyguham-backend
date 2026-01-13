@@ -24,7 +24,11 @@ public enum UserErrorCode implements ErrorCode {
     PROFILE_NOT_FOUND(404, "U_201", "프로필 정보를 찾을 수 없습니다."),
     USER_LOCATION_NOT_FOUND(404, "U_202", "유저 지역 정보를 찾을 수 없습니다."),
     USER_LOCATION_ACCESS_DENIED(403, "U_203", "유저 지역 정보 권한이 없습니다."),
-    DUPLICATE_LOCATION(409, "U_204", "데이터가 중복 되었습니다."),
+    USER_LOCATION_DUPLICATE(409, "U_204", "데이터가 중복 되었습니다."),
+
+    USER_CAREER_NOT_FOUND(404, "U_301", "경력 정보를 찾을 수 없습니다."),
+    USER_CAREER_ACCESS_DENIED(403, "U_302", "본인의 경력 정보만 접근 가능합니다."),
+    USER_CAREER_DUPLICATE(409, "U_303", "중복된 경력 타입이 포함되어 있습니다.");
 
     ;
     private final int status;

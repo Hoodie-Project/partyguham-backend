@@ -49,7 +49,7 @@ public class UserLocationService {
 
         // 1) 중복 체크 (비즈니스 규칙이므로 서비스에서 유지)
         if (new HashSet<>(locationIds).size() != locationIds.size()) {
-            throw new BusinessException(DUPLICATE_LOCATION);
+            throw new BusinessException(USER_LOCATION_DUPLICATE);
         }
         // 2) 필요한 데이터 조회
         User user = userReader.read(userId);
