@@ -1,6 +1,6 @@
 package com.partyguham.recruitment.service;
 
-import com.partyguham.common.error.exception.BusinessException;
+import com.partyguham.common.exception.BusinessException;
 import com.partyguham.party.entity.Party;
 import com.partyguham.party.reader.PartyReader;
 import com.partyguham.party.service.PartyAccessService;

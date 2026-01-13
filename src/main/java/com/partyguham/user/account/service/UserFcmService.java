@@ -1,11 +1,9 @@
 package com.partyguham.user.account.service;
 
-import com.partyguham.common.error.exception.BusinessException;
 import com.partyguham.infra.fcm.FcmService;
 import com.partyguham.user.account.entity.User;
 import com.partyguham.user.account.reader.UserReader;
 import com.partyguham.user.account.repository.UserRepository;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

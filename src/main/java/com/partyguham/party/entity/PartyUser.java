@@ -3,7 +3,7 @@ package com.partyguham.party.entity;
 import com.partyguham.catalog.entity.Position; //확인필요
 import com.partyguham.common.entity.BaseEntity;
 import com.partyguham.common.entity.Status;
-import com.partyguham.common.error.exception.BusinessException;
+import com.partyguham.common.exception.BusinessException;
 import com.partyguham.party.exception.PartyUserErrorCode;
 import com.partyguham.user.account.entity.User;
 import jakarta.persistence.*;

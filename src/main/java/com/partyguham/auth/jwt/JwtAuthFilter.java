@@ -2,7 +2,7 @@ package com.partyguham.auth.jwt;
 
 import com.partyguham.auth.exception.AuthErrorCode;
 import com.partyguham.auth.jwt.service.JwtService;
-import com.partyguham.common.error.exception.BusinessException;
+import com.partyguham.common.exception.BusinessException;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
@@ -20,6 +20,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.List;
+
+import static com.partyguham.auth.exception.AuthErrorCode.*;
 
 /**
  * JWT 필터
@@ -69,9 +71,9 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             // 다음 필터로 진행
             filterChain.doFilter(request, response);
         } catch (ExpiredJwtException e) {
-            throw new BusinessException(AuthErrorCode.EXPIRED_TOKEN);
+            throw new BusinessException(EXPIRED_TOKEN);
         } catch (SignatureException | MalformedJwtException | UnsupportedJwtException | IllegalArgumentException e) {
-            throw new BusinessException(AuthErrorCode.INVALID_TOKEN);
+            throw new BusinessException(INVALID_TOKEN);
         }
 
     }

@@ -2,6 +2,7 @@ package com.partyguham.user.profile.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.partyguham.user.profile.entity.Gender;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Pattern;
 import org.hibernate.validator.constraints.URL;
 import lombok.Getter;
@@ -13,8 +14,7 @@ import java.time.LocalDate;
 @Setter
 public class UserProfileUpdateRequest {
 
-    @Pattern(regexp = "M|F|U", message = "gender must be M, F or U")
-    private Gender gender;          // "M", "F", "U"
+    private Gender gender;
     private Boolean genderVisible;
 
     @JsonFormat(pattern = "yyyy-MM-dd")
@@ -25,4 +25,11 @@ public class UserProfileUpdateRequest {
     private String portfolioTitle;
     @URL(message = "Invalid portfolio URL")
     private String portfolio;
+
+    @AssertTrue(message = "적어도 하나의 수정할 정보가 필요합니다.")
+    public boolean isUpdatePresent() {
+        return gender != null || genderVisible != null ||
+                birth != null || birthVisible != null ||
+                portfolioTitle != null || portfolio != null;
+    }
 }

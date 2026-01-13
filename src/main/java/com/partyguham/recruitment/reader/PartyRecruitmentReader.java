@@ -1,6 +1,6 @@
 package com.partyguham.recruitment.reader;
 
-import com.partyguham.common.error.exception.BusinessException;
+import com.partyguham.common.exception.BusinessException;
 import com.partyguham.recruitment.entity.PartyRecruitment;
 import com.partyguham.recruitment.exception.RecruitmentErrorCode;
 import com.partyguham.recruitment.repository.PartyRecruitmentRepository;

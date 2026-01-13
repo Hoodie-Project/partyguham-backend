@@ -33,7 +33,7 @@ public class UserProfileController {
         return userProfileService.getProfileByNickname(nickname);
     }
 
-    @PatchMapping
+    @PatchMapping("/me/profile")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void update(
             @AuthenticationPrincipal UserPrincipal user,

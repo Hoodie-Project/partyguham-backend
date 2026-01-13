@@ -7,7 +7,7 @@ import com.partyguham.auth.ott.repository.OttTokenRepository;
 import com.partyguham.auth.ott.model.OttPayload;
 import com.partyguham.auth.ott.model.OttType;
 import com.partyguham.common.error.CommonErrorCode;
-import com.partyguham.common.error.exception.BusinessException;
+import com.partyguham.common.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.BadCredentialsException;

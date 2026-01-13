@@ -1,6 +1,6 @@
 package com.partyguham.user.account.reader;
 
-import com.partyguham.common.error.exception.BusinessException;
+import com.partyguham.common.exception.BusinessException;
 import com.partyguham.user.account.entity.User;
 import com.partyguham.user.account.repository.UserRepository;
 import com.partyguham.user.exception.UserErrorCode;

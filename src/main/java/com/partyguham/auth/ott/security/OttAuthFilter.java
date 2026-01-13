@@ -3,7 +3,7 @@ package com.partyguham.auth.ott.security;
 import com.partyguham.auth.ott.service.OttService;
 import com.partyguham.auth.ott.model.OttPayload;
 import com.partyguham.auth.ott.model.OttType;
-import com.partyguham.common.error.exception.BusinessException;
+import com.partyguham.common.exception.BusinessException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -78,7 +78,7 @@ public class OttAuthFilter extends OncePerRequestFilter {
         chain.doFilter(req, res);
     }
 
-    /** 헤더 또는 쿠키에서 추출 */
+    /** 헤더 또는 쿠키에서 토큰 추출 */
     private String resolveToken(HttpServletRequest req) {
         // 1) Header: X-OTT-Token
         String ottHeader = req.getHeader("X-OTT-Token");

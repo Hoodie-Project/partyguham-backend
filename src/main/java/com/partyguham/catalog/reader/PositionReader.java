@@ -3,7 +3,7 @@ package com.partyguham.catalog.reader;
 import com.partyguham.catalog.entity.Position;
 import com.partyguham.catalog.exception.CatalogErrorCode;
 import com.partyguham.catalog.repository.PositionRepository;
-import com.partyguham.common.error.exception.BusinessException;
+import com.partyguham.common.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
