@@ -38,4 +38,11 @@ public class UserLocation {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "location_id", nullable = false)
     private Location location;
+
+    public static UserLocation create(User user, Location location) {
+        return UserLocation.builder()
+                .user(user)
+                .location(location)
+                .build();
+    }
 }

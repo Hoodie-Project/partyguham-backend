@@ -11,8 +11,6 @@ import lombok.experimental.SuperBuilder;
 
 import java.util.*;
 
-import static com.partyguham.user.exception.UserErrorCode.*;
-
 @Entity
 @Table(name = "users",
         indexes = @Index(name = "idx_nickname_lower", columnList = "lower(nickname)", unique = true))
