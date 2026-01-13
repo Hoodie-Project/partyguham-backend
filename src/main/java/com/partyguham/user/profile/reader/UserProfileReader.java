@@ -6,8 +6,10 @@ import com.partyguham.user.account.repository.UserRepository;
 import com.partyguham.user.profile.entity.CareerType;
 import com.partyguham.user.profile.entity.UserCareer;
 import com.partyguham.user.profile.entity.UserLocation;
+import com.partyguham.user.profile.entity.UserPersonality;
 import com.partyguham.user.profile.repository.UserCareerRepository;
 import com.partyguham.user.profile.repository.UserLocationRepository;
+import com.partyguham.user.profile.repository.UserPersonalityRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +27,7 @@ public class UserProfileReader {
     private final UserRepository userRepository;
     private final UserLocationRepository userLocationRepository;
     private final UserCareerRepository userCareerRepository;
+    private final UserPersonalityRepository userPersonalityRepository;
 
     /**
      * 기본 조회: ID로 유저를 찾고, 없으면 전용 예외를 던집니다.
@@ -130,4 +133,22 @@ public class UserProfileReader {
         }
         return uc;
     }
+
+    /**
+     * 유저의 모든 성향 응답 조회 (질문 정보 포함)
+     * @param userId 유저 고유 ID
+     * @return UserPersonality 리스트
+     */
+    public List<UserPersonality> readPersonalitiesByUserId(Long userId) {
+        return userPersonalityRepository.findByUserId(userId);
+    }
+
+    /**
+     * 특정 질문들에 대한 유저의 기존 응답 존재 여부 확인 (필요 시)
+     */
+    public List<UserPersonality> readPersonalitiesByUserIdAndQuestionIds(Long userId, List<Long> questionIds) {
+        return userPersonalityRepository.findByUserIdAndQuestionIdIn(userId, questionIds);
+    }
+
+
 }

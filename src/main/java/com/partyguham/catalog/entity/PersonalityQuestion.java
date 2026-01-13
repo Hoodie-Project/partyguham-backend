@@ -1,10 +1,13 @@
 package com.partyguham.catalog.entity;
 
+import com.partyguham.common.exception.BusinessException;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.partyguham.user.exception.UserErrorCode.PERSONALITY_TOO_MANY_OPTIONS;
 
 @Entity
 @Table(name = "personality_questions")
@@ -38,8 +41,10 @@ public class PersonalityQuestion {
     @Builder.Default
     private List<PersonalityOption> personalityOptions = new ArrayList<>();
 
-    public void addOption(PersonalityOption option) {
-        personalityOptions.add(option);
-        option.setPersonalityQuestion(this);
+    public void validateOptionCount(int selectedCount) {
+        if (selectedCount > this.responseCount) {
+            throw new BusinessException(PERSONALITY_TOO_MANY_OPTIONS);
+        }
     }
+
 }

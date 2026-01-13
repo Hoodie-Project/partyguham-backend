@@ -28,7 +28,12 @@ public enum UserErrorCode implements ErrorCode {
 
     USER_CAREER_NOT_FOUND(404, "U_301", "경력 정보를 찾을 수 없습니다."),
     USER_CAREER_ACCESS_DENIED(403, "U_302", "본인의 경력 정보만 접근 가능합니다."),
-    USER_CAREER_DUPLICATE(409, "U_303", "중복된 경력 타입이 포함되어 있습니다.");
+    USER_CAREER_DUPLICATE(409, "U_303", "중복된 경력 타입이 포함되어 있습니다."),
+
+    PERSONALITY_QUESTION_DUPLICATE(409, "U_403", "한 요청에 동일한 질문에 대한 응답이 중복되었습니다."),
+    PERSONALITY_TOO_MANY_OPTIONS(400, "U_404", "질문에서 허용하는 최대 선택 개수를 초과했습니다."),
+    INVALID_OPTION_FOR_QUESTION(400, "U_405", "해당 질문에 속하지 않는 옵션 아이디가 포함되어 있습니다."),
+    PERSONALITY_ANSWER_REQUIRED(400, "U_406", "최소 하나 이상의 성향 응답이 필요합니다.");
 
     ;
     private final int status;
