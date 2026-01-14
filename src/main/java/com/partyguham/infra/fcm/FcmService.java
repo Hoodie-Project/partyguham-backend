@@ -28,7 +28,6 @@ public class FcmService {
 
         // 공통 토큰 검증, 토큰 없으면 스킵
         if (token == null || token.isBlank()) {
-            log.info("FCM skip: empty token");
             return;
         }
 

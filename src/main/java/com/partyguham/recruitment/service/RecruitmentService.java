@@ -1,5 +1,6 @@
 package com.partyguham.recruitment.service;
 
+import com.partyguham.catalog.reader.PositionReader;
 import com.partyguham.party.dto.party.request.GetPartyRecruitmentsRequest;
 import com.partyguham.party.dto.party.response.GetPartyRecruitmentsResponse;
 import com.partyguham.party.entity.Party;
@@ -12,12 +13,11 @@ import com.partyguham.recruitment.dto.response.CreatePartyRecruitmentsResponse;
 import com.partyguham.recruitment.dto.response.PartyRecruitmentResponse;
 import com.partyguham.recruitment.dto.response.PartyRecruitmentsResponse;
 import com.partyguham.recruitment.entity.PartyRecruitment;
+import com.partyguham.recruitment.reader.PartyRecruitmentReader;
 import com.partyguham.recruitment.repository.PartyRecruitmentRepository;
-import com.partyguham.user.account.entity.User;
-import com.partyguham.user.account.repository.UserRepository;
 import com.partyguham.user.profile.entity.CareerType;
 import com.partyguham.user.profile.entity.UserCareer;
-import com.partyguham.user.profile.repository.UserCareerRepository;
+import com.partyguham.user.profile.reader.UserProfileReader;
 import com.partyguham.catalog.entity.Position;
 import com.partyguham.catalog.repository.PositionRepository;
 import lombok.RequiredArgsConstructor;
@@ -41,13 +41,13 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class RecruitmentService {
 
+    private final UserProfileReader userProfileReader;
+    private final PositionReader positionReader;
     private final PartyReader partyReader;
+    private final PartyRecruitmentReader partyRecruitmentReader;
 
     private final PartyRecruitmentRepository partyRecruitmentRepository;
     private final PartyAccessService partyAccessService;
-    private final PositionRepository positionRepository;
-    private final UserCareerRepository userCareerRepository;
-    private final UserRepository userRepository;
 
     /**
      * [파티모집] 파티 모집 목록 조회
@@ -55,7 +55,7 @@ public class RecruitmentService {
      * 특정 파티에 대한 파티모집 목록을 조회합니다.
      */
     public List<PartyRecruitmentsResponse> getPartyRecruitments(Long partyId,
-                                                                   PartyRecruitmentsRequest request) {
+                                                                PartyRecruitmentsRequest request) {
 
         partyReader.readParty(partyId);
 
@@ -72,15 +72,13 @@ public class RecruitmentService {
      */
     @Transactional
     public CreatePartyRecruitmentsResponse createPartyRecruitment(Long partyId,
-                                                                     Long userId,
-                                                                     CreatePartyRecruitmentRequest request) {
+                                                                  Long userId,
+                                                                  CreatePartyRecruitmentRequest request) {
 
         Party party = partyReader.readParty(partyId);
+        Position position = positionReader.read(request.getPositionId());
 
         partyAccessService.checkManagerOrThrow(partyId, userId);
-
-        Position position = positionRepository.findById(request.getPositionId())
-                .orElseThrow(() -> new EntityNotFoundException("포지션을 찾을 수 없습니다: " + request.getPositionId()));
 
         PartyRecruitment recruitment = PartyRecruitment.builder()
                 .party(party)
@@ -100,9 +98,7 @@ public class RecruitmentService {
      * 파티 모집공고 단일 조회
      */
     public PartyRecruitmentResponse getPartyRecruitment(Long partyRecruitmentId) {
-        PartyRecruitment recruitment = partyRecruitmentRepository.findById(partyRecruitmentId)
-                .orElseThrow(() -> new EntityNotFoundException("파티 모집공고가 없습니다."));
-
+        PartyRecruitment recruitment = partyRecruitmentReader.read(partyRecruitmentId);
         return PartyRecruitmentResponse.from(recruitment);
     }
 
@@ -130,12 +126,7 @@ public class RecruitmentService {
     public GetPartyRecruitmentsResponse getPersonalizedRecruitments(Long userId, GetPartyRecruitmentsPersonalizedRequest request) {
         Pageable pageable = PageRequest.of(request.getPage() - 1, request.getSize(), Sort.by(request.getOrder(), request.getSort()));
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("유저를 찾을 수 없습니다: " + userId));
-
-        UserCareer userCareer = userCareerRepository.findByUserAndCareerType(user, CareerType.PRIMARY)
-                .orElseThrow(() -> new EntityNotFoundException("유저의 커리어를 찾을 수 없습니다: " + userId));
-
+        UserCareer userCareer = userProfileReader.getCareerByType(userId, CareerType.PRIMARY);
         Long positionId = userCareer.getPosition().getId();
 
         Page<PartyRecruitment> recruitmentPage = partyRecruitmentRepository.searchRecruitmentsPersonalized(request, positionId, pageable);

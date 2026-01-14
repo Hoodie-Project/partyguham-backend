@@ -44,11 +44,7 @@ public class RecruitmentAdminService {
 
         partyAccessService.checkManagerOrThrow(partyId, userId);
 
-        if (recruitment.getCompleted()) {
-            throw new BusinessException(RecruitmentErrorCode.PR_COMPLETED_CONFLICT);
-        }
-
-        recruitment.setCompleted(true);
+        recruitment.complete();
     }
 
     /**
@@ -67,7 +63,7 @@ public class RecruitmentAdminService {
             throw new EntityNotFoundException("일부 모집공고를 찾을 수 없습니다.");
         }
 
-        recruitments.forEach(recruitment -> recruitment.setCompleted(true)); // 더티체킹
+        recruitments.forEach(PartyRecruitment::complete);
     }
 
     /**
@@ -91,8 +87,7 @@ public class RecruitmentAdminService {
 
         partyAccessService.checkManagerOrThrow(partyId, userId);
 
-        recruitment.setContent(request.getContent());
-        recruitment.setMaxParticipants(request.getMaxParticipants());
+        recruitment.update(request.getContent(), request.getMaxParticipants());
 
         return PartyRecruitmentsResponse.from(recruitment);
     }
@@ -113,7 +108,6 @@ public class RecruitmentAdminService {
 
         partyAccessService.checkManagerOrThrow(partyId, userId);
 
-        // 소프트 삭제: status를 DELETED로 변경
         recruitment.delete();
     }
 

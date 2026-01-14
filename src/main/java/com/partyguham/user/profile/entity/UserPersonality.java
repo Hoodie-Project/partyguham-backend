@@ -44,7 +44,12 @@ public class UserPersonality {
     @JoinColumn(name = "personality_option_id", nullable = false)
     private PersonalityOption personalityOption;
 
-    public void changeOption(PersonalityOption personalityOption) {
-        this.personalityOption = personalityOption;
+
+    public static UserPersonality create(User user, PersonalityQuestion question, PersonalityOption option) {
+        return UserPersonality.builder()
+                .user(user)
+                .question(question)
+                .personalityOption(option)
+                .build();
     }
 }
