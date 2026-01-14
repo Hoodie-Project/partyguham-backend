@@ -1,12 +1,12 @@
 package com.partyguham.notification.repository;
 
-
 import com.partyguham.notification.entity.Notification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
-import java.util.List;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
@@ -21,4 +21,9 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     Optional<Notification> findByIdAndUserId(Long id, Long userId);
 
     void deleteByIdAndUserId(Long id, Long userId);
+
+    @Modifying // Select가 아닌 수정을 알림
+    @Query("delete from Notification n where n.createdAt < :targetDate")
+    void deleteOldNotifications(@Param("targetDate") LocalDateTime targetDate);
+
 }
