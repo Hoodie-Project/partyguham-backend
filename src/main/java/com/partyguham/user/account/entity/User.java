@@ -11,6 +11,8 @@ import lombok.experimental.SuperBuilder;
 
 import java.util.*;
 
+import static com.partyguham.user.exception.UserErrorCode.*;
+
 @Entity
 @Table(name = "users",
         indexes = @Index(name = "idx_nickname_lower", columnList = "lower(nickname)", unique = true))
@@ -84,7 +86,7 @@ public class User extends BaseEntity {
     }
 
     /**
-     * fcmToken 검증
+     * fcmToken 존재 검증
      */
     public void validateFcmToken() {
         if (this.fcmToken == null || this.fcmToken.isBlank()) {
