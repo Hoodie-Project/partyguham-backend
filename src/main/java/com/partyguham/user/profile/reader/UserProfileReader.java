@@ -108,14 +108,29 @@ public class UserProfileReader {
     }
 
     /**
-     * 특정 경력 타입(PRIMARY/SECONDARY) 조회:
-     * 유저에게 해당 타입의 경력이 등록되어 있는지 확인합니다.
+     * 특정 경력 타입(대표/부경력)을 선택적으로 조회합니다.
+     * 데이터의 존재 여부에 따라 분기 처리가 필요한 비즈니스 로직(Upsert 등)에서 사용합니다.
+     *
      * @param userId 유저 고유 ID
-     * @param type 경력 타입 (대표/부경력 등)
-     * @return UserCareer를 포함한 Optional 객체
+     * @param type   경력 타입 (PRIMARY, SECONDARY 등)
+     * @return {@link UserCareer}를 포함하거나 비어있는 {@link Optional} 객체
      */
     public Optional<UserCareer> readCareerByType(Long userId, CareerType type) {
         return userCareerRepository.findByUserIdAndCareerType(userId, type);
+    }
+
+    /**
+     * 특정 경력 타입(대표/부경력)을 필수 조회합니다.
+     * 데이터가 반드시 존재해야 하는 비즈니스 로직(조회, 삭제 등)에서 사용합니다.
+     *
+     * @param userId 유저 고유 ID
+     * @param type   경력 타입 (PRIMARY, SECONDARY 등)
+     * @return 조회된 {@link UserCareer} 엔티티
+     * @throws BusinessException USER_CAREER_NOT_FOUND (404) - 해당 경력 정보가 없을 경우
+     */
+    public UserCareer getCareerByType(Long userId, CareerType type) {
+        return readCareerByType(userId, type)
+                .orElseThrow(() -> new BusinessException(USER_CAREER_NOT_FOUND));
     }
 
     /**
