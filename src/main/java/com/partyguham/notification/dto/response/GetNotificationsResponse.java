@@ -43,8 +43,8 @@ public class GetNotificationsResponse {
                         .id(n.getId())
                         .notificationType(
                                 NotificationTypeDto.builder()
-                                        .type(n.getNotificationType().getType())
-                                        .label(n.getNotificationType().getLabel())
+                                        .type(n.getType().name())      // "PARTY", "RECRUIT" 등
+                                        .label(n.getType().getLabel())  // "파티 활동", "지원 소식" 등
                                         .build()
                         )
                         .title(n.getTitle())
@@ -58,9 +58,9 @@ public class GetNotificationsResponse {
                 )
                 .toList();
 
-        Long nextCursor = items.isEmpty()
-                ? null
-                : items.get(items.size() - 1).getId();
+        Long nextCursor = (slice.hasNext() && !items.isEmpty())
+                ? items.get(items.size() - 1).getId()
+                : null;
 
         return GetNotificationsResponse.builder()
                 .notifications(items)

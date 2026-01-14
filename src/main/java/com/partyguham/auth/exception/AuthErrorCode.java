@@ -17,7 +17,8 @@ public enum AuthErrorCode implements ErrorCode {
     EXPIRED_OTT_TOKEN(401, "OTT_002", "만료되거나 사용된 OTT 토큰입니다."),
 
     // 공통
-    AUTHENTICATION_FAILED(401, "AUTH_001", "인증에 실패하였습니다.");
+    AUTHENTICATION_FAILED(401, "AUTH_001", "인증에 실패하였습니다."),
+    OAUTH_PROVIDER_FAILED(401, "OAUTH_001", "지원하지 않는 Oauth 입니다.");
     ;
 
     private final int status;
