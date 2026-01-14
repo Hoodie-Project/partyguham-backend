@@ -1,8 +1,5 @@
 package com.partyguham.recruitment.dto.request;
 
-import com.partyguham.common.validation.ValidMainPosition;
-import com.partyguham.common.validation.ValidRecruitmentSort;
-
 import jakarta.validation.constraints.NotNull;
 
 import org.springframework.data.domain.Sort.Direction;
@@ -24,12 +21,10 @@ import lombok.Setter;
 @Builder
 public class PartyRecruitmentsRequest {
 
-    @ValidRecruitmentSort
     private String sort = "createdAt";
 
     private Direction order = Direction.ASC;       
 
-    @ValidMainPosition
     private String main;
 
     @NotNull

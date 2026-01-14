@@ -1,6 +1,5 @@
 package com.partyguham.recruitment.dto.request;
 
-import com.partyguham.common.validation.ValidRecruitmentSort;
 import jakarta.validation.constraints.Min;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -23,7 +22,6 @@ public class GetPartyRecruitmentsPersonalizedRequest {
     @Min(1)
     private int size = 20;
 
-    @ValidRecruitmentSort
     private String sort = "createdAt";
 
     private Direction order = Direction.ASC;

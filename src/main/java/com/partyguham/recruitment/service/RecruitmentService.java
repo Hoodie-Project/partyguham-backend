@@ -3,6 +3,7 @@ package com.partyguham.recruitment.service;
 import com.partyguham.party.dto.party.request.GetPartyRecruitmentsRequest;
 import com.partyguham.party.dto.party.response.GetPartyRecruitmentsResponse;
 import com.partyguham.party.entity.Party;
+import com.partyguham.catalog.entity.Position;
 import com.partyguham.party.reader.PartyReader;
 import com.partyguham.party.service.PartyAccessService;
 import com.partyguham.recruitment.dto.request.CreatePartyRecruitmentRequest;
@@ -18,8 +19,7 @@ import com.partyguham.user.account.repository.UserRepository;
 import com.partyguham.user.profile.entity.CareerType;
 import com.partyguham.user.profile.entity.UserCareer;
 import com.partyguham.user.profile.repository.UserCareerRepository;
-import com.partyguham.catalog.entity.Position;
-import com.partyguham.catalog.repository.PositionRepository;
+import com.partyguham.catalog.reader.PositionReader;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -42,10 +42,10 @@ import java.util.stream.Collectors;
 public class RecruitmentService {
 
     private final PartyReader partyReader;
+    private final PositionReader positionReader;
 
     private final PartyRecruitmentRepository partyRecruitmentRepository;
     private final PartyAccessService partyAccessService;
-    private final PositionRepository positionRepository;
     private final UserCareerRepository userCareerRepository;
     private final UserRepository userRepository;
 
@@ -58,6 +58,9 @@ public class RecruitmentService {
                                                                    PartyRecruitmentsRequest request) {
 
         partyReader.readParty(partyId);
+        
+        // main 값 검증
+        positionReader.validateMainPositionExists(request.getMain());
 
         //필터링 진행 (QueryDSL로 처리) - partyId, DELETED, main, completed
         List<PartyRecruitment> recruitments = partyRecruitmentRepository.searchRecruitmentsByPartyId(partyId, request);
@@ -79,8 +82,7 @@ public class RecruitmentService {
 
         partyAccessService.checkManagerOrThrow(partyId, userId);
 
-        Position position = positionRepository.findById(request.getPositionId())
-                .orElseThrow(() -> new EntityNotFoundException("포지션을 찾을 수 없습니다: " + request.getPositionId()));
+        Position position = positionReader.read(request.getPositionId());
 
         PartyRecruitment recruitment = PartyRecruitment.builder()
                 .party(party)
@@ -112,6 +114,9 @@ public class RecruitmentService {
      * 전체 파티모집 공고를 조회합니다.
      */
     public GetPartyRecruitmentsResponse getRecruitments(GetPartyRecruitmentsRequest request) {
+        // main 값 검증
+        positionReader.validateMainPositionExists(request.getMain());
+        
         Pageable pageable = PageRequest.of(request.getPage() - 1, request.getSize(), Sort.by(request.getOrder(), request.getSort()));
 
         //필터링 진행 (QueryDSL로 처리) - main, completed (페이징 처리 포함)
