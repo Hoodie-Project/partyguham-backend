@@ -20,8 +20,7 @@ public class NotificationController {
 
     private final NotificationService notificationService;
 
-    /**
-     * 사용자 알림 체크 상태 확인 */
+    /** 사용자 알림 체크 상태 확인 */
     @GetMapping("/check")
     public ResponseEntity<Map<String, Boolean>> hasUnchecked(
             @AuthenticationPrincipal UserPrincipal user
@@ -33,8 +32,7 @@ public class NotificationController {
         );
     }
 
-    /**
-     * 알림 확인 처리 (isChecked = true) */
+    /** 알림 확인 처리 (isChecked = true) */
     @PatchMapping("/check")
     public ResponseEntity<Void> markAsChecked(
             @AuthenticationPrincipal UserPrincipal user
@@ -63,9 +61,7 @@ public class NotificationController {
         return ResponseEntity.noContent().build();
     }
 
-    /**
-     * 사용자 알림 리스트 조회
-     */
+    /** 사용자 알림 리스트 조회 */
     @GetMapping
     public GetNotificationsResponse getNotifications(
             @AuthenticationPrincipal UserPrincipal user,

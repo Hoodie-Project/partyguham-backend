@@ -11,17 +11,14 @@ import java.util.Optional;
 
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
 
-    boolean existsByUser_IdAndIsCheckedFalse(Long userId);
-
+    boolean existsByUserIdAndIsCheckedFalse(Long userId);
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
-    @Query("update Notification n set n.isChecked = true where n.user.id = :userId")
-    void markChecked(Long userId);
+    @Query("update Notification n set n.isChecked = true " +
+            "where n.user.id = :userId and n.isChecked = false")
+    void markAllAsCheckedByUserId(Long userId);
 
-    Optional<Notification> findByIdAndUser_Id(Long id, Long userId);
+    Optional<Notification> findByIdAndUserId(Long id, Long userId);
 
-    /** 본인꺼만 삭제 */
     void deleteByIdAndUserId(Long id, Long userId);
-
-    List<Notification> findByUserIdOrderByCreatedAtDesc(Long userId);
 }

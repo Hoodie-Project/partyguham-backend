@@ -1,6 +1,7 @@
 package com.partyguham.notification.repository;
 
 import com.partyguham.notification.entity.Notification;
+import com.partyguham.notification.entity.NotificationType;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -12,7 +13,6 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 import static com.partyguham.notification.entity.QNotification.notification;
-import static com.partyguham.notification.entity.QNotificationType.notificationType;
 
 @Repository
 @RequiredArgsConstructor
@@ -24,14 +24,15 @@ public class NotificationQueryRepository {
             Long userId,
             int size,
             Long cursor,              // null이면 처음 페이지
-            Long notificationTypeId   // null이면 타입 필터 없음
+            NotificationType type   // null이면 타입 필터 없음
     ) {
         // where 조건 조립
         BooleanBuilder builder = new BooleanBuilder()
                 .and(notification.user.id.eq(userId));
 
-        if (notificationTypeId != null) {
-            builder.and(notification.notificationType.id.eq(notificationTypeId));
+        // 1. 엔티티의 Enum 필드와 직접 비교
+        if (type != null) {
+            builder.and(notification.type.eq(type));
         }
 
         if (cursor != null) {
@@ -42,7 +43,6 @@ public class NotificationQueryRepository {
         // size + 1 로 hasNext 판단
         List<Notification> result = queryFactory
                 .selectFrom(notification)
-                .join(notification.notificationType, notificationType).fetchJoin()
                 .where(builder)
                 .orderBy(notification.id.desc())
                 .limit(size + 1)

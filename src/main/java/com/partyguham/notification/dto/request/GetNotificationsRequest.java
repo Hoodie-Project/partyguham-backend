@@ -1,5 +1,6 @@
 package com.partyguham.notification.dto.request;
 
+import com.partyguham.notification.entity.NotificationType;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Pattern;
@@ -16,10 +17,9 @@ public class GetNotificationsRequest {
     private Long cursor;
 
     /**
-     * party : 파티활동
-     * recruit : 지원소식
+     *     PARTY("파티 활동"),
+     *     RECRUIT("지원 소식"),
+     *     SYSTEM("시스템 알림");
      */
-    @Pattern(regexp = "party|recruit",
-            message = "type은 party 또는 recruit만 허용됩니다.")
-    private String type;
+    private NotificationType type;
 }
