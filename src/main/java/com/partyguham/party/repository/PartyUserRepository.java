@@ -5,15 +5,14 @@ import com.partyguham.party.entity.PartyAuthority;
 import com.partyguham.party.entity.PartyUser;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface PartyUserRepository extends JpaRepository<PartyUser, Long>, PartyUserQueryRepository, PartyUserCustomRepository {
-    Optional<PartyUser> findByPartyIdAndUserId(Long partyId, Long userId); //나의 파티 권한 조회
+    
+    Optional<PartyUser> findByPartyIdAndUserId(Long partyId, Long userId);
 
     boolean existsByPartyIdAndUserId(Long partyId, Long userId);
 
@@ -21,13 +20,13 @@ public interface PartyUserRepository extends JpaRepository<PartyUser, Long>, Par
     Optional<PartyUser> findByParty_IdAndUser_IdAndStatus(Long partyId,
                                                           Long userId,
                                                           Status status);
+    
     Optional<PartyUser> findByParty_IdAndAuthority(Long partyId, PartyAuthority authority);
 
     // 위임 대상 파티원
     Optional<PartyUser> findByIdAndParty_IdAndStatus(Long partyUserId,
                                                      Long partyId,
                                                      Status status);
-
 
     Optional<PartyUser> findByIdAndParty_IdAndStatusNot(Long partyUserId,
                                                         Long partyId,

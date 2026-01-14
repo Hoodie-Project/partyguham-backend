@@ -25,6 +25,14 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
+/**
+ * ===========================
+ *  파티 관리(Party Admin) 서비스
+ * ===========================
+ *
+ * 파티장(MASTER) 또는 부파티장(DEPUTY) 권한이 필요한 파티 관리 기능을 제공합니다.
+ * 주요 기능: 파티 정보 관리, 파티 상태 관리, 파티원 관리, 파티장 권한 위임, 파티 삭제
+ */
 @Service
 @RequiredArgsConstructor
 public class PartyAdminService {
@@ -48,6 +56,11 @@ public class PartyAdminService {
      * - 파티장/부파티장 권한 필요
      * - 필터(authority, nickname, main) + 페이징 적용
      * - totalPartyUserCount(전체 인원) + total(필터 후 인원) 반환
+     *  
+     * @param partyId 파티 ID
+     * @param request 조회 요청 (필터, 페이징 정보)
+     * @param userId 요청한 사용자 ID
+     * @return 파티원 목록 및 통계 정보 (전체 인원 수, 필터 후 인원 수 포함)
      */
     @Transactional(readOnly = true)
     public GetAdminPartyUsersResponseDto getPartyUsers(
@@ -86,12 +99,21 @@ public class PartyAdminService {
                 .build();
     }
 
+    /**
+     * 파티 정보 수정
+     *
+     * @param partyId 파티 ID
+     * @param userId 요청한 사용자 ID
+     * @param request 수정 요청 정보 (제목, 내용, 타입)
+     * @param image 새 이미지 파일 (선택사항, null 가능)
+     * @return 수정된 파티 정보
+     */
     @Transactional
     public UpdatePartyResponseDto updateParty(
             Long partyId,
             Long userId,
             UpdatePartyRequestDto request,
-            MultipartFile image // 새 이미지, 없으면 null
+            MultipartFile image
     ) {
 // 1) 권한 체크
         partyAccessService.checkMasterOrThrow(partyId, userId);
@@ -144,6 +166,17 @@ public class PartyAdminService {
         return UpdatePartyResponseDto.from(party);
     }
 
+    /**
+     * 파티 상태 변경
+     *
+     * 파티 상태를 진행중(IN_PROGRESS) 또는 종료(CLOSED)로 변경합니다.
+     * 상태 변경 시 파티원에게 알림 이벤트를 발행합니다.
+     *
+     * @param partyId 파티 ID
+     * @param userId 요청한 사용자 ID
+     * @param request 상태 변경 요청 (PartyStatus 포함)
+     * @return 변경된 파티 상태 정보
+     */
     @Transactional
     public UpdatePartyStatusResponseDto updatePartyStatus(
             Long partyId,
@@ -195,6 +228,12 @@ public class PartyAdminService {
         return UpdatePartyStatusResponseDto.from(party);
     }
 
+    /**
+     * 파티 대표 이미지 삭제
+     *
+     * @param partyId 파티 ID
+     * @param userId 요청한 사용자 ID
+     */
     @Transactional
     public void deletePartyImage(Long partyId, Long userId) {
         // 1) 권한 체크 (파티장/부파티장만)
@@ -219,6 +258,11 @@ public class PartyAdminService {
 
     /**
      * 파티 삭제 (소프트 삭제)
+     *
+     * 파티와 연관된 모집글, 파티원 이력을 함께 삭제 처리합니다.
+     *
+     * @param partyId 파티 ID
+     * @param userId 요청한 사용자 ID
      */
     @Transactional
     public void deleteParty(Long partyId, Long userId) {
@@ -261,6 +305,16 @@ public class PartyAdminService {
 //        }
     }
 
+    /**
+     * 파티장 권한 위임
+     *
+     * 파티장 권한을 다른 파티원에게 위임합니다. 위임 시 파티원에게 알림 이벤트를 발행합니다.
+     *
+     * @param partyId 파티 ID
+     * @param userId 요청한 사용자 ID (파티장)
+     * @param request 위임 요청 (위임 대상 파티원 ID 포함)
+     * @return 위임 결과 정보
+     */
     @Transactional
     public PartyDelegationResponseDto delegateParty(Long partyId,
                                                     Long userId,
@@ -317,6 +371,16 @@ public class PartyAdminService {
         return PartyDelegationResponseDto.from(party, currentMaster, target);
     }
 
+    /**
+     * 파티원 정보 수정
+     *
+     * 파티원의 포지션을 변경합니다. 변경 시 파티원에게 알림 이벤트를 발행합니다.
+     *
+     * @param partyId 파티 ID
+     * @param partyUserId 수정 대상 파티원 ID
+     * @param userId 요청한 사용자 ID
+     * @param request 수정 요청 정보 (포지션 ID 포함)
+     */
     @Transactional
     public void updatePartyUser(Long partyId,
                                 Long partyUserId,
@@ -355,6 +419,16 @@ public class PartyAdminService {
         }
     }
 
+    /**
+     * 개별 파티원 강제 퇴장
+     *
+     * 파티원을 강제로 퇴장시킵니다. 파티장은 강제 퇴장시킬 수 없습니다.
+     * 퇴장 시 파티원에게 알림 이벤트를 발행합니다.
+     *
+     * @param partyId 파티 ID
+     * @param partyUserId 퇴장 대상 파티원 ID
+     * @param userId 요청한 사용자 ID
+     */
     @Transactional
     public void deletePartyUser(Long partyId,
                                 Long partyUserId,
@@ -395,6 +469,15 @@ public class PartyAdminService {
     }
 
 
+    /**
+     * 파티원 다수 강제 퇴장 (Batch)
+     *
+     * 여러 파티원을 한 번에 강제 퇴장시킵니다. 파티장은 포함할 수 없습니다.
+     *
+     * @param partyId 파티 ID
+     * @param userId 요청한 사용자 ID
+     * @param request 배치 삭제 요청 (파티원 ID 목록 포함)
+     */
     @Transactional
     public void deletePartyUserBatch(Long partyId,
                                      Long userId,

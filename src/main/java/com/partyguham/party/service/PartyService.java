@@ -39,6 +39,14 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
+/**
+ * ===========================
+ *  파티(Party) 서비스
+ * ===========================
+ *
+ * 파티 생성, 조회, 검색 등 일반적인 파티 관련 기능을 제공합니다.
+ * 주요 기능: 파티 생성, 파티 목록/상세 조회, 파티원 목록 조회, 파티 검색, 파티 나가기
+ */
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -57,6 +65,14 @@ public class PartyService  {
     private final S3FileService s3FileService;
     private final ApplicationEventPublisher eventPublisher;
 
+    /**
+     * 파티 생성
+     *
+     * @param request 파티 생성 요청 정보 (제목, 내용, 타입, 포지션)
+     * @param userId 파티장이 될 사용자 ID
+     * @param image 파티 대표 이미지 (선택사항, null 가능)
+     * @return 생성된 파티 정보
+     */
     @Transactional
     public PartyResponse createParty(PartyCreateRequest request, Long userId, MultipartFile image) {
 
@@ -99,7 +115,13 @@ public class PartyService  {
         return PartyResponse.from(party);
     }
 
-    public GetPartiesResponse getParties(GetPartiesRequest request) { // 파티 목록 조회
+    /**
+     * 파티 목록 조회
+     *
+     * @param request 조회 요청 (페이징, 정렬 정보)
+     * @return 파티 목록 및 페이징 정보
+     */
+    public GetPartiesResponse getParties(GetPartiesRequest request) {
         Pageable pageable = PageRequest.of(
                 request.getPage() - 1,
                 request.getSize(),
@@ -116,13 +138,28 @@ public class PartyService  {
     }
 
 
-    public GetPartyResponse getParty(Long partyId) { // 파티 단일 조회
+    /**
+     * 파티 상세 조회
+     *
+     * @param partyId 파티 ID
+     * @return 파티 상세 정보
+     */
+    public GetPartyResponse getParty(Long partyId) {
         Party party = partyReader.readParty(partyId);
 
         return GetPartyResponse.from(party);
     }
 
-    public GetPartyUserResponse getPartyUsers(GetPartyUsersRequest request, Long partyId) { // 파티원 목록 조회
+    /**
+     * 파티원 목록 조회
+     *
+     * 권한별로 분리하여 반환합니다 (파티장/부파티장, 일반 파티원).
+     *
+     * @param request 조회 요청 (필터, 페이징 정보)
+     * @param partyId 파티 ID
+     * @return 파티원 목록 (권한별 분리)
+     */
+    public GetPartyUserResponse getPartyUsers(GetPartyUsersRequest request, Long partyId) {
         partyReader.readParty(partyId);
 
         Pageable pageable = PageRequest.of(
@@ -163,7 +200,14 @@ public class PartyService  {
                 .build();
     }
 
-    public PartyAuthorityResponse getPartyAuthority(Long partyId, Long userId) { // 나의 파티 권한 조회
+    /**
+     * 나의 파티 권한 조회
+     *
+     * @param partyId 파티 ID
+     * @param userId 사용자 ID
+     * @return 사용자의 파티 권한 정보
+     */
+    public PartyAuthorityResponse getPartyAuthority(Long partyId, Long userId) {
         partyReader.readParty(partyId);
 
         PartyUser partyUser = partyUserReader.getMember(partyId, userId);
@@ -171,14 +215,28 @@ public class PartyService  {
         return PartyAuthorityResponse.from(partyUser);
     }
 
-    public PartyTypeResponse getPartyTypes() { // 파티 타입 목록 조회
+    /**
+     * 파티 타입 목록 조회
+     *
+     * @return 모든 파티 타입 목록
+     */
+    public PartyTypeResponse getPartyTypes() {
         List<PartyType> partyTypes = partyTypeRepository.findAll();
 
         return PartyTypeResponse.from(partyTypes);
     }
 
+    /**
+     * 파티 나가기
+     *
+     * 파티에서 나갑니다. 파티장은 나갈 수 없습니다.
+     * 나가기 시 파티원에게 알림 이벤트를 발행합니다.
+     *
+     * @param partyId 파티 ID
+     * @param userId 사용자 ID
+     */
     @Transactional
-    public void leaveParty(Long partyId, Long userId) { // 파티 나가기
+    public void leaveParty(Long partyId, Long userId) {
         // 파티 존재 확인
         Party party = partyReader.readParty(partyId);
 
@@ -205,7 +263,17 @@ public class PartyService  {
         }
     }
 
-    public GetSearchResponse searchParties(int page, int limit, String titleSearch) { // 파티/모집공고 통합검색
+    /**
+     * 파티/파티 모집공고 통합 검색
+     *
+     * 파티 제목을 기준으로 파티를 검색하고, 해당 파티의 모집공고를 함께 조회합니다.
+     *
+     * @param page 페이지 번호
+     * @param limit 페이지 크기
+     * @param titleSearch 검색 키워드 (파티 제목)
+     * @return 파티 및 모집공고 검색 결과
+     */
+    public GetSearchResponse searchParties(int page, int limit, String titleSearch) {
         Pageable pageable = PageRequest.of(page - 1, limit);
 
         // Party 검색
@@ -238,6 +306,12 @@ public class PartyService  {
                 .build();
     }
 
+    /**
+     * 닉네임으로 유저가 소속된 파티 조회
+     *
+     * @param nickname 사용자 닉네임
+     * @return 해당 사용자가 소속된 파티 목록
+     */
     @Transactional(readOnly = true)
     public UserJoinedPartyResponse getByNickname(String nickname) {
 

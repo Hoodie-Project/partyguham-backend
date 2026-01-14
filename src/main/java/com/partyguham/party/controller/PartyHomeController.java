@@ -20,7 +20,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 /**
- * 파티 홈(라운지) 페이지 관련 컨트롤러
+ * ===========================
+ *  파티 홈(라운지) API
+ * ===========================
+ *
+ * - 파티 목록 조회
+ * - 파티/파티 모집공고 통합 검색
+ * - 파티 모집 공고 목록 조회
+ * - 개인화 파티 모집 공고 목록 조회
  */
 @ApiV2Controller
 @RequestMapping("/parties")
@@ -29,8 +36,9 @@ public class PartyHomeController {
 
     private final PartyService partyService;
     private final RecruitmentService RecruitmentService;
+
     /**
-     * 파티 목록 조회 
+     * 파티 목록 조회
      */
     @GetMapping
     public ResponseEntity<GetPartiesResponse> getParties(
@@ -40,9 +48,9 @@ public class PartyHomeController {
     }
 
     /**
-     * 파티/파티 모집공고 통합검색
-     * 
-     * 파티 제목을 기준으로 party 목록을 조회하고,
+     * 파티/파티 모집공고 통합 검색
+     *
+     * 파티 제목을 기준으로 파티 목록을 조회하고,
      * 해당 파티의 모집 공고 목록을 조회합니다.
      * (default: 생성일 기준, 내림차순 정렬)
      */

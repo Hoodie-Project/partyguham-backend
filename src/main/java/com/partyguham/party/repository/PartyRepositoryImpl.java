@@ -33,23 +33,6 @@ public class PartyRepositoryImpl implements PartyCustomRepository {
     }
 
     @Override
-    public List<Party> findByTitleKeyword(String keyword) {
-        QParty party = QParty.party;
-
-        BooleanBuilder builder = new BooleanBuilder();
-        
-        if (keyword != null && !keyword.isBlank()) {
-            builder.and(party.title.containsIgnoreCase(keyword));
-        }
-
-        return queryFactory
-                .selectFrom(party)
-                .where(builder)
-                .orderBy(party.createdAt.desc())
-                .fetch();
-    }
-
-    @Override
     public Page<Party> findByTitleKeyword(String keyword, Pageable pageable) {
         QParty party = QParty.party;
 
