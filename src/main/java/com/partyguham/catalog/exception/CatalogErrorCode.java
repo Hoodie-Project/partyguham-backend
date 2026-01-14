@@ -9,6 +9,7 @@ import lombok.Getter;
 public enum CatalogErrorCode implements ErrorCode {
 
     POSITION_NOT_FOUND(404, "CA_001", "포지션을 찾을 수 없습니다."),
+    INVALID_MAIN_POSITION(400, "CA_002", "존재하지 않은 직군입니다."),
 
     ;
 

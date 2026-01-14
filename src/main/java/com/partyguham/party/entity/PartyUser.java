@@ -41,7 +41,7 @@ public class PartyUser extends BaseEntity {
     @Column(nullable = false)
     private PartyAuthority authority;
 
-    public void leave() {
+    public void leave() { // 파티나가기
         if (this.authority == PartyAuthority.MASTER) {
             throw new BusinessException(PartyUserErrorCode.INVALID_LEAVE_REQUEST_BY_LEADER);
         }
@@ -51,6 +51,14 @@ public class PartyUser extends BaseEntity {
 
     public void delete() {
         this.changeStatus(Status.DELETED);
+    }
+
+    public void updateAuthority(PartyAuthority authority) {
+        this.authority = authority;
+    }
+
+    public void updatePosition(Position position) {
+        this.position = position;
     }
 }
 

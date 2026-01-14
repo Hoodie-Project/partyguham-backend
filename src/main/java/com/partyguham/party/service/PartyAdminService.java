@@ -1,8 +1,9 @@
 package com.partyguham.party.service;
 
+import com.partyguham.catalog.reader.PositionReader;
 import com.partyguham.catalog.entity.Position;
-import com.partyguham.catalog.repository.PositionRepository;
 import com.partyguham.common.entity.Status;
+import com.partyguham.common.exception.BusinessException;
 import com.partyguham.infra.s3.S3FileService;
 import com.partyguham.infra.s3.S3Folder;
 import com.partyguham.notification.event.*;
@@ -10,9 +11,9 @@ import com.partyguham.party.dto.partyAdmin.mapper.PartyUserAdminMapper;
 import com.partyguham.party.dto.partyAdmin.request.*;
 import com.partyguham.party.dto.partyAdmin.response.*;
 import com.partyguham.party.entity.*;
+import com.partyguham.party.exception.PartyUserErrorCode;
 import com.partyguham.party.reader.PartyReader;
-import com.partyguham.party.repository.PartyRepository;
-import com.partyguham.party.repository.PartyTypeRepository;
+import com.partyguham.party.reader.PartyUserReader;
 import com.partyguham.party.repository.PartyUserRepository;
 import com.partyguham.recruitment.entity.PartyRecruitment;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +30,8 @@ import java.util.List;
 public class PartyAdminService {
 
     private final PartyReader partyReader;
+    private final PartyUserReader partyUserReader;
+    private final PositionReader positionReader;
 
     private final ApplicationEventPublisher eventPublisher;
 
@@ -38,9 +41,6 @@ public class PartyAdminService {
     private final PartyUserAdminMapper partyUserAdminMapper;
 
     private final PartyUserRepository partyUserRepository;
-    private final PartyRepository partyRepository;
-    private final PartyTypeRepository partyTypeRepository;
-    private final PositionRepository positionRepository;
 
 
     /**
@@ -97,22 +97,20 @@ public class PartyAdminService {
         partyAccessService.checkMasterOrThrow(partyId, userId);
 
         // 2) 파티 조회
-        Party party = partyRepository.findById(partyId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 파티입니다. id=" + partyId));
+        Party party = partyReader.readParty(partyId);
 
         // 3) 타입 변경
         if (request.getPartyTypeId() != null) {
-            PartyType partyType = partyTypeRepository.findById(request.getPartyTypeId())
-                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 파티 타입입니다. id=" + request.getPartyTypeId()));
-            party.setPartyType(partyType);
+            PartyType partyType = partyReader.readType(request.getPartyTypeId());
+            party.updatePartyType(partyType);
         }
 
         // 4) 제목/내용 수정
         if (request.getTitle() != null) {
-            party.setTitle(request.getTitle());
+            party.updateTitle(request.getTitle());
         }
         if (request.getContent() != null) {
-            party.setContent(request.getContent());
+            party.updateContent(request.getContent());
         }
 
         // 5) 이미지 교체 (파일이 왔을 때만)
@@ -120,7 +118,7 @@ public class PartyAdminService {
             String oldKey = party.getImage();
             String newKey = s3FileService.upload(image, S3Folder.PARTY);
 
-            party.setImage(newKey);
+            party.updateImage(newKey);
 
             if (oldKey != null && !oldKey.equals(newKey)) {
                 s3FileService.delete(oldKey);
@@ -156,11 +154,10 @@ public class PartyAdminService {
         partyAccessService.checkMasterOrThrow(partyId, userId);
 
         // 2) 파티 조회
-        Party party = partyRepository.findById(partyId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 파티입니다. id=" + partyId));
+        Party party = partyReader.readParty(partyId);
 
         // 3) 상태 변경
-        party.setPartyStatus(request.partyStatus());
+        party.updatePartyStatus(request.partyStatus());
 
         // 이벤트 발행
         List<PartyUser> members = partyUserRepository
@@ -204,18 +201,16 @@ public class PartyAdminService {
         partyAccessService.checkMasterOrThrow(partyId, userId);
 
         // 2) 파티 조회
-        Party party = partyRepository.findById(partyId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 파티입니다. id=" + partyId));
+        Party party = partyReader.readParty(partyId);
 
         // 3) 기존 이미지 키 가져오기
         String oldImageKey = party.getImage();
         if (oldImageKey == null || oldImageKey.isBlank()) {
-            // 이미지가 원래 없으면 그냥 리턴
             return;
         }
 
         // 4) DB에서 먼저 끊어주기 (null 세팅)
-        party.setImage(null);
+        party.removeImage();
 
         // 5) S3에서 실제 파일 삭제 - 삭제 실패시 어떻게 할지는 정책에 따라 (지금은 예외 그대로 던지도록)
         s3FileService.delete(oldImageKey);
@@ -231,14 +226,7 @@ public class PartyAdminService {
         partyAccessService.checkMasterOrThrow(partyId, userId);
 
         // 2) 파티 조회
-        Party party = partyRepository.findById(partyId)
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "존재하지 않는 파티입니다. id=" + partyId));
-
-        // 이미 삭제된 파티면 그냥 리턴
-        if (party.getStatus() == Status.DELETED) {
-            return;
-        }
+        Party party = partyReader.readParty(partyId);
 
         // 3) 파티 대표 이미지 S3 삭제 (실패해도 롤백 안 되게)
         String oldImageKey = party.getImage();
@@ -285,35 +273,29 @@ public class PartyAdminService {
         Party party = partyReader.readParty(partyId);
 
         // 3) 현재 파티장 PartyUser 찾기
-        PartyUser currentMaster = partyUserRepository
-                .findByParty_IdAndUser_IdAndStatus(partyId, userId, Status.ACTIVE)
-                .orElseThrow(() -> new IllegalStateException(
-                        "현재 파티장 정보를 찾을 수 없습니다."));
+        PartyUser currentMaster = partyUserReader.readByPartyIdAndUserIdAndStatus(partyId, userId, Status.ACTIVE);
 
         if (currentMaster.getAuthority() != PartyAuthority.MASTER) {
-            throw new IllegalStateException("파티장만 권한을 위임할 수 있습니다.");
+            throw new BusinessException(PartyUserErrorCode.PARTY_DELEGATION_NOT_ALLOWED);
         }
 
         // 4) 위임 대상 파티원 찾기
         Long targetPartyUserId = request.getPartyUserId();
 
-        PartyUser target = partyUserRepository
-                .findByIdAndParty_IdAndStatus(targetPartyUserId, partyId, Status.ACTIVE)
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "위임 대상 파티원을 찾을 수 없습니다. id=" + targetPartyUserId));
+        PartyUser target = partyUserReader.readByIdAndPartyIdAndStatus(targetPartyUserId, partyId, Status.ACTIVE);
 
         if (target.getAuthority() == PartyAuthority.MASTER) {
-            throw new IllegalStateException("이미 파티장인 멤버에게는 위임할 수 없습니다.");
+            throw new BusinessException(PartyUserErrorCode.PARTY_USER_ALREADY_MASTER);
         }
 
         if (target.getId().equals(currentMaster.getId())) {
-            throw new IllegalArgumentException("자기 자신에게 파티장 권한을 위임할 수 없습니다.");
+            throw new BusinessException(PartyUserErrorCode.PARTY_USER_SELF_DELEGATION);
         }
 
         // 5) 권한 변경 로직
         // 지금은 DEPUTY 로직 안 쓰니까: MASTER → MEMBER, 대상 → MASTER
-        currentMaster.setAuthority(PartyAuthority.MEMBER);
-        target.setAuthority(PartyAuthority.MASTER);
+        currentMaster.updateAuthority(PartyAuthority.MEMBER);
+        target.updateAuthority(PartyAuthority.MASTER);
 
         // 이벤트 발행
         List<PartyUser> members = partyUserRepository
@@ -345,24 +327,15 @@ public class PartyAdminService {
         partyAccessService.checkManagerOrThrow(partyId, userId);
 
         // 2) 파티원 조회
-        PartyUser partyUser = partyUserRepository
-                .findByIdAndParty_IdAndStatusNot(partyUserId, partyId, Status.DELETED)
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "파티원을 찾을 수 없습니다. id=" + partyUserId
-                ));
+        PartyUser partyUser = partyUserReader.readByIdAndPartyIdAndStatusNot(partyUserId, partyId, Status.DELETED);
 
-        // 3) 포지션 변경 (optional)
-
-        Position position = positionRepository.findById(request.getPositionId())
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "포지션이 존재하지 않습니다. id=" + request.getPositionId()
-                ));
-        partyUser.setPosition(position);
+        // 3) 포지션 변경
+        Position position = positionReader.read(request.getPositionId());
+        partyUser.updatePosition(position);
 
 
         // 이벤트 발행
-        Party party = partyRepository.findById(partyId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 파티입니다. id=" + partyId));
+        Party party = partyReader.readParty(partyId);
 
         List<PartyUser> members = partyUserRepository
                 .findByParty_IdAndStatus(partyId, Status.ACTIVE);
@@ -391,23 +364,18 @@ public class PartyAdminService {
         partyAccessService.checkManagerOrThrow(partyId, userId);
 
         // 2) 파티원 조회 (DELETED 제외)
-        PartyUser target = partyUserRepository
-                .findByIdAndParty_IdAndStatusNot(partyUserId, partyId, Status.DELETED)
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "파티원을 찾을 수 없습니다. id=" + partyUserId
-                ));
+        PartyUser target = partyUserReader.readByIdAndPartyIdAndStatusNot(partyUserId, partyId, Status.DELETED);
 
         // 3) 파티장 강퇴 방지 (규칙: MASTER는 이 API로 못 내보냄)
         if (target.getAuthority() == PartyAuthority.MASTER) {
-            throw new IllegalStateException("파티장은 강제 퇴장시킬 수 없습니다.");
+            throw new BusinessException(PartyUserErrorCode.PARTY_USER_KICK_MASTER_NOT_ALLOWED);
         }
 
         // 4) 소프트 삭제
         target.delete();
 
         // 이벤트 발행
-        Party party = partyRepository.findById(partyId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 파티입니다. id=" + partyId));
+        Party party = partyReader.readParty(partyId);
 
         List<PartyUser> members = partyUserRepository
                 .findByParty_IdAndStatus(partyId, Status.ACTIVE);
@@ -444,16 +412,12 @@ public class PartyAdminService {
         List<PartyUser> partyUsers = partyUserRepository
                 .findByParty_IdAndIdInAndStatusNot(partyId, ids, Status.DELETED);
 
-        if (partyUsers.isEmpty()) {
-            return;
-        }
-
         // 3) 파티장 포함 여부 체크
         boolean hasMaster = partyUsers.stream()
                 .anyMatch(pu -> pu.getAuthority() == PartyAuthority.MASTER);
 
         if (hasMaster) {
-            throw new IllegalStateException("파티장은 배치 강제 퇴장시킬 수 없습니다.");
+            throw new BusinessException(PartyUserErrorCode.PARTY_USER_BATCH_KICK_MASTER_NOT_ALLOWED);
         }
 
         // 4) 모두 소프트 삭제
