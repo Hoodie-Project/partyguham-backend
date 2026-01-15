@@ -32,18 +32,6 @@ public class PartyController { // create → get → search → action 순서
         );
     }
 
-    /**
-     * 닉네임으로 유저가 소속된 파티 조회
-     */
-    @GetMapping("/users")
-    public ResponseEntity<UserJoinedPartyResponse> getPartyUsersByNickname(
-            @RequestParam String nickname
-    ) {
-        return ResponseEntity.ok(
-                partyService.getByNickname(nickname)
-        );
-    }
-
     @GetMapping("/{partyId}")
     public ResponseEntity<GetPartyResponse> getParty(
                                                          @PathVariable Long partyId){

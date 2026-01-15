@@ -2,12 +2,15 @@ package com.partyguham.user.profile.controller;
 
 import com.partyguham.auth.jwt.UserPrincipal;
 import com.partyguham.common.annotation.ApiV2Controller;
+import com.partyguham.party.dto.party.response.UserJoinedPartyResponse;
+import com.partyguham.party.service.PartyService;
 import com.partyguham.user.profile.dto.request.UserProfileUpdateRequest;
 import com.partyguham.user.profile.dto.response.UserProfileResponse;
 import com.partyguham.user.profile.service.UserProfileService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,20 +20,13 @@ import org.springframework.web.bind.annotation.*;
 public class UserProfileController {
 
     private final UserProfileService userProfileService;
+    private final PartyService partyService;
 
     @GetMapping("/me/profile")
     public UserProfileResponse getMyProfile(
             @AuthenticationPrincipal UserPrincipal user
     ) {
         return userProfileService.getMyProfile(user.getId());
-    }
-
-    @GetMapping("/profile")
-    public UserProfileResponse getUserProfile(
-            @AuthenticationPrincipal UserPrincipal user,
-            @RequestParam() String nickname
-    ) {
-        return userProfileService.getProfileByNickname(nickname);
     }
 
     @PatchMapping("/me/profile")
@@ -40,6 +36,26 @@ public class UserProfileController {
             @RequestBody @Valid UserProfileUpdateRequest req
     ) {
         userProfileService.updateProfile(user.getId(), req);
+    }
+
+    @GetMapping("/profile")
+    public UserProfileResponse getUserProfile(
+            @AuthenticationPrincipal UserPrincipal user,
+            @RequestParam("nickname") String nickname
+    ) {
+        return userProfileService.getProfileByNickname(nickname);
+    }
+
+    /**
+     * 닉네임으로 유저가 소속된 파티 조회
+     */
+    @GetMapping("/parties")
+    public ResponseEntity<UserJoinedPartyResponse> getPartyUsersByNickname(
+            @RequestParam("nickname") String nickname
+    ) {
+        return ResponseEntity.ok(
+                partyService.getByNickname(nickname)
+        );
     }
 
 }
