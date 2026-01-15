@@ -16,7 +16,7 @@ public class PositionController {
     private final PositionService positionService;
 
     @GetMapping
-    public List<PositionResponse> getByMain(@RequestParam String main) {
+    public List<PositionResponse> getByMain(@RequestParam(name = "main", required = false) String main) {
         return positionService.getByMain(main);
     }
 }
