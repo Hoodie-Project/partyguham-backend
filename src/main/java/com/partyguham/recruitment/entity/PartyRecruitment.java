@@ -4,6 +4,7 @@ import com.partyguham.catalog.entity.Position;
 import com.partyguham.common.entity.BaseEntity;
 import com.partyguham.application.entity.PartyApplication;
 import com.partyguham.common.entity.Status;
+import com.partyguham.common.exception.BusinessException;
 import com.partyguham.party.entity.Party;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -16,10 +17,12 @@ import lombok.experimental.SuperBuilder;
 
 import java.util.List;
 
+import static com.partyguham.recruitment.exception.RecruitmentErrorCode.*;
+
+
 @Entity
 @Table(name = "party_recruitments")
 @Getter
-@Setter
 @SuperBuilder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
@@ -59,7 +62,51 @@ public class PartyRecruitment extends BaseEntity {
     @OneToMany(mappedBy = "partyRecruitment", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PartyApplication> partyApplications;
 
+    /**
+     * 모집 수정
+     */
+    public void update(String content, int maxParticipants) {
+        if (maxParticipants <= this.currentParticipants) {
+            throw new BusinessException(PR_INVALID_MAX_PARTICIPANTS);
+        }
+
+        this.content = content;
+        this.maxParticipants = maxParticipants;
+
+    }
+
+    /**
+     * 소프트 삭제
+     */
     public void delete() {
         this.changeStatus(Status.DELETED);
+    }
+
+    /**
+     * 모집을 수동으로 마감 처리합니다.
+     */
+    public void complete() {
+        if (Boolean.TRUE.equals(this.completed)) {
+            throw new BusinessException(PR_COMPLETED_TRUE); // 이미 마감된 경우 예외 처리 (선택)
+        }
+        this.completed = true;
+    }
+
+
+    /** 모집 마감 여부 확인 */
+    public void validateNotCompleted() {
+        if (Boolean.TRUE.equals(this.completed)) {
+            throw new BusinessException(PR_COMPLETED_TRUE);
+        }
+    }
+
+    /** 참여 인원 증가 및 자동 마감 처리 */
+    public void increaseParticipant() {
+        validateNotCompleted();
+        this.currentParticipants++;
+
+        if (this.currentParticipants.equals(this.maxParticipants)) {
+            this.completed = true;
+        }
     }
 }

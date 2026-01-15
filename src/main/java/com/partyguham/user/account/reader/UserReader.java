@@ -24,14 +24,6 @@ public class UserReader {
     }
 
     /**
-     * 기본 조회: Nickname 으로 유저를 찾고, 없으면 전용 예외를 던집니다.
-     */
-    public User readByNickname(String nickname) {
-        return userRepository.findByNicknameIgnoreCase(nickname)
-                .orElseThrow(() -> new BusinessException(UserErrorCode.USER_NOT_FOUND));
-    }
-
-    /**
      * 계정 상태 확인 포함 조회: 활성화된 유저인지까지 체크합니다.
      */
     public User readActiveUser(Long userId) {
@@ -40,6 +32,14 @@ public class UserReader {
             throw new BusinessException(UserErrorCode.USER_ALREADY_WITHDRAWN);
         }
         return user;
+    }
+
+    /**
+     * 기본 조회: Nickname 으로 유저를 찾고, 없으면 전용 예외를 던집니다.
+     */
+    public User readByNickname(String nickname) {
+        return userRepository.findByNicknameIgnoreCase(nickname)
+                .orElseThrow(() -> new BusinessException(UserErrorCode.USER_NOT_FOUND));
     }
 
     /**

@@ -1,5 +1,6 @@
 package com.partyguham.auth.oauth.controller;
 
+import com.partyguham.auth.exception.AuthErrorCode;
 import com.partyguham.auth.oauth.LoginResult;
 import com.partyguham.auth.oauth.UserErrorType;
 import com.partyguham.auth.oauth.client.OAuthFlow;
@@ -10,6 +11,7 @@ import com.partyguham.auth.oauth.dto.OauthUser;
 import com.partyguham.auth.oauth.service.OauthStateService;
 import com.partyguham.auth.oauth.service.OauthLoginService;
 import com.partyguham.common.annotation.ApiV2Controller;
+import com.partyguham.common.exception.BusinessException;
 import com.partyguham.config.DomainProperties;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -174,7 +176,7 @@ public class OauthController {
             u = switch (provider) {
                 case GOOGLE -> client.fetchUserByIdToken(req.token());       // id_token
                 case KAKAO  -> client.fetchUserByAccessToken(req.token());   // access_token
-                default     -> throw new IllegalArgumentException("unsupported provider");
+                default     -> throw new BusinessException(AuthErrorCode.OAUTH_PROVIDER_FAILED);
             };
         } catch (Exception e) {
             // 토큰 검증/조회 실패

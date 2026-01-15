@@ -1,11 +1,14 @@
 package com.partyguham.catalog.entity;
 
+import com.partyguham.common.exception.BusinessException;
 import com.partyguham.user.profile.entity.UserPersonality;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.partyguham.user.exception.UserErrorCode.INVALID_OPTION_FOR_QUESTION;
 
 @Entity
 @Table(name = "personality_options")
@@ -39,4 +42,10 @@ public class PersonalityOption {
     )
     @Builder.Default
     private List<UserPersonality> userPersonalities = new ArrayList<>();
+
+    public void validateBelongsTo(Long questionId) {
+        if (!this.personalityQuestion.getId().equals(questionId)) {
+            throw new BusinessException(INVALID_OPTION_FOR_QUESTION);
+        }
+    }
 }

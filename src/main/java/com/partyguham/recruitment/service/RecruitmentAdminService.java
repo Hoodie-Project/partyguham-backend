@@ -44,11 +44,7 @@ public class RecruitmentAdminService {
 
         partyAccessService.checkManagerOrThrow(partyId, userId);
 
-        if (recruitment.getCompleted()) {
-            throw new BusinessException(RecruitmentErrorCode.PR_COMPLETED_CONFLICT);
-        }
-
-        recruitment.setCompleted(true);
+        recruitment.complete();
     }
 
     /**
@@ -67,7 +63,7 @@ public class RecruitmentAdminService {
             throw new EntityNotFoundException("일부 모집공고를 찾을 수 없습니다.");
         }
 
-        recruitments.forEach(recruitment -> recruitment.setCompleted(true)); // 더티체킹
+        recruitments.forEach(PartyRecruitment::complete);
     }
 
     /**
@@ -91,8 +87,7 @@ public class RecruitmentAdminService {
 
         partyAccessService.checkManagerOrThrow(partyId, userId);
 
-        recruitment.setContent(request.getContent());
-        recruitment.setMaxParticipants(request.getMaxParticipants());
+        recruitment.update(request.getContent(), request.getMaxParticipants());
 
         return PartyRecruitmentsResponse.from(recruitment);
     }
@@ -102,18 +97,11 @@ public class RecruitmentAdminService {
      */
     @Transactional
     public void deletePartyRecruitment(Long partyId, Long partyRecruitmentId, Long userId) {
-        Party party = partyReader.readParty(partyId);
 
-        PartyRecruitment recruitment = partyRecruitmentRepository.findById(partyRecruitmentId)
-                .orElseThrow(() -> new EntityNotFoundException("파티 모집공고가 없습니다."));
-
-        if (!recruitment.getParty().getId().equals(partyId)) {
-            throw new IllegalArgumentException("해당 파티의 모집공고가 아닙니다.");
-        }
+        PartyRecruitment recruitment = partyRecruitmentReader.getByPartyId(partyRecruitmentId, partyId);
 
         partyAccessService.checkManagerOrThrow(partyId, userId);
 
-        // 소프트 삭제: status를 DELETED로 변경
         recruitment.delete();
     }
 
@@ -121,24 +109,23 @@ public class RecruitmentAdminService {
      * 파티 모집 다수 삭제
      */
     @Transactional
-    public void deletePartyRecruitmentBatch(Long partyId, Long userId, PartyRecruitmentIdsBodyRequest request) {
-        Party party = partyReader.readParty(partyId);
-
+    public void deletePartyRecruitmentBatch(
+            Long partyId,
+            Long userId,
+            PartyRecruitmentIdsBodyRequest request
+    ) {
+        // 파티 관리자 권한 확인
         partyAccessService.checkManagerOrThrow(partyId, userId);
 
-        List<PartyRecruitment> recruitments = partyRecruitmentRepository.findAllById(request.getPartyRecruitmentIds());
+        // 모집공고 조회 + 파티 소속 검증
+        List<PartyRecruitment> recruitments =
+                partyRecruitmentReader.readAllByIdsAndPartyId(
+                        request.getPartyRecruitmentIds(),
+                        partyId
+                );
 
-        if (recruitments.size() != request.getPartyRecruitmentIds().size()) {
-            throw new EntityNotFoundException("일부 모집공고를 찾을 수 없습니다.");
-        }
-
-        for (PartyRecruitment recruitment : recruitments) {
-            if (!recruitment.getParty().getId().equals(partyId)) {
-                throw new IllegalArgumentException("해당 파티의 모집공고가 아닙니다. ID: " + recruitment.getId());
-            }
-            // 소프트 삭제: status를 DELETED로 변경
-            recruitment.delete();
-        }
+        // 소프트 삭제
+        recruitments.forEach(PartyRecruitment::delete);
     }
 }
 

@@ -16,7 +16,6 @@ import java.time.LocalDateTime;
         }
 )
 @Getter
-@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
@@ -30,9 +29,9 @@ public class Notification extends BaseEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "notification_type_id", nullable = false)
-    private NotificationType notificationType;
+    @Enumerated(EnumType.STRING) // Enum 명칭을 문자열로 저장
+    @Column(nullable = false, length = 50)
+    private NotificationType type;
 
     @Column(nullable = false, length = 100)
     private String title;
@@ -53,6 +52,22 @@ public class Notification extends BaseEntity {
     @Builder.Default
     @Column(nullable = false)
     private Boolean isChecked = false; // 리스트 노출 여부
+
+
+    /**
+     * 비즈니스 로직: 알림 리스트 확인 (isChecked 업데이트)
+     */
+    public void markAsChecked() {
+        this.isChecked = true;
+    }
+
+    /**
+     * 비즈니스 로직: 알림 상세 클릭 (isRead 업데이트)
+     */
+    public void markAsRead() {
+        this.isChecked = true; // 읽었으면 당연히 체크된 것
+        this.isRead = true;
+    }
 }
 //
 //    - 알림 도착 (읽지 않은 상태, 뱃지 표시됨)

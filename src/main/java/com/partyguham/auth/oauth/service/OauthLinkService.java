@@ -4,6 +4,7 @@ import com.partyguham.auth.oauth.entity.OauthAccount;
 import com.partyguham.auth.oauth.entity.Provider;
 import com.partyguham.auth.oauth.repository.OauthAccountRepository;
 import com.partyguham.user.account.entity.User;
+import com.partyguham.user.account.reader.UserReader;
 import com.partyguham.user.account.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -20,8 +21,9 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class OauthLinkService {
 
+    private final UserReader userReader;
+
     private final OauthAccountRepository oauthAccountRepository;
-    private final UserRepository userRepository;
 
     /**
      * 현재 로그인한 유저(userId)에 provider + externalId 계정을 연동
@@ -31,9 +33,7 @@ public class OauthLinkService {
                             Provider provider,
                             String externalId) {
 
-        // 1) 현재 로그인한 유저 조회
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("user not found"));
+        User user = userReader.read(userId);
 
         // 2) 이 externalId가 이미 다른 유저에 연결되어 있는지 확인
         OauthAccount oa = oauthAccountRepository.findByProviderAndExternalId(provider, externalId)
