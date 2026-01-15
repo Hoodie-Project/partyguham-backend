@@ -16,7 +16,7 @@ public class LocationController {
     private final LocationService locationService;
 
     @GetMapping
-    public List<Location> findByProvince(@RequestParam String province) {
-        return locationService.getByProvince(province);
+    public List<Location> findByProvince(@RequestParam(name = "province", required = false) String province) {
+        return locationService.getByProvince(province); // 특정 조회
     }
 }
