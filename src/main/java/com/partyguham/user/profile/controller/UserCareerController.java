@@ -2,11 +2,15 @@ package com.partyguham.user.profile.controller;
 
 import com.partyguham.auth.jwt.UserPrincipal;
 import com.partyguham.common.annotation.ApiV2Controller;
-import com.partyguham.user.profile.dto.request.UpdateCareerYearsRequest;
+import com.partyguham.common.error.CommonErrorCode;
+import com.partyguham.common.exception.BusinessException;
+import com.partyguham.user.profile.dto.request.BulkCareerUpdateRequest;
+import com.partyguham.user.profile.dto.request.UpdateCareerRequest;
 import com.partyguham.user.profile.dto.request.UserCareerBulkCreateRequest;
 import com.partyguham.user.profile.dto.response.CareerResponse;
 import com.partyguham.user.profile.service.UserCareerService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,14 +37,27 @@ public class UserCareerController {
         return userCareerService.upsertMyCareers(user.getId(), req);
     }
 
-    // UPDATE: 특정 경력의 years 수정
+    // UPDATE: 특정 경력의 수정
     @PatchMapping("/{careerId}")
-    public CareerResponse updateYears(
+    public CareerResponse updateCareer(
             @AuthenticationPrincipal UserPrincipal user,
             @PathVariable Long careerId,
-            @RequestBody UpdateCareerYearsRequest request
+            @RequestBody UpdateCareerRequest dto
     ) {
-        return userCareerService.updateYears(user.getId(), careerId, request.getYears());
+        if (dto.isEmpty()) {
+            throw new BusinessException(CommonErrorCode.BAD_REQUEST);
+        }
+
+        return userCareerService.updateCareer(user.getId(), careerId, dto);
+    }
+
+    @PatchMapping
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void updateCareers(
+            @AuthenticationPrincipal UserPrincipal user,
+            @RequestBody BulkCareerUpdateRequest dto
+    ) {
+        userCareerService.updateCareers(user.getId(), dto);
     }
 
     // DELETE: 경력 전체 삭제

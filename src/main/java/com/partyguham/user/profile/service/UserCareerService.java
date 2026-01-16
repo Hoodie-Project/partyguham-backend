@@ -4,8 +4,7 @@ import com.partyguham.catalog.entity.Position;
 import com.partyguham.catalog.reader.PositionReader;
 import com.partyguham.common.exception.BusinessException;
 import com.partyguham.user.account.entity.User;
-import com.partyguham.user.profile.dto.request.UserCareerBulkCreateRequest;
-import com.partyguham.user.profile.dto.request.UserCareerCreateRequest;
+import com.partyguham.user.profile.dto.request.*;
 import com.partyguham.user.profile.dto.response.CareerResponse;
 import com.partyguham.user.profile.entity.UserCareer;
 import com.partyguham.user.profile.reader.UserProfileReader;
@@ -80,11 +79,43 @@ public class UserCareerService {
     }
 
     @Transactional
-    public CareerResponse updateYears(Long userId, Long careerId, Integer years) {
+    public CareerResponse updateCareer(Long userId, Long careerId, UpdateCareerRequest dto) {
         UserCareer uc = userProfileReader.readCareerAndValidateOwner(careerId, userId);
-        uc.setYears(years);
+
+        Position position = null;
+        if (dto.getPositionId() != null) {
+            position = positionReader.read(dto.getPositionId());
+        }
+        uc.update(position, dto.getYears());
 
         return CareerResponse.from(uc);
+    }
+
+    @Transactional
+    public void updateCareers(Long userId, BulkCareerUpdateRequest dto) {
+        // 1. 요청받은 ID들만 리스트로 추출
+        List<Long> ids = dto.careers().stream()
+                .map(CareerUpdateItem::id)
+                .toList();
+
+        // 2. 해당 유저의 경력 사항들을 한꺼번에 조회 (N+1 방지)
+        List<UserCareer> userCareers = userCareerRepository.findAllByIdInAndUserId(ids, userId);
+
+        // 3. 매핑 및 업데이트
+        for (CareerUpdateItem item : dto.careers()) {
+            userCareers.stream()
+                    .filter(uc -> uc.getId().equals(item.id()))
+                    .findFirst()
+                    .ifPresent(uc -> {
+                        // 수정할 값이 있을 때만 Reader를 호출하도록 개선
+                        Position pos = null;
+                        if (item.positionId() != null) {
+                            pos = positionReader.read(item.positionId());
+                        }
+
+                        uc.update(pos, item.years());
+                    });
+        }
     }
 
     @Transactional

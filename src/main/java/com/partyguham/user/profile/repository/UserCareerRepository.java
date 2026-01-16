@@ -15,7 +15,7 @@ public interface UserCareerRepository extends JpaRepository<UserCareer, Long> {
 
     List<UserCareer> findByUser(User user);
 
-    Optional<UserCareer> findByUserAndCareerType(User user, CareerType type);
+    List<UserCareer> findAllByIdInAndUserId(List<Long> ids, Long userId);
 
     /**
      * 유저 ID로 모든 경력 조회

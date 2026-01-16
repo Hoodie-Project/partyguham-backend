@@ -56,7 +56,11 @@ public class UserCareer {
     }
 
     public void update(Position position, Integer years) {
-        this.position = position;
-        this.years = years;
+        if (position != null) {
+            this.position = position;
+        }
+        if (years != null) {
+            this.years = years;
+        }
     }
 }

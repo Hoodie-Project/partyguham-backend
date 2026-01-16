@@ -11,8 +11,14 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class UpdateCareerYearsRequest {
-    @NotNull
+public class UpdateCareerRequest {
     @Min(0)
     private Integer years;
+
+    @Min(0)
+    private Long positionId;
+
+    public boolean isEmpty() {
+        return positionId == null && years == null;
+    }
 }
