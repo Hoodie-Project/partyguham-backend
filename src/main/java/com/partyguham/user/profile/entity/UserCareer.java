@@ -45,4 +45,22 @@ public class UserCareer {
     @Enumerated(EnumType.STRING)
     @Column(name = "career_type", nullable = false)
     private CareerType careerType;
+
+    public static UserCareer create(User user, Position position, Integer years, CareerType careerType) {
+        return UserCareer.builder()
+                .user(user)
+                .position(position)
+                .years(years)
+                .careerType(careerType)
+                .build();
+    }
+
+    public void update(Position position, Integer years) {
+        if (position != null) {
+            this.position = position;
+        }
+        if (years != null) {
+            this.years = years;
+        }
+    }
 }

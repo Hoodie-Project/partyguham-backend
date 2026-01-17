@@ -1,45 +1,14 @@
 package com.partyguham.notification.entity;
 
-import jakarta.persistence.*;
-import lombok.*;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
-import java.util.ArrayList;
-import java.util.List;
-
-@Entity
-@Table(
-        name = "notification_types",
-        uniqueConstraints = {
-                @UniqueConstraint(
-                        name = "uk_notification_type",
-                        columnNames = "type"
-                )
-        }
-)
 @Getter
-@Setter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
-@Builder
-public class NotificationType {
+@RequiredArgsConstructor
+public enum NotificationType {
+    PARTY("파티 활동"),
+    RECRUIT("지원 소식"),
+    SYSTEM("시스템 알림");
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    // ex) "PARTY, RECRUIT"
-    @Column(nullable = false, length = 50)
-    private String type;
-
-    // 화면에 보여줄 이름
-    @Column(nullable = false, length = 100)
-    private String label;
-
-    @Builder.Default
-    @OneToMany(mappedBy = "notificationType")
-    private List<Notification> notifications = new ArrayList<>();
+    private final String label;
 }
-
-//  ('PARTY', '파티 활동'),
-//  ('RECRUIT', '지원 소식'),
-//  ('SYSTEM', '시스템 알림');

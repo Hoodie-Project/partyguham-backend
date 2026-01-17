@@ -86,7 +86,7 @@ public class User extends BaseEntity {
     }
 
     /**
-     * fcmToken 검증
+     * fcmToken 존재 검증
      */
     public void validateFcmToken() {
         if (this.fcmToken == null || this.fcmToken.isBlank()) {

@@ -63,7 +63,6 @@ public class PartyService  {
         // 1) 파티 타입 조회 (존재 여부 확인)
         PartyType partyType = partyReader.readType(request.getPartyTypeId());
 
-
         // 2) 파티장 역할을 맡을 유저 조회
         User user = userReader.read(userId);
 
@@ -124,7 +123,7 @@ public class PartyService  {
     }
 
     public GetPartyUserResponse getPartyUsers(GetPartyUsersRequest request, Long partyId) { // 파티원 목록 조회
-        Party party = partyReader.readParty(partyId);
+        partyReader.readParty(partyId);
 
         // 기본값 적용
         request.applyDefaultValues();
@@ -168,10 +167,9 @@ public class PartyService  {
     }
 
     public PartyAuthorityResponse getPartyAuthority(Long partyId, Long userId) { // 나의 파티 권한 조회
+        partyReader.readParty(partyId);
 
-        Party party = partyReader.readParty(partyId);
-
-        PartyUser partyUser = partyUserReader.getMember(partyId, userId);
+        PartyUser partyUser = partyUserReader.readByPartyAndUser(partyId, userId);
 
         return PartyAuthorityResponse.from(partyUser);
     }
@@ -184,17 +182,14 @@ public class PartyService  {
 
     @Transactional
     public void leaveParty(Long partyId, Long userId) { // 파티 나가기
-        // 파티 존재 확인
         Party party = partyReader.readParty(partyId);
 
-        // PartyUser 조회 및 삭제
-        PartyUser leftUser = partyUserReader.getMember(partyId, userId);
-
+        PartyUser leftUser = partyUserReader.readByPartyAndUser(partyId, userId);
         leftUser.leave();
 
         // 이벤트 발행
         List<PartyUser> members = partyUserRepository
-                .findByParty_IdAndStatus(partyId, Status.ACTIVE);
+                .findByPartyIdAndStatus(partyId, Status.ACTIVE);
 
         for (PartyUser member : members) {
             PartyMemberLeftEvent event = PartyMemberLeftEvent.builder()

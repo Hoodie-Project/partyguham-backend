@@ -7,6 +7,8 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.domain.Sort;
 
+import java.util.List;
+
 @Getter
 @Setter
 public class GetMyPartyApplicationsRequestDto {
@@ -24,7 +26,7 @@ public class GetMyPartyApplicationsRequestDto {
 
     /**
      * 지원 상태 필터 (선택)
-     * - PENDING / PROCESSING / APPROVED / REJECTED
+     * - PENDING / PROCESSING / APPROVED / REJECTED | DECLINED | CLOSED
      */
-    private PartyApplicationStatus partyApplicationStatus;
+    private List<PartyApplicationStatus> partyApplicationStatus;
 }

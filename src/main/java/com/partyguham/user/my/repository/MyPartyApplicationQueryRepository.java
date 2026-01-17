@@ -5,6 +5,7 @@ import com.partyguham.application.entity.PartyApplicationStatus;
 import com.partyguham.common.entity.Status;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +32,7 @@ public class MyPartyApplicationQueryRepository {
      * 내가 지원한 모집 목록 조회
      */
     public Page<PartyApplication> searchMyApplications(Long userId,
-                                                       PartyApplicationStatus statusFilter,
+                                                       List<PartyApplicationStatus> statusFilters, // List로 변경
                                                        Pageable pageable,
                                                        Order orderDir) {
 
@@ -50,9 +51,7 @@ public class MyPartyApplicationQueryRepository {
                 .where(
                         partyApplication.user.id.eq(userId),
                         partyApplication.status.ne(Status.DELETED),
-                        statusFilter != null
-                                ? partyApplication.applicationStatus.eq(statusFilter)
-                                : null
+                        statusIn(statusFilters) // 메서드 추출로 깔끔하게 정리
                 )
                 .orderBy(orderSpec);
 
@@ -68,9 +67,7 @@ public class MyPartyApplicationQueryRepository {
                 .where(
                         partyApplication.user.id.eq(userId),
                         partyApplication.status.ne(Status.DELETED),
-                        statusFilter != null
-                                ? partyApplication.applicationStatus.eq(statusFilter)
-                                : null
+                        statusIn(statusFilters) // 동일하게 적용
                 );
 
         return PageableExecutionUtils.getPage(
@@ -78,5 +75,14 @@ public class MyPartyApplicationQueryRepository {
                 pageable,
                 countQuery::fetchOne
         );
+    }
+
+    // 동적 쿼리를 위한 도우미 메서드
+    private BooleanExpression statusIn(List<PartyApplicationStatus> statusFilters) {
+        // 리스트가 null이거나 비어있으면 조건문을 생성하지 않음 (전체 조회)
+        if (statusFilters == null || statusFilters.isEmpty()) {
+            return null;
+        }
+        return partyApplication.applicationStatus.in(statusFilters);
     }
 }

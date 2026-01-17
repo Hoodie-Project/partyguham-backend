@@ -24,7 +24,7 @@ repositories {
 }
 
 dependencies {
-    // Spring Boot starters
+    // 1. Spring Boot Core
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
     implementation 'org.springframework.boot:spring-boot-starter-security'
@@ -32,81 +32,71 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
-
-    // Thymeleaf + Spring Security
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
     implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
 
-    // Lombok
+    // 2. Lombok & MapStruct (순서가 매우 중요: Lombok이 먼저 선언되어야 함)
     compileOnly 'org.projectlombok:lombok:1.18.24'
     annotationProcessor 'org.projectlombok:lombok:1.18.24'
 
-    //Websocket
-    implementation 'org.springframework.boot:spring-boot-starter-websocket'
+    // Lombok과 MapStruct를 같이 쓸 때 생기는 매핑 오류 방지 필수 의존성
+    annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
 
-    // Dev tools
-    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    implementation 'org.mapstruct:mapstruct:1.5.5.Final'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
 
-    // Database driver
-    runtimeOnly 'org.postgresql:postgresql'
-
-    // OpenAPI Swagger
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
-
-    // model mapper
-    implementation 'org.modelmapper:modelmapper:3.1.1'
-
-    // Test
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation 'org.springframework.security:spring-security-test'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-
-    // SMTP
-    implementation 'org.springframework.boot:spring-boot-starter-mail'
-
-    // SocialLogin
-    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
-
-    // Jsoup HTML parser
-    implementation 'org.jsoup:jsoup:1.17.2'
-    implementation 'org.postgresql:postgresql:42.7.4'
-
-    //JWT
-    implementation 'io.jsonwebtoken:jjwt-api:0.12.5'
-    runtimeOnly  'io.jsonwebtoken:jjwt-impl:0.12.5'
-    runtimeOnly  'io.jsonwebtoken:jjwt-jackson:0.12.5'
-
-    //AWS
-    implementation platform('software.amazon.awssdk:bom:2.25.0')
-    implementation 'software.amazon.awssdk:s3'
-
-    //Firebase
-    implementation 'com.google.firebase:firebase-admin:9.3.0'
-
-    //QueryDSL
+    // 3. QueryDSL (Jakarta 패키지 설정)
     implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
     annotationProcessor 'com.querydsl:querydsl-apt:5.0.0:jakarta'
     annotationProcessor 'jakarta.annotation:jakarta.annotation-api'
     annotationProcessor 'jakarta.persistence:jakarta.persistence-api'
 
-    //mapstruct
-    implementation 'org.mapstruct:mapstruct:1.5.5.Final'
-    annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
+    // 4. Database & Driver
+    runtimeOnly 'org.postgresql:postgresql:42.7.4' // 중복 제거 및 버전 통합
+
+    // 5. Auth & JWT
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+    implementation 'io.jsonwebtoken:jjwt-api:0.12.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.5'
+
+    // 6. External Tools (AWS, Firebase, Mail, etc)
+    implementation platform('software.amazon.awssdk:bom:2.25.0')
+    implementation 'software.amazon.awssdk:s3'
+    implementation 'com.google.firebase:firebase-admin:9.3.0'
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
+    implementation 'org.jsoup:jsoup:1.17.2'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
+    implementation 'org.modelmapper:modelmapper:3.1.1'
+
+    // 7. Dev & Test
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.security:spring-security-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
-tasks.named('test') {
-    useJUnitPlatform()
-}
+// QClass 생성 위치를 명확히 지정 (build 폴더 안으로 설정하는 것이 정석)
+def querydslDir = layout.buildDirectory.dir("generated/querydsl").get().asFile
 
 sourceSets {
     main {
         java {
-            // annotationProcessor 기본 출력 경로를 소스로 등록
-            srcDir(layout.buildDirectory.dir("generated/sources/annotationProcessor/java/main"))
+            srcDirs += [ querydslDir ]
         }
     }
 }
 
 tasks.withType(JavaCompile).configureEach {
-    options.annotationProcessorPath = configurations.annotationProcessor
+    // QClass 생성 경로 지정
+    options.getGeneratedSourceOutputDirectory().set(querydslDir)
 }
 
+// clean 시 생성된 QClass 폴더도 함께 삭제
+clean {
+    delete querydslDir
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}

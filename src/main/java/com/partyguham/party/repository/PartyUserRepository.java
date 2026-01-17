@@ -13,33 +13,19 @@ import java.util.Optional;
 
 @Repository
 public interface PartyUserRepository extends JpaRepository<PartyUser, Long>, PartyUserQueryRepository, PartyUserCustomRepository {
-    Optional<PartyUser> findByPartyIdAndUserId(Long partyId, Long userId); //나의 파티 권한 조회
 
-    boolean existsByPartyIdAndUserId(Long partyId, Long userId);
+    // PK + 상태 조회
+    Optional<PartyUser> findByIdAndStatus(Long id, Status status);
 
-    // 요청자(현재 로그인 유저)의 파티 참여 정보
-    Optional<PartyUser> findByParty_IdAndUser_IdAndStatus(Long partyId,
-                                                          Long userId,
-                                                          Status status);
-    Optional<PartyUser> findByParty_IdAndAuthority(Long partyId, PartyAuthority authority);
+    Optional<PartyUser> findByPartyIdAndUserIdAndStatus(Long partyId, Long userId, Status status);
 
-    // 위임 대상 파티원
-    Optional<PartyUser> findByIdAndParty_IdAndStatus(Long partyUserId,
-                                                     Long partyId,
-                                                     Status status);
+    Optional<PartyUser> findByPartyIdAndAuthority(Long partyId, PartyAuthority authority);
 
-
-    Optional<PartyUser> findByIdAndParty_IdAndStatusNot(Long partyUserId,
-                                                        Long partyId,
-                                                        Status status);
-
-    List<PartyUser> findByParty_IdAndIdInAndStatusNot(Long partyId,
+    List<PartyUser> findByPartyIdAndIdInAndStatus(Long partyId,
                                                       List<Long> ids,
                                                       Status status);
 
-    List<PartyUser> findByParty_IdAndStatus(Long partyId, Status status);
-
-    List<PartyUser> findByParty_IdAndStatusNot(Long partyId, Status status);
+    List<PartyUser> findByPartyIdAndStatus(Long partyId, Status status);
 
     /**
      * 특정 파티에 특정 유저가 속해있는지 확인하는 메서드
@@ -49,12 +35,9 @@ public interface PartyUserRepository extends JpaRepository<PartyUser, Long>, Par
      * - user.id = :userId
      * - status != :excludedStatus
      *
-     * 사용 예:
-     * existsByParty_IdAndUser_IdAndStatusNot(partyId, userId, Status.DELETED)
-     *
      * → 해당 유저가 파티 멤버인지 여부를 boolean 으로 바로 알 수 있음.
      */
-    boolean existsByParty_IdAndUser_IdAndStatusNot(Long partyId, Long userId, Status excludedStatus);
+    boolean existsByPartyIdAndUserIdAndStatus(Long partyId, Long userId, Status excludedStatus);
 
 
 }
