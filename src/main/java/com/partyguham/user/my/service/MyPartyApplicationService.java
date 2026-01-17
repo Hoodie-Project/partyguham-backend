@@ -11,6 +11,8 @@ import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class MyPartyApplicationService {
@@ -22,19 +24,21 @@ public class MyPartyApplicationService {
             Long userId,
             GetMyPartyApplicationsRequestDto req
     ) {
+        // 1) 페이지 및 사이즈 설정
         int page = (req.getPage() != null && req.getPage() > 0) ? req.getPage() - 1 : 0;
         int size = (req.getSize() != null && req.getSize() > 0) ? req.getSize() : 20;
 
-        // 2) 정렬 방향 (null이면 기본 DESC)
-        Sort.Direction dir = req.getOrder();
+        // 2) 정렬 방향
+        Sort.Direction dir = (req.getOrder() != null) ? req.getOrder() : Sort.Direction.DESC;
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(dir, "createdAt"));
 
-        PartyApplicationStatus statusFilter = req.getPartyApplicationStatus(); // enum 그대로 사용
+        // 3) 리스트 필터 적용
+        List<PartyApplicationStatus> statusFilters = req.getPartyApplicationStatus();
 
         Page<PartyApplication> result = myPartyApplicationQueryRepository.searchMyApplications(
                 userId,
-                statusFilter,
+                statusFilters, // 이제 단일 status가 아닌 리스트를 넘깁니다.
                 pageable,
                 dir.isAscending() ? Order.ASC : Order.DESC
         );
