@@ -15,10 +15,11 @@ import com.partyguham.notification.event.*;
 import com.partyguham.party.entity.Party;
 import com.partyguham.party.entity.PartyAuthority;
 import com.partyguham.party.entity.PartyUser;
+import com.partyguham.party.reader.PartyUserReader;
 import com.partyguham.party.repository.PartyUserRepository;
-import com.partyguham.party.service.PartyAccessService;
 import com.partyguham.recruitment.entity.PartyRecruitment;
 import com.partyguham.recruitment.exception.RecruitmentErrorCode;
+import com.partyguham.recruitment.reader.PartyRecruitmentReader;
 import com.partyguham.recruitment.repository.PartyRecruitmentRepository;
 import com.partyguham.user.account.entity.User;
 import com.partyguham.user.account.reader.UserReader;
@@ -40,8 +41,9 @@ public class PartyApplicationService {
 
     private final PartyApplicationReader partyApplicationReader;
     private final UserReader userReader;
+    private final PartyUserReader partyUserReader;
+    private final PartyRecruitmentReader partyRecruitmentReader;
 
-    private final PartyAccessService partyAccessService;
     private final PartyUserRepository partyUserRepository;
     private final PartyRecruitmentRepository partyRecruitmentRepository;
     private final PartyApplicationRepository partyApplicationRepository;
@@ -61,18 +63,13 @@ public class PartyApplicationService {
                                    CreatePartyApplicationRequest request) {
         User applicantUser = userReader.read(userId);
 
-        // 1) 이미 파티 멤버인지 체크
-        boolean alreadyMember = partyUserRepository
-                .existsByParty_IdAndUser_IdAndStatusNot(partyId, userId, Status.DELETED);
-        if (alreadyMember) {
+        if (partyUserReader.isMember(partyId, userId)) {
             throw new BusinessException(ALREADY_PARTY_MEMBER);
         }
 
         // 2) 모집공고 조회 및 유효성 확인 (Reader/Entity 메서드 활용)
-        PartyRecruitment recruitment = partyRecruitmentRepository.findById(recruitmentId)
-                .orElseThrow(() -> new BusinessException(RecruitmentErrorCode.PR_NOT_FOUND));
-
-        recruitment.validateNotCompleted(); // 엔티티 메서드 적용
+        PartyRecruitment recruitment = partyRecruitmentReader.read(recruitmentId);
+        recruitment.validateNotCompleted();
 
         // 3) 중복 지원 방지 (Reader 메서드 활용)
         partyApplicationReader.validateDuplicate(userId, recruitmentId);
@@ -130,7 +127,8 @@ public class PartyApplicationService {
                                                              PartyApplicantSearchRequest request) {
 
         // 1) 권한 체크 (파티장/부파티장)
-        partyAccessService.checkManagerOrThrow(partyId, userId);
+        PartyUser partyUser = partyUserReader.readByPartyAndUser(partyId, userId);
+        partyUser.checkManager();
 
         // 2) 페이징 변환 (page는 1부터 들어온다고 가정)
         int page = (request.getPage() != null ? request.getPage() : 1) - 1;
@@ -155,7 +153,8 @@ public class PartyApplicationService {
     @Transactional
     public void approveByManager(Long partyId, Long applicationId, Long managerUserId) {
         // 1) 파티장/부파티장 권한 체크
-        partyAccessService.checkManagerOrThrow(partyId, managerUserId);
+        PartyUser partyUser = partyUserReader.readByPartyAndUser(partyId, managerUserId);
+        partyUser.checkManager();
 
         // 2) 지원 엔티티 조회 + 소속 파티 검증
         PartyApplication app = partyApplicationReader.readWithParty(partyId, applicationId);
@@ -178,7 +177,8 @@ public class PartyApplicationService {
      */
     @Transactional
     public void rejectByManager(Long partyId, Long applicationId, Long managerUserId) {
-        partyAccessService.checkManagerOrThrow(partyId, managerUserId);
+        PartyUser partyUser = partyUserReader.readByPartyAndUser(partyId, managerUserId);
+        partyUser.checkManager();
 
         // Reader 적용
         PartyApplication app = partyApplicationReader.readWithParty(partyId, applicationId);
@@ -218,16 +218,9 @@ public class PartyApplicationService {
         recruitment.validateNotCompleted();
 
         // 5) 파티 합류 처리
-        boolean alreadyMember = partyUserRepository
-                .existsByParty_IdAndUser_IdAndStatusNot(
-                        party.getId(),
-                        applicantUserId,
-                        Status.DELETED
-                );
-
         recruitment.increaseParticipant();
 
-        if (!alreadyMember) {
+        if (!partyUserReader.isMember(partyId, applicantUserId)) {
             User user = app.getUser(); // 이미 로딩된 유저
 
             PartyUser partyUser = PartyUser.builder()
@@ -300,9 +293,7 @@ public class PartyApplicationService {
         // 파티 가져오기
         Party party = app.getPartyRecruitment().getParty();
         // 파티장 찾기
-        User hostUser = partyUserRepository
-                .findByParty_IdAndAuthority(partyId, PartyAuthority.MASTER)
-                .orElseThrow(() -> new IllegalStateException("파티장 정보를 찾을 수 없습니다."))
+        User hostUser = partyUserReader.readMaster(partyId)
                 .getUser();
 
         // 이벤트 생성

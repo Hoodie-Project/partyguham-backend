@@ -1,8 +1,14 @@
 package com.partyguham.party.entity;
 
+import lombok.Getter;
+
+@Getter
 public enum  PartyAuthority {
-    MASTER, // 파티장
-    DEPUTY, // 부파티장
-    MEMBER // 맴버
+    MASTER(3),
+    DEPUTY(2),
+    MEMBER(1);
+
+    private final int level;
+    PartyAuthority(int level) { this.level = level; }
 }
 

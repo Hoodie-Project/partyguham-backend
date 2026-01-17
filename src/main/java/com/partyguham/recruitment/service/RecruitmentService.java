@@ -4,8 +4,9 @@ import com.partyguham.catalog.reader.PositionReader;
 import com.partyguham.party.dto.party.request.GetPartyRecruitmentsRequest;
 import com.partyguham.party.dto.party.response.GetPartyRecruitmentsResponse;
 import com.partyguham.party.entity.Party;
+import com.partyguham.party.entity.PartyUser;
 import com.partyguham.party.reader.PartyReader;
-import com.partyguham.party.service.PartyAccessService;
+import com.partyguham.party.reader.PartyUserReader;
 import com.partyguham.recruitment.dto.request.CreatePartyRecruitmentRequest;
 import com.partyguham.recruitment.dto.request.GetPartyRecruitmentsPersonalizedRequest;
 import com.partyguham.recruitment.dto.request.PartyRecruitmentsRequest;
@@ -19,7 +20,6 @@ import com.partyguham.user.profile.entity.CareerType;
 import com.partyguham.user.profile.entity.UserCareer;
 import com.partyguham.user.profile.reader.UserProfileReader;
 import com.partyguham.catalog.entity.Position;
-import com.partyguham.catalog.repository.PositionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -27,8 +27,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import jakarta.persistence.EntityNotFoundException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -44,10 +42,10 @@ public class RecruitmentService {
     private final UserProfileReader userProfileReader;
     private final PositionReader positionReader;
     private final PartyReader partyReader;
+    private final PartyUserReader partyUserReader;
     private final PartyRecruitmentReader partyRecruitmentReader;
 
     private final PartyRecruitmentRepository partyRecruitmentRepository;
-    private final PartyAccessService partyAccessService;
 
     /**
      * [파티모집] 파티 모집 목록 조회
@@ -77,8 +75,8 @@ public class RecruitmentService {
 
         Party party = partyReader.readParty(partyId);
         Position position = positionReader.read(request.getPositionId());
-
-        partyAccessService.checkManagerOrThrow(partyId, userId);
+        PartyUser partyUser = partyUserReader.readByPartyAndUser(partyId, userId);
+        partyUser.checkManager();
 
         PartyRecruitment recruitment = PartyRecruitment.builder()
                 .party(party)
