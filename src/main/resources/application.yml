@@ -94,4 +94,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: prometheus # 프로메테우스용 데이터
+        include: "health,metrics,info,prometheus"
+  endpoint:
+    health:
+      show-details: always
