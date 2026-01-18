@@ -33,9 +33,10 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
 
-    // 2. Lombok & MapStruct (순서가 매우 중요: Lombok이 먼저 선언되어야 함)
+    // 2. Lombok & MapStruct
     compileOnly 'org.projectlombok:lombok:1.18.24'
     annotationProcessor 'org.projectlombok:lombok:1.18.24'
 
@@ -74,9 +75,12 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    // 8. Monitoring
+    runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
 }
 
-// QClass 생성 위치를 명확히 지정 (build 폴더 안으로 설정하는 것이 정석)
+// QClass 생성 위치를 명확히 지정 (build 폴더 안으로 설정)
 def querydslDir = layout.buildDirectory.dir("generated/querydsl").get().asFile
 
 sourceSets {
