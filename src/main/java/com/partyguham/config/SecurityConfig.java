@@ -28,6 +28,12 @@ public class SecurityConfig {
     private final OttAuthFilter ottAuthFilter;
     private final JwtAuthFilter jwtAuthFilter;
 
+    // SecurityConfig 클래스 안쪽, @Bean 메서드들 사이에 추가
+    @Bean
+    public org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer webSecurityCustomizer() {
+        return (web) -> web.ignoring().requestMatchers("/actuator/**");
+    }
+
     /**
      * 🔹 1번 체인: /api/** 전용 (JWT + OTT, stateless)
      */
@@ -35,7 +41,7 @@ public class SecurityConfig {
     @Order(1)
     public SecurityFilterChain apiChain(HttpSecurity http) throws Exception {
         http
-                .securityMatcher("/api/**")          // 이 체인은 /api/** 만 적용
+                .securityMatcher("/api/**")
                 .csrf(AbstractHttpConfigurer::disable)        // REST API 이므로 CSRF OFF
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth

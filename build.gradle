@@ -77,7 +77,7 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
     // 8. Monitoring
-    runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
+    implementation 'io.micrometer:micrometer-registry-prometheus'
 }
 
 // QClass 생성 위치를 명확히 지정 (build 폴더 안으로 설정)
