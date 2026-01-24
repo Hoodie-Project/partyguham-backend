@@ -3,12 +3,14 @@ package com.partyguham.auth.oauth.service;
 import com.partyguham.auth.oauth.entity.OauthAccount;
 import com.partyguham.auth.oauth.entity.Provider;
 import com.partyguham.auth.oauth.repository.OauthAccountRepository;
+import com.partyguham.common.exception.BusinessException;
 import com.partyguham.user.account.entity.User;
 import com.partyguham.user.account.reader.UserReader;
-import com.partyguham.user.account.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static com.partyguham.auth.oauth.exception.OauthAccountErrorCode.OAUTH_LINK_CONFLICT;
 
 /**
  * 🔗 OAuth 계정 연동 서비스
@@ -40,11 +42,11 @@ public class OauthLinkService {
                 .map(existing -> {
                     // 이미 다른 유저에 연결된 경우 차단
                     if (existing.getUser() != null && !existing.getUser().getId().equals(userId)) {
-                        throw new IllegalStateException("이미 다른 계정에 연결된 OAuth 계정입니다.");
+                        throw new BusinessException(OAUTH_LINK_CONFLICT);
                     }
 
                     if (oauthAccountRepository.existsByUserAndProvider(user, provider)) {
-                        throw new IllegalStateException("이미 해당 OAuth 제공자가 연동되어 있습니다.");
+                        throw new BusinessException(OAUTH_LINK_CONFLICT);
                     }
 
                     // 아직 user가 안 붙어있으면(회원가입 전 저장된 케이스) 지금 유저를 연결

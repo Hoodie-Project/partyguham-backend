@@ -33,6 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 import static com.partyguham.application.exception.ApplicationErrorCode.*;
+import static com.partyguham.party.exception.PartyUserErrorCode.PARTY_MASTER_NOT_FOUND;
 
 @Service
 @RequiredArgsConstructor
@@ -78,7 +79,7 @@ public class PartyApplicationService {
         User hostUser = party.getPartyUsers().stream()
                 .filter(pu -> pu.getAuthority() == PartyAuthority.MASTER)
                 .findFirst()
-                .orElseThrow(() -> new IllegalStateException("파티장 정보를 찾을 수 없습니다."))
+                .orElseThrow(() -> new BusinessException(PARTY_MASTER_NOT_FOUND))
                 .getUser();
 
         // 4) 지원 생성

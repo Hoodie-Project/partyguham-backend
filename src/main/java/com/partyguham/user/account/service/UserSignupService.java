@@ -2,6 +2,7 @@ package com.partyguham.user.account.service;
 
 import com.partyguham.auth.jwt.service.JwtService;
 import com.partyguham.auth.oauth.repository.OauthAccountRepository;
+import com.partyguham.common.exception.BusinessException;
 import com.partyguham.user.account.dto.request.SignUpRequest;
 import com.partyguham.user.account.dto.response.SignUpResponse;
 import com.partyguham.user.account.reader.UserReader;
@@ -16,6 +17,9 @@ import com.partyguham.auth.ott.model.OttPayload;
 import com.partyguham.user.account.entity.User;
 
 import java.util.UUID;
+
+import static com.partyguham.auth.oauth.exception.OauthAccountErrorCode.*;
+
 
 @Service
 @RequiredArgsConstructor
@@ -46,11 +50,11 @@ public class UserSignupService {
         // 2) 아직 연결 안 된 OAuthAccount 찾아오기 (없으면 에러)
         OauthAccount oauthAccount = oauthAccountRepository
                 .findByProviderAndExternalId(provider, externalId)
-                .orElseThrow(() -> new IllegalStateException("OAuthAccount가 없습니다. (provider/externalId 불일치)"));
+                .orElseThrow(() -> new BusinessException(USER_OAUTH_DATA_NOT_FOUND));
 
         if (oauthAccount.getUser() != null) {
             // 이미 유저가 연결된 상태인데 다시 가입 시도 → 비정상 흐름
-            throw new IllegalStateException("이미 가입된 계정입니다.");
+            throw new BusinessException(OAUTH_CONFLICT);
         }
 
         // 3) User 생성
@@ -75,7 +79,7 @@ public class UserSignupService {
         // 3) OAuthAccount 찾기 (provider + externalId)
         OauthAccount oauth = oauthAccountRepository
                 .findByProviderAndExternalId(provider, externalId)
-                .orElseThrow(() -> new IllegalStateException("OAuthAccount 가 없습니다."));
+                .orElseThrow(() -> new BusinessException(USER_OAUTH_DATA_NOT_FOUND));
 
         // 4) OAuthAccount 와 User 연결
         oauth.setUser(user);
