@@ -15,7 +15,7 @@ import lombok.*;
 @SequenceGenerator(
         name = "reports_seq_gen",
         sequenceName = "reports_id_seq",
-        allocationSize = 50
+        allocationSize = 1
 )
 public class Report extends BaseEntity {
 

@@ -25,7 +25,7 @@ import lombok.*;
 @SequenceGenerator(
         name = "oauth_accounts_seq_gen",
         sequenceName = "oauth_accounts_id_seq",
-        allocationSize = 50
+        allocationSize = 1
 )
 public class OauthAccount {
 

@@ -24,7 +24,7 @@ import lombok.*;
 @SequenceGenerator(
         name = "user_personalities_seq_gen",
         sequenceName = "user_personalities_id_seq",
-        allocationSize = 50
+        allocationSize = 1
 )
 public class UserPersonality {
 

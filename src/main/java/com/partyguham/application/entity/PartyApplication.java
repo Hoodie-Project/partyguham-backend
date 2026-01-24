@@ -19,7 +19,7 @@ import static com.partyguham.application.exception.ApplicationErrorCode.*;
 @SequenceGenerator(
         name = "party_applications_seq_gen",
         sequenceName = "party_applications_id_seq",
-        allocationSize = 50
+        allocationSize = 1
 )
 public class PartyApplication extends BaseEntity {
 

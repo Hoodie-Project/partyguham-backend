@@ -29,7 +29,7 @@ import static com.partyguham.recruitment.exception.RecruitmentErrorCode.*;
 @SequenceGenerator(
         name = "party_recruitments_seq_gen",
         sequenceName = "party_recruitments_id_seq",
-        allocationSize = 50
+        allocationSize = 1
 )
 public class PartyRecruitment extends BaseEntity {
 

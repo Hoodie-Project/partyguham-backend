@@ -23,7 +23,7 @@ import lombok.*;
 @SequenceGenerator(
         name = "user_careers_seq_gen",
         sequenceName = "user_careers_id_seq",
-        allocationSize = 50
+        allocationSize = 1
 )
 public class UserCareer {
 

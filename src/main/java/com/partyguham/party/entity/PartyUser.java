@@ -19,7 +19,8 @@ import static com.partyguham.party.exception.PartyUserErrorCode.*;
 @NoArgsConstructor
 @SequenceGenerator(name = "party_users_seq_gen",
         sequenceName = "party_users_id_seq",
-        allocationSize = 50)
+        allocationSize = 1
+)
 public class PartyUser extends BaseEntity {
 
     @Id
