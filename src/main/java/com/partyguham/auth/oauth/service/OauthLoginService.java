@@ -13,6 +13,7 @@ import com.partyguham.common.entity.Status;
 import com.partyguham.user.account.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -31,13 +32,14 @@ import java.time.LocalDateTime;
  */
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class OauthLoginService {
 
     private final OauthAccountRepository oauthRepo;
     private final JwtService jwtService;   // AT/RT 발급
     private final OttService ottService;   // OTT 발급(예: Redis 저장)
 
-
+    @Transactional
     public LoginResult handleCallback(Provider provider, String externalId, String email, String image) {
         return oauthRepo.findByProviderAndExternalId(provider, externalId)
                 .map(oa -> handleExistingAccount(oa, provider, externalId, email, image))
