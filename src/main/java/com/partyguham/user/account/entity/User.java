@@ -16,13 +16,16 @@ import static com.partyguham.user.exception.UserErrorCode.*;
 @Entity
 @Table(name = "users",
         indexes = @Index(name = "idx_nickname_lower", columnList = "lower(nickname)", unique = true))
+@SequenceGenerator(name="users_seq_gen",
+        sequenceName="users_id_seq",
+        allocationSize=50)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @SuperBuilder
 public class User extends BaseEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "users_seq_gen")
     Long id;
 
     @Column(unique = true)

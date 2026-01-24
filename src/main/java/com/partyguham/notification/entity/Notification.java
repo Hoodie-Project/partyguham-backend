@@ -11,9 +11,14 @@ import java.time.LocalDateTime;
 @Table(
         name = "notifications",
         indexes = {
-                @Index(name = "idx_notification_user", columnList = "user_id"),
-                @Index(name = "idx_notification_user_read", columnList = "user_id,is_read")
+                @Index(name = "idx_notifications_user", columnList = "user_id"),
+                @Index(name = "idx_notifications_user_read", columnList = "user_id,is_read")
         }
+)
+@SequenceGenerator(
+        name = "notifications_seq_gen",
+        sequenceName = "notifications_id_seq",   // DB에 생성된 시퀀스 이름
+        allocationSize = 1
 )
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -22,7 +27,7 @@ import java.time.LocalDateTime;
 public class Notification extends BaseEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "notifications_seq_gen")
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)

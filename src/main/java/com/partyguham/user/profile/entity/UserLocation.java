@@ -21,14 +21,14 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 @SequenceGenerator(
-        name = "user_location_seq_gen",
-        sequenceName = "user_location_seq",
+        name = "user_locations_seq_gen",
+        sequenceName = "user_locations_id_seq",
         allocationSize = 50
 )
 public class UserLocation {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_location_seq_gen")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_locations_seq_gen")
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)

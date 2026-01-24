@@ -12,9 +12,9 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 @SequenceGenerator(
-        name = "app_version_seq_gen",
-        sequenceName = "app_version_seq",
-        allocationSize = 50
+        name = "app_versions_seq_gen",
+        sequenceName = "app_versions_id_seq",
+        allocationSize = 1
 )
 public class AppVersion extends BaseEntity {
 

@@ -14,13 +14,13 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @SequenceGenerator(
-        name = "party_type_id_seq_gen",
-        sequenceName = "party_type_id_seq",
-        allocationSize = 10
+        name = "party_types_seq_gen",
+        sequenceName = "party_types_id_seq",
+        allocationSize = 1
 )
 public class PartyType {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "party_type_id_seq_gen")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "party_types_seq_gen")
     @Column(name = "id")
     private Long id;
 

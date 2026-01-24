@@ -13,14 +13,14 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 @SequenceGenerator(
-        name = "report_seq_gen",
-        sequenceName = "report_seq",
+        name = "reports_seq_gen",
+        sequenceName = "reports_id_seq",
         allocationSize = 50
 )
 public class Report extends BaseEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "report_seq_gen")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "reports_seq_gen")
     private Long id;
 
     /** 신고 대상 타입 (USER / PARTY / PARTY_RECRUITMENT ...) */

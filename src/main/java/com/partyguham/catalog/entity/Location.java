@@ -13,14 +13,14 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @SequenceGenerator(
-        name = "location_seq_gen",
-        sequenceName = "location_seq",
-        allocationSize = 50
+        name = "locations_seq_gen",
+        sequenceName = "locations_id_seq",
+        allocationSize = 1
 )
 public class Location {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "location_seq_gen")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "locations_seq_gen")
     private Long id;
 
     @Column(nullable = false)

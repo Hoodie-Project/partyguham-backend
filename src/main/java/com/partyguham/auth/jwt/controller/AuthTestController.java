@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -23,6 +24,14 @@ public class AuthTestController {
 
     private final JwtService jwtService;
     private final UserRepository userRepository;
+
+    @GetMapping("/connection")
+    @Transactional // 트랜잭션을 걸어야 커넥션을 붙잡고 있습니다.
+    public String testConnection() throws InterruptedException {
+        // 10초 동안 커넥션을 점유함
+        Thread.sleep(50000);
+        return "Done";
+    }
 
     /**
      * 닉네임으로 테스트용 토큰 발급

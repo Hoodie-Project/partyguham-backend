@@ -14,14 +14,14 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @SequenceGenerator(
-        name = "position_seq_gen",
-        sequenceName = "position_seq",   // DB에 생성된 시퀀스 이름
-        allocationSize = 50
+        name = "positions_seq_gen",
+        sequenceName = "positions_id_seq",   // DB에 생성된 시퀀스 이름
+        allocationSize = 1
 )
 public class Position {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "position_seq_gen")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "positions_seq_gen")
     private Long id;
 
     @Column(nullable = false)

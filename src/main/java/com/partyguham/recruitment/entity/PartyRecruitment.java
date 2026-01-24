@@ -27,14 +27,14 @@ import static com.partyguham.recruitment.exception.RecruitmentErrorCode.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @SequenceGenerator(
-        name = "party_recruitment_id_seq_gen",
-        sequenceName = "party_recruitment_id_seq",
+        name = "party_recruitments_seq_gen",
+        sequenceName = "party_recruitments_id_seq",
         allocationSize = 50
 )
 public class PartyRecruitment extends BaseEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "party_recruitment_id_seq_gen")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "party_recruitments_seq_gen")
     @Column(nullable = false)
     private Long id;
 

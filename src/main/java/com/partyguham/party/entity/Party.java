@@ -11,16 +11,18 @@ import java.util.List;
 
 @Entity
 @Table(name = "parties")
+@SequenceGenerator(name="parties_seq_gen",
+        sequenceName="parties_id_seq",
+        allocationSize=50)
 @Getter
 @Setter
 @SuperBuilder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-@SequenceGenerator(name="party_id_seq_gen", sequenceName="party_id_seq", allocationSize=50)
 public class Party extends BaseEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "party_id_seq_gen")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "parties_seq_gen")
     @Column
     private Long id;
 

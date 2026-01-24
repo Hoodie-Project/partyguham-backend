@@ -17,14 +17,14 @@ import static com.partyguham.user.exception.UserErrorCode.PERSONALITY_TOO_MANY_O
 @AllArgsConstructor
 @Builder
 @SequenceGenerator(
-        name = "personality_question_seq_gen",
-        sequenceName = "personality_question_seq",
-        allocationSize = 50
+        name = "personality_questions_seq_gen",
+        sequenceName = "personality_questions_id_seq",
+        allocationSize = 1
 )
 public class PersonalityQuestion {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "personality_question_seq_gen")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "personality_questions_seq_gen")
     private Long id;
 
     @Column(columnDefinition = "text", nullable = false)

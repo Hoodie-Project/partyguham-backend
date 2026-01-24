@@ -13,14 +13,14 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @SuperBuilder
 @SequenceGenerator(
-        name = "banner_seq_gen",
-        sequenceName = "banner_seq",
-        allocationSize = 50
+        name = "banners_seq_gen",
+        sequenceName = "banners_id_seq",
+        allocationSize = 1
 )
 public class Banner extends BaseEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "banner_seq_gen")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "banners_seq_gen")
     private Long id;
 
     @Enumerated(EnumType.STRING)

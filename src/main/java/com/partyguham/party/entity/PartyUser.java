@@ -17,11 +17,13 @@ import static com.partyguham.party.exception.PartyUserErrorCode.*;
 @Getter
 @SuperBuilder
 @NoArgsConstructor
-@SequenceGenerator(name = "party_user_seq_gen", sequenceName = "party_user_seq_gen", allocationSize = 50)
+@SequenceGenerator(name = "party_users_seq_gen",
+        sequenceName = "party_users_id_seq",
+        allocationSize = 50)
 public class PartyUser extends BaseEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "party_user_seq_gen")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "party_users_seq_gen")
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)

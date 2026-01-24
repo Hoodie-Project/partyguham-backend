@@ -17,14 +17,14 @@ import static com.partyguham.application.exception.ApplicationErrorCode.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @SequenceGenerator(
-        name = "party_application_id_seq_gen",
-        sequenceName = "party_application_id_seq",
+        name = "party_applications_seq_gen",
+        sequenceName = "party_applications_id_seq",
         allocationSize = 50
 )
 public class PartyApplication extends BaseEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "party_application_id_seq_gen")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "party_applications_seq_gen")
     @Column(nullable = false)
     private Long id;
 

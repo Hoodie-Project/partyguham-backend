@@ -18,14 +18,14 @@ import static com.partyguham.user.exception.UserErrorCode.INVALID_OPTION_FOR_QUE
 @AllArgsConstructor
 @Builder
 @SequenceGenerator(
-        name = "personality_option_seq_gen",
-        sequenceName = "personality_option_seq",
-        allocationSize = 50
+        name = "personality_options_seq_gen",
+        sequenceName = "personality_options_id_seq",
+        allocationSize = 1
 )
 public class PersonalityOption {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "personality_option_seq_gen")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "personality_options_seq_gen")
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)

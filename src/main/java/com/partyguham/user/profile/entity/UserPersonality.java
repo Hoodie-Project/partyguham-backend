@@ -22,14 +22,14 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 @SequenceGenerator(
-        name = "user_personality_seq_gen",
-        sequenceName = "user_personality_seq",
+        name = "user_personalities_seq_gen",
+        sequenceName = "user_personalities_id_seq",
         allocationSize = 50
 )
 public class UserPersonality {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_personality_seq_gen")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_personalities_seq_gen")
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)

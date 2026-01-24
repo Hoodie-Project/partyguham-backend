@@ -10,11 +10,6 @@ import lombok.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-@SequenceGenerator(
-        name = "oauth_account_seq_gen",
-        sequenceName = "oauth_account_seq",
-        allocationSize = 50
-)
 @Table(
         name = "oauth_accounts",
         uniqueConstraints = {
@@ -27,10 +22,15 @@ import lombok.*;
                 @Index(name = "idx_oauth_user", columnList = "user_id")
         }
 )
+@SequenceGenerator(
+        name = "oauth_accounts_seq_gen",
+        sequenceName = "oauth_accounts_id_seq",
+        allocationSize = 50
+)
 public class OauthAccount {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "oauth_account_seq_gen")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "oauth_accounts_seq_gen")
     private Long id;
 
     @Column(name = "external_id", nullable = false)
