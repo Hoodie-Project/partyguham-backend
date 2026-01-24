@@ -19,6 +19,7 @@ spring:
 app:
   domain:
     base: ${DEV_DOMAIN_BASE}
+    dev-base: https://localhost:3000
 
 jwt:
   access-exp: 31536000000

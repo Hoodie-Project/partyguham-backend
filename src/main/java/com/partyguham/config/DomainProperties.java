@@ -11,11 +11,20 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "app.domain")
 public class DomainProperties {
     private String base;
+    private String devBase;
 
     public String signupUrl() {
+        if (devBase != null && !devBase.isEmpty()) {
+            return devBase + "/signup";
+        }
         return base + "/signup";
     }
-    public String homeUrl() {return base + "/home";}
 
-
+    public String homeUrl() {
+        if (devBase != null && !devBase.isEmpty()) {
+            return devBase + "/home";
+        } else {
+            return base + "/home";
+        }
+    }
 }
