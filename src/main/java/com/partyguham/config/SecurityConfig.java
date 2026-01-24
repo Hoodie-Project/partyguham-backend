@@ -18,6 +18,9 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
@@ -52,7 +55,7 @@ public class SecurityConfig {
                                 "/api/v2/locations",
                                 "/api/v2/personalities",
                                 "/api/v2/positions",
-                                "/api/v2/auth/oauth/**"
+                                "/api/v2/test"
                         ).permitAll()
 
                         /* ==== 파티 관련 공개 API (인증 불필요) ==== */
@@ -91,6 +94,35 @@ public class SecurityConfig {
         http.cors(Customizer.withDefaults());
 
         return http.build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+
+        // 1. 허용할 Origin (도메인)
+        configuration.setAllowedOrigins(java.util.List.of(
+                "http://localhost:3000",
+                "https://localhost:3000",
+                "https://partyguham.com",
+                "https://www.partyguham.com"
+        ));
+
+        // 2. 허용할 HTTP 메서드
+        configuration.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+
+        // 3. 허용할 헤더 (전체 허용)
+        configuration.setAllowedHeaders(java.util.List.of("*"));
+
+        // 4. 인증정보(쿠키, Authorization 헤더 등) 허용 여부
+        configuration.setAllowCredentials(true);
+
+        // 5. 브라우저가 이 설정을 캐싱하는 시간 (1시간)
+        configuration.setMaxAge(3600L);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 
     /**
