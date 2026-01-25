@@ -1,0 +1,121 @@
+package com.partyguham.domain.auth.jwt.controller;
+
+import com.partyguham.domain.auth.jwt.service.JwtService;
+import com.partyguham.domain.auth.jwt.UserPrincipal;
+import com.partyguham.global.annotation.ApiV2Controller;
+import com.partyguham.domain.user.account.entity.User;
+import com.partyguham.domain.user.account.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Profile;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
+import java.util.UUID;
+
+@Profile({"local", "dev"})
+@ApiV2Controller
+@RequiredArgsConstructor
+@RequestMapping("auth/test")
+public class AuthTestController {
+
+    private final JwtService jwtService;
+    private final UserRepository userRepository;
+
+    @GetMapping("/connection")
+    @Transactional // 트랜잭션을 걸어야 커넥션을 붙잡고 있습니다.
+    public String testConnection() throws InterruptedException {
+        // 10초 동안 커넥션을 점유함
+        Thread.sleep(50000);
+        return "Done";
+    }
+
+    /**
+     * 닉네임으로 테스트용 토큰 발급
+     * - 닉네임 유저가 있으면: 해당 유저로 토큰 발급
+     * - 없으면: 유저 생성 후 그 유저로 토큰 발급
+     */
+    @PostMapping("/token-by-nickname")
+    public ResponseEntity<Map<String, String>> issueTokenByNickname(
+            @RequestParam String nickname
+    ) {
+        // 1) 유저 조회 or 생성
+        User user = userRepository.findByNicknameIgnoreCase(nickname)
+                .orElseGet(() -> {
+                    String randomEmail = "dev+" + nickname + "+" +
+                            UUID.randomUUID().toString().substring(0, 8) +
+                            "@example.com";
+
+                    User newUser = User.builder()
+                            .email(randomEmail)
+                            .nickname(nickname)
+                            .build();
+
+                    return userRepository.save(newUser);
+                });
+
+        // 2) 토큰 발급
+        String accessToken = jwtService.issueAccess(user.getId(), "USER");
+        String refreshToken = jwtService.issueRefresh(user.getId());
+
+        // 3) 응답
+        return ResponseEntity.ok(Map.of(
+                "userId", String.valueOf(user.getId()),
+                "nickname", user.getNickname(),
+                "accessToken", accessToken,
+                "refreshToken", refreshToken
+        ));
+    }
+
+    @GetMapping("/accessToken")
+    public ResponseEntity<Map<String, String>> testAccessToken() {
+        // 실제로는 사용자 인증 후 userId/role 세팅
+        String token = jwtService.issueAccess(1L, "USER");
+        return ResponseEntity.ok(Map.of("accessToken", token));
+    }
+
+    @GetMapping("/refreshToken")
+    public ResponseEntity<Map<String, String>> testRefreshToken() {
+        // 실제로는 사용자 인증 후 userId/role 세팅
+        String token = jwtService.issueRefresh(1L);
+        return ResponseEntity.ok(Map.of("refreshToken", token));
+    }
+
+    @PostMapping("/reissue")
+    public ResponseEntity<?> reissue(
+            @CookieValue(value = "refreshToken", required = false) String rtCookie,
+            @RequestHeader(value = "Authorization", required = false) String authHeader
+    ) {
+        // 1) 헤더에서 Bearer RT 추출
+        String rtHeader = null;
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            rtHeader = authHeader.substring(7);
+        }
+
+        // 2) 둘 다 없으면 401
+        if (rtCookie == null && rtHeader == null) {
+            return ResponseEntity.status(401).body(Map.of("error", "refreshToken_missing"));
+        }
+
+        // 3) 둘 다 있으면 정책 결정 (에러로)
+        if (rtCookie != null && rtHeader != null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "multiple_refresh_token_sources"));
+        }
+
+        String refreshToken = (rtCookie != null) ? rtCookie : rtHeader;
+
+        String newAccessToken = jwtService.reissueAccess(refreshToken);
+
+        return ResponseEntity.ok(Map.of("accessToken", newAccessToken));
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/login")
+    public ResponseEntity<Map<String, UserPrincipal>> testLogin(@AuthenticationPrincipal UserPrincipal user) {
+        return ResponseEntity.ok(Map.of("test", user));
+    }
+
+}

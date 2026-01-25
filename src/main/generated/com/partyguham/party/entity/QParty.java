@@ -22,7 +22,7 @@ public class QParty extends EntityPathBase<Party> {
 
     public static final QParty party = new QParty("party");
 
-    public final com.partyguham.common.entity.QBaseEntity _super = new com.partyguham.common.entity.QBaseEntity(this);
+    public final com.partyguham.global.entity.QBaseEntity _super = new com.partyguham.global.entity.QBaseEntity(this);
 
     public final StringPath content = createString("content");
 
@@ -42,7 +42,7 @@ public class QParty extends EntityPathBase<Party> {
     public final ListPath<PartyUser, QPartyUser> partyUsers = this.<PartyUser, QPartyUser>createList("partyUsers", PartyUser.class, QPartyUser.class, PathInits.DIRECT2);
 
     //inherited
-    public final EnumPath<com.partyguham.common.entity.Status> status = _super.status;
+    public final EnumPath<com.partyguham.global.entity.Status> status = _super.status;
 
     public final StringPath title = createString("title");
 
