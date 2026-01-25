@@ -11,6 +11,7 @@ public enum AuthErrorCode implements ErrorCode {
     // JWT 관련
     EXPIRED_TOKEN(401, "JWT_001", "토큰이 만료되었습니다."),
     INVALID_TOKEN(401, "JWT_002", "유효하지 않은 토큰입니다."),
+    INVALID_REFRESH_TOKEN(401, "JWT_003", "유효하지 않은 토큰입니다."),
 
     // OTT 관련
     INVALID_OTT_TYPE(401, "OTT_001", "잘못된 OTT 타입입니다."),

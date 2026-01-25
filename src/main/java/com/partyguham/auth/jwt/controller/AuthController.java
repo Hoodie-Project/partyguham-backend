@@ -1,10 +1,10 @@
 package com.partyguham.auth.jwt.controller;
 
 import com.partyguham.auth.jwt.service.JwtService;
-import com.partyguham.auth.jwt.service.LogoutService;
 import com.partyguham.common.annotation.ApiV2Controller;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -18,7 +18,6 @@ import java.util.Map;
 public class AuthController {
 
     private final JwtService jwtService;
-    private final LogoutService logoutService;
 
     @PostMapping("/reissue")
     public ResponseEntity<?> reissue(
@@ -43,59 +42,45 @@ public class AuthController {
 
         String refreshToken = (rtCookie != null) ? rtCookie : rtHeader;
 
-        // 4) 서버 저장소(REDIS/DB)에 존재&유효 여부 체크
-//        if (!refreshTokenService.isValid(refreshToken)) {
-//            return ResponseEntity.status(401).body(Map.of("error", "invalid_refresh_token"));
-//        }
+        String newAccessToken = jwtService.reissueAccess(refreshToken);
 
-        // 5) RT에서 userId 꺼내고 AccessToken 재발급
-        Long userId = jwtService.parse(refreshToken).getPayload().getSubject() != null
-                ? Long.valueOf(jwtService.parse(refreshToken).getPayload().getSubject())
-                : null;
-
-        String newAccess = jwtService.issueAccess(userId, "USER");
-
-        return ResponseEntity.ok(Map.of("accessToken", newAccess));
+        return ResponseEntity.ok(Map.of("accessToken", newAccessToken));
     }
 
-    // ✅ 로그아웃 - 앱(JSON 본문으로 RT 전달)
+    // ✅ 로그아웃 - 앱 (JSON 바디에서 RT 추출)
     @PostMapping("/app/logout")
-    public ResponseEntity<Void> logout(@RequestBody Map<String,String> body,
-                                       @RequestHeader(value="Authorization", required=false) String auth) {
+    public ResponseEntity<Void> logoutApp(@RequestBody Map<String, String> body) {
         String rt = body.get("refreshToken");
-        if (rt != null) logoutService.revokeRefresh(rt);
-        String at = (auth!=null && auth.startsWith("Bearer ")) ? auth.substring(7) : null;
-        if (at != null) logoutService.blacklistAccess(at); // 선택
+
+        // RT가 있으면 Redis에서 삭제 (JwtService 내 try-catch로 안전하게 처리)
+        if (rt != null) {
+            jwtService.revokeRefresh(rt);
+        }
+
         SecurityContextHolder.clearContext();
         return ResponseEntity.noContent().build();
     }
 
-    // ✅ 로그아웃 - 웹(쿠키 RT 제거)
+    // ✅ 로그아웃 - 웹 (쿠키에서 RT 추출 및 쿠키 파기)
     @PostMapping("/web/logout")
     public ResponseEntity<Void> logoutWeb(
-            HttpServletResponse res,
-            @CookieValue(value="refreshToken", required=false) String rt,
-            @RequestHeader(value="Authorization", required=false) String auth) {
+            @CookieValue(value = "refreshToken", required = false) String rt,
+            HttpServletResponse response) {
 
-        // Refresh Token 무효화 (쿠키)
-        if (rt != null) logoutService.revokeRefresh(rt);
-
-        // Access Token 블랙리스트 (옵션)
-        String at = null;
-        if (auth != null && auth.startsWith("Bearer ")) {
-            at = auth.substring(7);
-            logoutService.blacklistAccess(at); // 선택
+        // 1. Redis에서 RT 삭제
+        if (rt != null) {
+            jwtService.revokeRefresh(rt);
         }
 
-        // Refresh Token 쿠키 삭제
-        ResponseCookie del = ResponseCookie.from("refreshToken", "")
+        // 2. 브라우저 쿠키 삭제 (Max-Age 0)
+        ResponseCookie cookie = ResponseCookie.from("refreshToken", "")
+                .path("/")
+                .maxAge(0)
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("None")
-                .path("/")
-                .maxAge(0)
                 .build();
-        res.addHeader("Set-Cookie", del.toString());
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
         SecurityContextHolder.clearContext();
         return ResponseEntity.noContent().build();

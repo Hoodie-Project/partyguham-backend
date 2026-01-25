@@ -16,6 +16,7 @@ import com.partyguham.config.DomainProperties;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -108,7 +109,7 @@ public class OauthController {
     private void handleSignup(HttpServletResponse res, LoginResult r) throws IOException {
         ResponseCookie ott = ResponseCookie.from("ott", r.signupToken())
                 .httpOnly(true).secure(true).sameSite("None").path("/").maxAge(900).build();
-        res.addHeader("Set-Cookie", ott.toString());
+        res.addHeader(HttpHeaders.SET_COOKIE, ott.toString());
         res.sendRedirect(domain.signupUrl());
     }
 
@@ -116,7 +117,7 @@ public class OauthController {
     private void handleLogin(HttpServletResponse res, LoginResult r) throws IOException {
         ResponseCookie rt = ResponseCookie.from("refreshToken", r.refreshToken())
                 .httpOnly(true).secure(true).sameSite("None").path("/").build();
-        res.addHeader("Set-Cookie", rt.toString());
+        res.addHeader(HttpHeaders.SET_COOKIE, rt.toString());
         res.sendRedirect(domain.getBase());
     }
 
@@ -131,7 +132,7 @@ public class OauthController {
                 .path("/")
                 .maxAge(900)           // 15분
                 .build();
-        res.addHeader("Set-Cookie", recover.toString());
+        res.addHeader(HttpHeaders.SET_COOKIE, recover.toString());
 
         // 2) 쿼리 파라미터는 error/email/deletedAt만
         String url = UriComponentsBuilder.fromHttpUrl(domain.homeUrl())

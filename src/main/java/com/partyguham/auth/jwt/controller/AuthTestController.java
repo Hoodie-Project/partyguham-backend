@@ -107,19 +107,9 @@ public class AuthTestController {
 
         String refreshToken = (rtCookie != null) ? rtCookie : rtHeader;
 
-        // 4) 서버 저장소(REDIS/DB)에 존재&유효 여부 체크
-//        if (!refreshTokenService.isValid(refreshToken)) {
-//            return ResponseEntity.status(401).body(Map.of("error", "invalid_refresh_token"));
-//        }
+        String newAccessToken = jwtService.reissueAccess(refreshToken);
 
-        // 5) RT에서 userId 꺼내고 AccessToken 재발급
-        Long userId = jwtService.parse(refreshToken).getPayload().getSubject() != null
-                ? Long.valueOf(jwtService.parse(refreshToken).getPayload().getSubject())
-                : null;
-
-        String newAccess = jwtService.issueAccess(userId, "USER");
-
-        return ResponseEntity.ok(Map.of("accessToken", newAccess));
+        return ResponseEntity.ok(Map.of("accessToken", newAccessToken));
     }
 
     @PreAuthorize("isAuthenticated()")

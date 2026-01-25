@@ -11,6 +11,7 @@ import com.partyguham.user.account.service.UserService;
 import com.partyguham.user.account.service.UserSignupService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -62,12 +63,12 @@ public class UserAccountController {
         // 2) signupToken 쿠키 제거 (있다면)
         ResponseCookie delSignup = ResponseCookie.from("signupToken", "")
                 .httpOnly(true).secure(true).sameSite("None").path("/").maxAge(0).build();
-        res.addHeader("Set-Cookie", delSignup.toString());
+        res.addHeader(HttpHeaders.SET_COOKIE, delSignup.toString());
 
         // 3) refreshToken 쿠키로 내려주기 (웹 기준)
         ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", result.refreshToken())
                 .httpOnly(true).secure(true).sameSite("None").path("/").build();
-        res.addHeader("Set-Cookie", refreshCookie.toString());
+        res.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
 
         // 4) accessToken 은 body 로 내려줌
         return ResponseEntity.status(201)
