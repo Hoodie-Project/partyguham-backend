@@ -74,7 +74,7 @@ public class AuthController {
     @PostMapping("/web/logout")
     public ResponseEntity<Void> logoutWeb(
             HttpServletResponse res,
-            @CookieValue(value="REFRESH_TOKEN", required=false) String rt,
+            @CookieValue(value="refreshToken", required=false) String rt,
             @RequestHeader(value="Authorization", required=false) String auth) {
 
         // Refresh Token 무효화 (쿠키)
@@ -88,7 +88,7 @@ public class AuthController {
         }
 
         // Refresh Token 쿠키 삭제
-        ResponseCookie del = ResponseCookie.from("REFRESH_TOKEN", "")
+        ResponseCookie del = ResponseCookie.from("refreshToken", "")
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("None")
