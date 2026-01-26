@@ -118,7 +118,7 @@ public class OauthController {
         ResponseCookie rt = ResponseCookie.from("refreshToken", r.refreshToken())
                 .httpOnly(true).secure(true).sameSite("None").path("/").build();
         res.addHeader(HttpHeaders.SET_COOKIE, rt.toString());
-        res.sendRedirect(domain.getBase());
+        res.sendRedirect(domain.homeUrl());
     }
 
     /** 복구 플로우: 쿼리 파라미터를 포함해 /home 으로 리다이렉트 */
