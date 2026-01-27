@@ -52,7 +52,7 @@ public enum NotificationTemplate {
     ),
     PARTY_NEW_MEMBER_JOINED(
             "새로운 파티원이 합류했어요",
-            "%s님이 새롭게 파티에 합류했어요. 함께 파티를 시작해 보세요!"
+            "%s님이 새롭게 '%s' 파티에 합류했어요."
     ),
     PARTY_RECRUITMENT_CLOSED(
             "지원한 모집 공고가 마감되었어요",

@@ -50,11 +50,13 @@ public class FcmNotificationService {
 
     /** 파티 지원자 수락, 최종 합류 */
     public void PartyNewMember(
+            String joinUserNickname,
+            String partyTitle,
             String fcmToken
     ) {
         NotificationTemplate t = NotificationTemplate.PARTY_NEW_MEMBER_JOINED;
         String title = t.title();
-        String body = t.body();
+        String body = t.body(joinUserNickname, partyTitle);
 
         Map<String, String> data = Map.of(
                 "type", "PARTY"

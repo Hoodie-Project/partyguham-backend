@@ -61,8 +61,9 @@ public class NotificationEventListener {
         notificationService.PartyNewMemberNotification(
                 event.getPartyUserId(),
                 event.getPartyId(),
+                event.getJoinUserName(),
+                event.getPartyTitle(),
                 event.getPartyImage()
-
         );
     }
 

@@ -50,8 +50,10 @@ public class FcmNotificationEventListener {
      */
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void sendPartyNewMember(PartyApplicationDeclinedEvent event) {
+    public void sendPartyNewMember(PartyNewMemberJoinedEvent event) {
         fcmNotificationService.PartyNewMember(
+                event.getJoinUserName(),
+                event.getPartyTitle(),
                 event.getFcmToken()
         );
     }

@@ -136,11 +136,13 @@ public class NotificationService {
     public void PartyNewMemberNotification(
             Long partyUserId,
             Long partyId,
+            String joinUserName,
+            String PartyTitle,
             String partyImage
     ) {
         NotificationTemplate t = NotificationTemplate.PARTY_NEW_MEMBER_JOINED;
         String title = t.title();
-        String body = t.body();
+        String body = t.body(joinUserName, PartyTitle);
         String link = "/party/" + partyId + "#home";
 
         User userRef = entityManager.getReference(User.class, partyUserId);
