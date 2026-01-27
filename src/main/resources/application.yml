@@ -19,8 +19,8 @@ spring:
 
   datasource:
     hikari:
-      maximum-pool-size: 10
-      connection-timeout: 2000 # 커넥션을 얻기 위해 대기하는 최대 시간 (30초)
+      maximum-pool-size: 30
+      connection-timeout: 5000
 
   servlet:
     multipart:
@@ -36,7 +36,7 @@ server:
   port: ${PORT}
   tomcat:
     threads:
-      max: 200
+      max: 100
   servlet:
     context-path: /
     encoding:
