@@ -25,4 +25,10 @@ public class PartyReader {
                 .orElseThrow(() -> new BusinessException(PartyErrorCode.PARTY_TYPE_NOT_FOUND));
     }
 
+    public Party readWithMembers(Long id) {
+        return partyRepository.findByIdWithMembers(id)
+                .orElseThrow(() -> new BusinessException(PartyErrorCode.PARTY_NOT_FOUND));
+    }
+
+
 }

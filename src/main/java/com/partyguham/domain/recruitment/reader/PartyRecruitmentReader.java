@@ -20,6 +20,11 @@ public class PartyRecruitmentReader {
                 .orElseThrow(() -> new BusinessException(PR_NOT_FOUND));
     }
 
+    public PartyRecruitment readWithLock(Long id) {
+        return partyRecruitmentRepository.findByIdWithLock(id)
+                .orElseThrow(() -> new BusinessException(PR_NOT_FOUND));
+    }
+
     public PartyRecruitment getByPartyId(Long id, Long partyId) {
         return partyRecruitmentRepository.findByIdAndPartyId(id, partyId)
                 .orElseThrow(() -> new BusinessException(PR_NOT_FOUND));

@@ -21,6 +21,12 @@ public class PartyApplicationReader {
                 .orElseThrow(() -> new BusinessException(PARTY_APPLICATION_NOT_FOUND));
     }
 
+    /** 지원자 데이터 같이 조회 */
+    public PartyApplication getWithUser(Long id) {
+        return partyApplicationRepository.findByIdFetchUser(id)
+                .orElseThrow(() -> new BusinessException(PARTY_APPLICATION_NOT_FOUND));
+    }
+
     /** 파티 ID와 대조하며 지원서 상세 조회 */
     public PartyApplication readWithParty(Long partyId, Long id) {
         PartyApplication app = partyApplicationRepository.findById(id)

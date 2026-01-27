@@ -10,6 +10,7 @@ import com.partyguham.domain.application.reader.PartyApplicationReader;
 import com.partyguham.domain.application.repostiory.PartyApplicationQueryRepository;
 import com.partyguham.domain.application.repostiory.PartyApplicationRepository;
 import com.partyguham.domain.notification.event.*;
+import com.partyguham.domain.party.reader.PartyReader;
 import com.partyguham.global.exception.BusinessException;
 import com.partyguham.domain.party.entity.Party;
 import com.partyguham.domain.party.entity.PartyAuthority;
@@ -27,6 +28,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StopWatch;
 
 import java.util.List;
 
@@ -40,11 +42,11 @@ public class PartyApplicationService {
 
     private final PartyApplicationReader partyApplicationReader;
     private final UserReader userReader;
+    private final PartyReader partyReader;
     private final PartyUserReader partyUserReader;
     private final PartyRecruitmentReader partyRecruitmentReader;
 
     private final PartyUserRepository partyUserRepository;
-    private final PartyRecruitmentRepository partyRecruitmentRepository;
     private final PartyApplicationRepository partyApplicationRepository;
     private final PartyApplicationQueryRepository partyApplicationQueryRepository;
     private final ApplicationEventPublisher eventPublisher;
@@ -197,83 +199,73 @@ public class PartyApplicationService {
 
     /**
      * 지원자 최종 수락: PROCESSING -> APPROVED
-     * + 여기서 파티 합류 처리
+     * 파티 합류, 파티원 합류 알람, 모집 마감시 알람
      */
     @Transactional
     public void approveByApplicant(Long partyId, Long applicationId, Long applicantUserId) {
-        // 1) 지원 조회 + 파티 일치 여부 검증
-        PartyApplication app = partyApplicationReader.readWithParty(partyId, applicationId);
-
-        // 2) 이 지원이 "내 것"인지 확인
+        // 1. 신청서 기본 조회 및 검증
+        PartyApplication app = partyApplicationReader.getWithUser(applicationId);
         app.validateOwner(applicantUserId);
-
-        // 3) 상태 검증: 파티장이 승인한 상태여야 함
         app.acceptByApplicant();
 
-        // 4) 모집 정보 가져오기
-        PartyRecruitment recruitment = app.getPartyRecruitment();
-        Party party = recruitment.getParty();
-
+        // 2. 인원수 수정을 위해 Recruitment 비관적 락 적용 잠금 범위를 최소화
+        Long recruitmentId = app.getPartyRecruitment().getId();
+        PartyRecruitment recruitment = partyRecruitmentReader.readWithLock(recruitmentId);
         recruitment.validateNotCompleted();
-
-        // 5) 파티 합류 처리
         recruitment.increaseParticipant();
 
-        if (!partyUserReader.isMember(partyId, applicantUserId)) {
-            User user = app.getUser(); // 이미 로딩된 유저
+        // 3. 알림 및 저장을 위해 Party + PartyUser + User 를 페치 조인으로 통합 조회
+        Party party = partyReader.readWithMembers(partyId);
 
-            PartyUser partyUser = PartyUser.builder()
+        // 4. 파티 합류 처리
+        if (!partyUserReader.isMember(partyId, applicantUserId)) {
+            partyUserRepository.save(PartyUser.builder()
                     .party(party)
-                    .user(user)
+                    .user(app.getUser())
                     .position(recruitment.getPosition())
                     .authority(PartyAuthority.MEMBER)
-                    .build();
-
-            partyUserRepository.save(partyUser);
+                    .build());
         }
 
-        // 9) 파티원 전체(본인 제외)에게 "새 멤버 합류" 이벤트 발행
-        List<PartyUser> members = party.getPartyUsers();
-        for (PartyUser member : members) {
-            Long targetUserId = member.getUser().getId();
-            if (targetUserId.equals(applicantUserId)) continue; // 본인은 제외
+        // 5. 파티원들에게 합류 전체 알림 (N+1 문제 제거)
+        for (PartyUser member : party.getPartyUsers()) {
+            if (member.getUser().getId().equals(applicantUserId)) continue;
 
-            PartyNewMemberJoinedEvent joinedEvent = PartyNewMemberJoinedEvent.builder()
-                    .partyUserId(targetUserId)
-                    .partyId(party.getId())
+            eventPublisher.publishEvent(PartyNewMemberJoinedEvent.builder()
+                    .partyUserId(member.getUser().getId())
+                    .partyId(partyId)
+                    .joinUserName(app.getUser().getNickname())
+                    .PartyTitle(party.getTitle())
                     .partyImage(party.getImage())
                     .fcmToken(member.getUser().getFcmToken())
-                    .build();
-
-            eventPublisher.publishEvent(joinedEvent);
+                    .build());
         }
 
-        // 10) 모집이 이번 승인으로 막 닫혔다면,
-        //     나머지 대기/처리중 지원자들에게 "모집 마감" 이벤트 발행
+        // 6. 모집 마감 처리 및 대기자 알림 이벤트 처리
         if (recruitment.getCompleted()) {
-            List<PartyApplication> remainingApplicants = partyApplicationRepository
-                    .findByPartyRecruitmentAndApplicationStatusIn(
-                            recruitment,
-                            List.of(
-                                    PartyApplicationStatus.PENDING,
-                                    PartyApplicationStatus.PROCESSING
-                            )
-                    );
+            handleRecruitmentClosed(recruitment, party);
+        }
+    }
 
-            for (PartyApplication remainingApplicant : remainingApplicants) {
-                User remainingUser = remainingApplicant.getUser();
+    /** 모집 마감 시 대기자 처리 로직 분리 */
+    private void handleRecruitmentClosed(PartyRecruitment recruitment, Party party) {
+        // 알림 대상자(User)를 페치 조인으로 한 번에 조회
+        List<PartyApplication> pendingApplications = partyApplicationRepository
+                .findWithUserByRecruitmentAndStatusIn(recruitment,
+                        List.of(PartyApplicationStatus.PENDING, PartyApplicationStatus.PROCESSING));
 
-                PartyRecruitmentClosedEvent closedEvent = PartyRecruitmentClosedEvent.builder()
-                        .applicationUserId(remainingUser.getId())
+        if (!pendingApplications.isEmpty()) {
+            // 벌크 업데이트로 상태 일괄 변경
+            partyApplicationRepository.bulkUpdateStatusToClosed(recruitment.getId());
+
+            // 이벤트 발행
+            for (PartyApplication application : pendingApplications) {
+                eventPublisher.publishEvent(PartyRecruitmentClosedEvent.builder()
+                        .applicationUserId(application.getUser().getId())
                         .partyTitle(party.getTitle())
                         .partyImage(party.getImage())
-                        .fcmToken(remainingUser.getFcmToken())
-                        .build();
-
-                eventPublisher.publishEvent(closedEvent);
-
-                // 모집 상태 변경 있음
-                 remainingApplicant.closeByRecruitment();
+                        .fcmToken(application.getUser().getFcmToken())
+                        .build());
             }
         }
     }
