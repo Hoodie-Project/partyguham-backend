@@ -22,7 +22,7 @@ public class QPartyRecruitment extends EntityPathBase<PartyRecruitment> {
 
     public static final QPartyRecruitment partyRecruitment = new QPartyRecruitment("partyRecruitment");
 
-    public final com.partyguham.common.entity.QBaseEntity _super = new com.partyguham.common.entity.QBaseEntity(this);
+    public final com.partyguham.global.entity.QBaseEntity _super = new com.partyguham.global.entity.QBaseEntity(this);
 
     public final BooleanPath completed = createBoolean("completed");
 
@@ -44,7 +44,7 @@ public class QPartyRecruitment extends EntityPathBase<PartyRecruitment> {
     public final com.partyguham.catalog.entity.QPosition position;
 
     //inherited
-    public final EnumPath<com.partyguham.common.entity.Status> status = _super.status;
+    public final EnumPath<com.partyguham.global.entity.Status> status = _super.status;
 
     //inherited
     public final DateTimePath<java.time.LocalDateTime> updatedAt = _super.updatedAt;

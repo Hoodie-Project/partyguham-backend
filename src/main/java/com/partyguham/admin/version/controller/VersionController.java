@@ -2,7 +2,7 @@ package com.partyguham.admin.version.controller;
 
 import com.partyguham.admin.version.VersionEntity;
 import com.partyguham.admin.version.VersionService;
-import com.partyguham.common.annotation.ApiV2Controller;
+import com.partyguham.global.annotation.ApiV2Controller;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

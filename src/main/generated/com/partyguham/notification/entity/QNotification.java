@@ -22,7 +22,7 @@ public class QNotification extends EntityPathBase<Notification> {
 
     public static final QNotification notification = new QNotification("notification");
 
-    public final com.partyguham.common.entity.QBaseEntity _super = new com.partyguham.common.entity.QBaseEntity(this);
+    public final com.partyguham.global.entity.QBaseEntity _super = new com.partyguham.global.entity.QBaseEntity(this);
 
     //inherited
     public final DateTimePath<java.time.LocalDateTime> createdAt = _super.createdAt;
@@ -40,7 +40,7 @@ public class QNotification extends EntityPathBase<Notification> {
     public final StringPath message = createString("message");
 
     //inherited
-    public final EnumPath<com.partyguham.common.entity.Status> status = _super.status;
+    public final EnumPath<com.partyguham.global.entity.Status> status = _super.status;
 
     public final StringPath title = createString("title");
 

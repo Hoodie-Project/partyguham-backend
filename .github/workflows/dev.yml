@@ -27,7 +27,7 @@ jobs:
 
       # 3) Spring Boot jar 빌드
       - name: Build jar
-        run: ./gradlew clean bootJar --no-daemon
+        run: ./gradlew clean bootJar --no-daemon --refresh-dependencies
 
       # 4) GHCR 로그인
       - name: Log in to GHCR
@@ -54,6 +54,8 @@ jobs:
             export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
             cd /opt/partyguham/dev
 
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
             # (맥/colima) 데몬 컨텍스트 고정
             docker context use colima || true
 
@@ -61,7 +63,7 @@ jobs:
             docker-compose pull
 
             # 변경분 반영하여 컨테이너 재시작
-            docker-compose up -d
+            docker-compose up -d --force-recreate
 
             # 상태 확인 (선택)
             docker-compose ps

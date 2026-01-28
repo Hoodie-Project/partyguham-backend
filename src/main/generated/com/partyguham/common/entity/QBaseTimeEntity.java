@@ -1,4 +1,4 @@
-package com.partyguham.common.entity;
+package com.partyguham.global.entity;
 
 import static com.querydsl.core.types.PathMetadataFactory.*;
 

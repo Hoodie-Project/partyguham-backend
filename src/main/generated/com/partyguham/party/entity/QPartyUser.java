@@ -22,7 +22,7 @@ public class QPartyUser extends EntityPathBase<PartyUser> {
 
     public static final QPartyUser partyUser = new QPartyUser("partyUser");
 
-    public final com.partyguham.common.entity.QBaseEntity _super = new com.partyguham.common.entity.QBaseEntity(this);
+    public final com.partyguham.global.entity.QBaseEntity _super = new com.partyguham.global.entity.QBaseEntity(this);
 
     public final EnumPath<PartyAuthority> authority = createEnum("authority", PartyAuthority.class);
 
@@ -36,7 +36,7 @@ public class QPartyUser extends EntityPathBase<PartyUser> {
     public final com.partyguham.catalog.entity.QPosition position;
 
     //inherited
-    public final EnumPath<com.partyguham.common.entity.Status> status = _super.status;
+    public final EnumPath<com.partyguham.global.entity.Status> status = _super.status;
 
     //inherited
     public final DateTimePath<java.time.LocalDateTime> updatedAt = _super.updatedAt;

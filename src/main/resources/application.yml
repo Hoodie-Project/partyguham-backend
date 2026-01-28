@@ -17,6 +17,11 @@ spring:
         temp:
           use_jdbc_metadata_defaults: false
 
+  datasource:
+    hikari:
+      maximum-pool-size: 30
+      connection-timeout: 5000
+
   servlet:
     multipart:
       max-file-size: 50MB
@@ -29,6 +34,9 @@ spring:
 
 server:
   port: ${PORT}
+  tomcat:
+    threads:
+      max: 100
   servlet:
     context-path: /
     encoding:

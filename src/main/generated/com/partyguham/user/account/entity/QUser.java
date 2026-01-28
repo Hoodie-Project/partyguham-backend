@@ -22,7 +22,7 @@ public class QUser extends EntityPathBase<User> {
 
     public static final QUser user = new QUser("user");
 
-    public final com.partyguham.common.entity.QBaseEntity _super = new com.partyguham.common.entity.QBaseEntity(this);
+    public final com.partyguham.global.entity.QBaseEntity _super = new com.partyguham.global.entity.QBaseEntity(this);
 
     //inherited
     public final DateTimePath<java.time.LocalDateTime> createdAt = _super.createdAt;
@@ -42,7 +42,7 @@ public class QUser extends EntityPathBase<User> {
     public final com.partyguham.user.profile.entity.QUserProfile profile;
 
     //inherited
-    public final EnumPath<com.partyguham.common.entity.Status> status = _super.status;
+    public final EnumPath<com.partyguham.global.entity.Status> status = _super.status;
 
     //inherited
     public final DateTimePath<java.time.LocalDateTime> updatedAt = _super.updatedAt;
