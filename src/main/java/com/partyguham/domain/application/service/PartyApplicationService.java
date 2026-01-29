@@ -30,6 +30,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StopWatch;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static com.partyguham.domain.application.exception.ApplicationErrorCode.*;
@@ -256,7 +257,7 @@ public class PartyApplicationService {
 
         if (!pendingApplications.isEmpty()) {
             // 벌크 업데이트로 상태 일괄 변경
-            partyApplicationRepository.bulkUpdateStatusToClosed(recruitment.getId());
+            partyApplicationRepository.bulkUpdateStatusToClosed(recruitment.getId(), LocalDateTime.now());
 
             // 이벤트 발행
             for (PartyApplication application : pendingApplications) {

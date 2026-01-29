@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -67,10 +68,11 @@ public interface PartyApplicationRepository extends JpaRepository<PartyApplicati
     /**
      * 벌크 업데이트를 통한 상태 일괄 변경 (성능 최적화)
      */
-    @Modifying(clearAutomatically = true)
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("update PartyApplication pa " +
-            "set pa.applicationStatus = 'CLOSED' " + // 또는 enum 값
+            "set pa.applicationStatus = 'CLOSED', " +
+            "pa.updatedAt = now() " +
             "where pa.partyRecruitment.id = :recruitmentId " +
             "and pa.applicationStatus in ('PENDING', 'PROCESSING')")
-    void bulkUpdateStatusToClosed(@Param("recruitmentId") Long recruitmentId);
+    void bulkUpdateStatusToClosed(@Param("recruitmentId") Long recruitmentId, @Param("now") LocalDateTime now);
 }
