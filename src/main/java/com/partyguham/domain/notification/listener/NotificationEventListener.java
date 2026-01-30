@@ -2,6 +2,9 @@ package com.partyguham.domain.notification.listener;
 
 import com.partyguham.domain.notification.event.*;
 import com.partyguham.domain.notification.service.NotificationService;
+import com.partyguham.domain.party.entity.Party;
+import com.partyguham.domain.party.entity.PartyUser;
+import com.partyguham.domain.party.reader.PartyReader;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -19,6 +22,7 @@ import org.springframework.transaction.event.TransactionPhase;
 @RequiredArgsConstructor
 public class NotificationEventListener {
 
+    private final PartyReader partyReader;
     private final NotificationService notificationService;
 
 
@@ -58,13 +62,19 @@ public class NotificationEventListener {
     public void onPartyApplicationDeclined(PartyNewMemberJoinedEvent event) {
         log.info("PartyNewMemberJoinedEvent partyId={}", event.getPartyId());
 
-        notificationService.PartyNewMemberNotification(
-                event.getPartyUserId(),
-                event.getPartyId(),
-                event.getJoinUserName(),
-                event.getPartyTitle(),
-                event.getPartyImage()
-        );
+        Party party = partyReader.readWithMembers(event.getPartyId());
+
+        for (PartyUser member : party.getPartyUsers()) {
+            if (member.getUser().getId().equals(event.getJoinUserId())) continue;
+
+            notificationService.PartyNewMemberNotification(
+                    member.getUser().getId(),
+                    event.getPartyId(),
+                    event.getJoinUserName(),
+                    party.getTitle(),
+                    party.getImage()
+            );
+        }
     }
 
     /** 파티장 지원 수락 */

@@ -2,6 +2,9 @@ package com.partyguham.domain.notification.listener;
 
 import com.partyguham.domain.notification.event.*;
 import com.partyguham.domain.notification.service.FcmNotificationService;
+import com.partyguham.domain.party.entity.Party;
+import com.partyguham.domain.party.entity.PartyUser;
+import com.partyguham.domain.party.reader.PartyReader;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -17,6 +20,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @Slf4j
 public class FcmNotificationEventListener {
 
+    private final PartyReader partyReader;
     private final FcmNotificationService fcmNotificationService;
 
     /**
@@ -51,11 +55,18 @@ public class FcmNotificationEventListener {
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void sendPartyNewMember(PartyNewMemberJoinedEvent event) {
-        fcmNotificationService.PartyNewMember(
-                event.getJoinUserName(),
-                event.getPartyTitle(),
-                event.getFcmToken()
-        );
+
+        Party party = partyReader.readWithMembers(event.getPartyId());
+
+        for (PartyUser member : party.getPartyUsers()) {
+            if (member.getUser().getId().equals(event.getJoinUserId())) continue;
+
+            fcmNotificationService.PartyNewMember(
+                    event.getJoinUserName(),
+                    party.getTitle(),
+                    member.getUser().getFcmToken()
+            );
+        }
     }
 
     /**

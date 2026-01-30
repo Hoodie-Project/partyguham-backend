@@ -11,6 +11,7 @@ import com.partyguham.domain.application.repostiory.PartyApplicationQueryReposit
 import com.partyguham.domain.application.repostiory.PartyApplicationRepository;
 import com.partyguham.domain.notification.event.*;
 import com.partyguham.domain.party.reader.PartyReader;
+import com.partyguham.domain.party.repository.PartyRepository;
 import com.partyguham.global.exception.BusinessException;
 import com.partyguham.domain.party.entity.Party;
 import com.partyguham.domain.party.entity.PartyAuthority;
@@ -48,6 +49,7 @@ public class PartyApplicationService {
     private final PartyRecruitmentReader partyRecruitmentReader;
 
     private final PartyUserRepository partyUserRepository;
+    private final PartyRepository partyRepository;
     private final PartyApplicationRepository partyApplicationRepository;
     private final PartyApplicationQueryRepository partyApplicationQueryRepository;
     private final ApplicationEventPublisher eventPublisher;
@@ -215,37 +217,28 @@ public class PartyApplicationService {
         recruitment.validateNotCompleted();
         recruitment.increaseParticipant();
 
-        // 3. 알림 및 저장을 위해 Party + PartyUser + User 를 페치 조인으로 통합 조회
-        Party party = partyReader.readWithMembers(partyId);
+        Party partyProxy = partyRepository.getReferenceById(partyId);
 
         // 4. 파티 합류 처리
         if (!partyUserReader.isMember(partyId, applicantUserId)) {
             partyUserRepository.save(PartyUser.builder()
-                    .party(party)
+                    .party(partyProxy)
                     .user(app.getUser())
                     .position(recruitment.getPosition())
                     .authority(PartyAuthority.MEMBER)
                     .build());
         }
 
-        // 5. 파티원들에게 합류 전체 알림 (N+1 문제 제거)
-        for (PartyUser member : party.getPartyUsers()) {
-            if (member.getUser().getId().equals(applicantUserId)) continue;
-
-            eventPublisher.publishEvent(PartyNewMemberJoinedEvent.builder()
-                    .partyUserId(member.getUser().getId())
-                    .partyId(partyId)
-                    .joinUserName(app.getUser().getNickname())
-                    .PartyTitle(party.getTitle())
-                    .partyImage(party.getImage())
-                    .fcmToken(member.getUser().getFcmToken())
-                    .build());
-        }
+        // 5. 파티원들에게 합류 전체 알림 이벤트 비동기 (N+1 문제 제거)
+        eventPublisher.publishEvent(PartyNewMemberJoinedEvent.builder()
+                .partyId(partyId)
+                .joinUserName(app.getUser().getNickname())
+                .build());
 
         // 6. 모집 마감 처리 및 대기자 알림 이벤트 처리
-        if (recruitment.getCompleted()) {
-            handleRecruitmentClosed(recruitment, party);
-        }
+//        if (recruitment.getCompleted()) {
+//            handleRecruitmentClosed(recruitment, party);
+//        }
     }
 
     /** 모집 마감 시 대기자 처리 로직 분리 */
