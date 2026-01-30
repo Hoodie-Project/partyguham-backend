@@ -36,7 +36,7 @@ public interface PartyApplicationRepository extends JpaRepository<PartyApplicati
 
     // 한 유저가 같은 모집에 두 번 지원 못하게
     boolean existsByUser_IdAndPartyRecruitment_Id(Long partyUserId,
-                                                       Long partyRecruitmentId);
+                                                  Long partyRecruitmentId);
 
     // 특정 파티 + 모집공고 + 유저 기준으로 내 지원 1건 찾기
     Optional<PartyApplication> findByPartyRecruitment_IdAndPartyRecruitment_Party_IdAndUser_Id(
@@ -52,16 +52,17 @@ public interface PartyApplicationRepository extends JpaRepository<PartyApplicati
 
     /**
      * 알림 대상자 정보를 User와 함께 한 번에 조회 (N+1 방지)
-     * @param recruitment
+     *
+     * @param recruitmentId
      * @param statuses
      * @return
      */
     @Query("select pa from PartyApplication pa " +
             "join fetch pa.user " +
-            "where pa.partyRecruitment = :recruitment " +
+            "where pa.partyRecruitment.id = :recruitmentId " +
             "and pa.applicationStatus in :statuses")
-    List<PartyApplication> findWithUserByRecruitmentAndStatusIn(
-            @Param("recruitment") PartyRecruitment recruitment,
+    List<PartyApplication> findWithUserByRecruitmentIdAndStatusIn(
+            @Param("recruitmentId") Long recruitmentId, // Long 타입으로 변경
             @Param("statuses") Collection<PartyApplicationStatus> statuses
     );
 

@@ -1,16 +1,22 @@
 package com.partyguham.domain.notification.listener;
 
+import com.partyguham.domain.application.entity.PartyApplication;
+import com.partyguham.domain.application.repostiory.PartyApplicationRepository;
 import com.partyguham.domain.notification.event.*;
 import com.partyguham.domain.notification.service.NotificationService;
 import com.partyguham.domain.party.entity.Party;
 import com.partyguham.domain.party.entity.PartyUser;
 import com.partyguham.domain.party.reader.PartyReader;
+import com.partyguham.domain.user.account.entity.User;
+import com.partyguham.domain.user.account.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.springframework.transaction.event.TransactionPhase;
+
+import java.util.List;
 
 /**
  * Notification 관련 이벤트를 구독해서
@@ -23,10 +29,13 @@ import org.springframework.transaction.event.TransactionPhase;
 public class NotificationEventListener {
 
     private final PartyReader partyReader;
+    private final UserRepository userRepository;
     private final NotificationService notificationService;
 
 
-    /** 지원 알림 */
+    /**
+     * 지원 알림
+     */
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onPartyApplied(PartyApplicationCreatedEvent event) {
@@ -41,7 +50,9 @@ public class NotificationEventListener {
         );
     }
 
-    /** 지원 합류 거절 */
+    /**
+     * 지원 합류 거절
+     */
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onPartyApplicationDeclined(PartyApplicationDeclinedEvent event) {
@@ -56,7 +67,9 @@ public class NotificationEventListener {
         );
     }
 
-    /** 지원자 수락, 최종 합류 */
+    /**
+     * 지원자 수락, 최종 합류
+     */
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onPartyApplicationDeclined(PartyNewMemberJoinedEvent event) {
@@ -77,7 +90,9 @@ public class NotificationEventListener {
         }
     }
 
-    /** 파티장 지원 수락 */
+    /**
+     * 파티장 지원 수락
+     */
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onPartyApplicationAccepted(PartyApplicationAcceptedEvent event) {
@@ -90,7 +105,9 @@ public class NotificationEventListener {
         );
     }
 
-    /** 파티장 지원 거절 */
+    /**
+     * 파티장 지원 거절
+     */
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onPartyApplicationRejected(PartyApplicationRejectedEvent event) {
@@ -103,20 +120,28 @@ public class NotificationEventListener {
         );
     }
 
-    /** 모집 마감에 이은 지원 종료 */
+    /**
+     * 모집 마감에 이은 지원 종료
+     */
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void partyRecruitmentClosed(PartyRecruitmentClosedEvent event) {
         log.info("PartyRecruitmentClosedEvent");
 
-        notificationService.PartyRecruitmentClosed(
-                event.getApplicationUserId(),
-                event.getPartyTitle(),
-                event.getPartyImage()
-        );
+        Party party = partyReader.readWithMembers(event.getPartyId());
+
+        for (Long userId : event.getPendingUserIds()) {
+            notificationService.PartyRecruitmentClosed(
+                    userId,
+                    party.getTitle(),
+                    party.getImage()
+            );
+        }
     }
 
-    /** 파티 종료 */
+    /**
+     * 파티 종료
+     */
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void partyFinished(PartyFinishedEvent event) {
@@ -130,7 +155,9 @@ public class NotificationEventListener {
         );
     }
 
-    /** 파티 재 진행중 */
+    /**
+     * 파티 재 진행중
+     */
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void partyReopened(PartyReopenedEvent event) {
@@ -144,7 +171,9 @@ public class NotificationEventListener {
         );
     }
 
-    /** 파티 업데이트 */
+    /**
+     * 파티 업데이트
+     */
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void partyInfoUpdated(PartyInfoUpdatedEvent event) {
@@ -158,7 +187,9 @@ public class NotificationEventListener {
         );
     }
 
-    /** 파티유저 나감 */
+    /**
+     * 파티유저 나감
+     */
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void partyMemberLeft(PartyMemberLeftEvent event) {
@@ -173,7 +204,9 @@ public class NotificationEventListener {
         );
     }
 
-    /** 파티유저 포지션 변경*/
+    /**
+     * 파티유저 포지션 변경
+     */
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void partyMemberPositionChangedEvent(PartyMemberPositionChangedEvent event) {
@@ -189,7 +222,9 @@ public class NotificationEventListener {
         );
     }
 
-    /** 파티유저 강퇴 */
+    /**
+     * 파티유저 강퇴
+     */
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void partyMemberKickedEvent(PartyMemberKickedEvent event) {
@@ -204,7 +239,9 @@ public class NotificationEventListener {
         );
     }
 
-    /** 파티장 변경 */
+    /**
+     * 파티장 변경
+     */
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void partyLeaderChangedEvent(PartyLeaderChangedEvent event) {

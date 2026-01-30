@@ -1,14 +1,15 @@
 package com.partyguham.domain.notification.event;
 
+import com.partyguham.domain.application.entity.PartyApplication;
 import lombok.Builder;
 import lombok.Getter;
+
+import java.util.List;
 
 @Getter
 @Builder
 public class PartyRecruitmentClosedEvent {
-    private final Long applicationUserId; // 지원한 유저
-    private final String partyTitle;
-    private final String partyImage;
-
-    private final String fcmToken;
+    private final Long partyId;
+    private final Long recruitmentId;
+    private final List<Long> pendingUserIds;
 }

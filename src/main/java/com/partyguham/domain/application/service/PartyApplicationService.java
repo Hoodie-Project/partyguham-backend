@@ -126,9 +126,9 @@ public class PartyApplicationService {
 
     @Transactional(readOnly = true)
     public PartyApplicationsResponse getPartyApplications(Long partyId,
-                                                             Long partyRecruitmentId,
-                                                             Long userId,
-                                                             PartyApplicantSearchRequest request) {
+                                                          Long partyRecruitmentId,
+                                                          Long userId,
+                                                          PartyApplicantSearchRequest request) {
 
         // 1) 권한 체크 (파티장/부파티장)
         PartyUser partyUser = partyUserReader.readByPartyAndUser(partyId, userId);
@@ -235,30 +235,25 @@ public class PartyApplicationService {
                 .joinUserName(app.getUser().getNickname())
                 .build());
 
-        // 6. 모집 마감 처리 및 대기자 알림 이벤트 처리
-//        if (recruitment.getCompleted()) {
-//            handleRecruitmentClosed(recruitment, party);
-//        }
-    }
+        // 6. 모집 마감 처리
+        if (recruitment.getCompleted()) {
+            // 마감 지원 대상자 조회
+            List<PartyApplication> pendingApplications = partyApplicationRepository
+                    .findWithUserByRecruitmentIdAndStatusIn(recruitmentId,
+                            List.of(PartyApplicationStatus.PENDING, PartyApplicationStatus.PROCESSING));
 
-    /** 모집 마감 시 대기자 처리 로직 분리 */
-    private void handleRecruitmentClosed(PartyRecruitment recruitment, Party party) {
-        // 알림 대상자(User)를 페치 조인으로 한 번에 조회
-        List<PartyApplication> pendingApplications = partyApplicationRepository
-                .findWithUserByRecruitmentAndStatusIn(recruitment,
-                        List.of(PartyApplicationStatus.PENDING, PartyApplicationStatus.PROCESSING));
+            if (!pendingApplications.isEmpty()) {
+                // 벌크 업데이트로 상태 일괄 변경
+                partyApplicationRepository.bulkUpdateStatusToClosed(recruitment.getId(), LocalDateTime.now());
 
-        if (!pendingApplications.isEmpty()) {
-            // 벌크 업데이트로 상태 일괄 변경
-            partyApplicationRepository.bulkUpdateStatusToClosed(recruitment.getId(), LocalDateTime.now());
-
-            // 이벤트 발행
-            for (PartyApplication application : pendingApplications) {
+                // 모집 마감 알람 이벤트 발행
+                List<Long> pendingUserIds = pendingApplications.stream()
+                        .map(pendingApp -> pendingApp.getUser().getId())
+                        .toList();
                 eventPublisher.publishEvent(PartyRecruitmentClosedEvent.builder()
-                        .applicationUserId(application.getUser().getId())
-                        .partyTitle(party.getTitle())
-                        .partyImage(party.getImage())
-                        .fcmToken(application.getUser().getFcmToken())
+                        .partyId(partyId)
+                        .recruitmentId(recruitmentId)
+                        .pendingUserIds(pendingUserIds)
                         .build());
             }
         }
