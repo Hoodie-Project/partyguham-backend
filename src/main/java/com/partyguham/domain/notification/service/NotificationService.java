@@ -134,7 +134,7 @@ public class NotificationService {
      */
     @Transactional
     public void PartyNewMemberNotification(
-            Long partyUserId,
+            Long userId,
             Long partyId,
             String joinUserName,
             String PartyTitle,
@@ -145,7 +145,7 @@ public class NotificationService {
         String body = t.body(joinUserName, PartyTitle);
         String link = "/party/" + partyId + "#home";
 
-        User userRef = entityManager.getReference(User.class, partyUserId);
+        User userRef = entityManager.getReference(User.class, userId);
 
 
         Notification notification = Notification.builder()

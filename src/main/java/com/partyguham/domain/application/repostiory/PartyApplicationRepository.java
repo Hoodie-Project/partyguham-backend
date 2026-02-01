@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -35,7 +36,7 @@ public interface PartyApplicationRepository extends JpaRepository<PartyApplicati
 
     // 한 유저가 같은 모집에 두 번 지원 못하게
     boolean existsByUser_IdAndPartyRecruitment_Id(Long partyUserId,
-                                                       Long partyRecruitmentId);
+                                                  Long partyRecruitmentId);
 
     // 특정 파티 + 모집공고 + 유저 기준으로 내 지원 1건 찾기
     Optional<PartyApplication> findByPartyRecruitment_IdAndPartyRecruitment_Party_IdAndUser_Id(
@@ -51,26 +52,28 @@ public interface PartyApplicationRepository extends JpaRepository<PartyApplicati
 
     /**
      * 알림 대상자 정보를 User와 함께 한 번에 조회 (N+1 방지)
-     * @param recruitment
+     *
+     * @param recruitmentId
      * @param statuses
      * @return
      */
     @Query("select pa from PartyApplication pa " +
             "join fetch pa.user " +
-            "where pa.partyRecruitment = :recruitment " +
+            "where pa.partyRecruitment.id = :recruitmentId " +
             "and pa.applicationStatus in :statuses")
-    List<PartyApplication> findWithUserByRecruitmentAndStatusIn(
-            @Param("recruitment") PartyRecruitment recruitment,
+    List<PartyApplication> findWithUserByRecruitmentIdAndStatusIn(
+            @Param("recruitmentId") Long recruitmentId, // Long 타입으로 변경
             @Param("statuses") Collection<PartyApplicationStatus> statuses
     );
 
     /**
      * 벌크 업데이트를 통한 상태 일괄 변경 (성능 최적화)
      */
-    @Modifying(clearAutomatically = true)
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("update PartyApplication pa " +
-            "set pa.applicationStatus = 'CLOSED' " + // 또는 enum 값
+            "set pa.applicationStatus = 'CLOSED', " +
+            "pa.updatedAt = now() " +
             "where pa.partyRecruitment.id = :recruitmentId " +
             "and pa.applicationStatus in ('PENDING', 'PROCESSING')")
-    void bulkUpdateStatusToClosed(@Param("recruitmentId") Long recruitmentId);
+    void bulkUpdateStatusToClosed(@Param("recruitmentId") Long recruitmentId, @Param("now") LocalDateTime now);
 }

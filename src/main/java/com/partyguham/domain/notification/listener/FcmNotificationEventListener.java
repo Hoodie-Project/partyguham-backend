@@ -1,13 +1,21 @@
 package com.partyguham.domain.notification.listener;
 
+import com.partyguham.domain.application.entity.PartyApplication;
 import com.partyguham.domain.notification.event.*;
 import com.partyguham.domain.notification.service.FcmNotificationService;
+import com.partyguham.domain.party.entity.Party;
+import com.partyguham.domain.party.entity.PartyUser;
+import com.partyguham.domain.party.reader.PartyReader;
+import com.partyguham.domain.user.account.entity.User;
+import com.partyguham.domain.user.account.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
+
+import java.util.List;
 
 /**
  * FCM 푸시 전용 리스너
@@ -17,6 +25,8 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @Slf4j
 public class FcmNotificationEventListener {
 
+    private final PartyReader partyReader;
+    private final UserRepository userRepository;
     private final FcmNotificationService fcmNotificationService;
 
     /**
@@ -51,11 +61,18 @@ public class FcmNotificationEventListener {
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void sendPartyNewMember(PartyNewMemberJoinedEvent event) {
-        fcmNotificationService.PartyNewMember(
-                event.getJoinUserName(),
-                event.getPartyTitle(),
-                event.getFcmToken()
-        );
+
+        Party party = partyReader.readWithMembers(event.getPartyId());
+
+        for (PartyUser member : party.getPartyUsers()) {
+            if (member.getUser().getId().equals(event.getJoinUserId())) continue;
+
+            fcmNotificationService.PartyNewMember(
+                    event.getJoinUserName(),
+                    party.getTitle(),
+                    member.getUser().getFcmToken()
+            );
+        }
     }
 
     /**
@@ -86,10 +103,17 @@ public class FcmNotificationEventListener {
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void partyRecruitmentClosed(PartyRecruitmentClosedEvent event) {
-        fcmNotificationService.sendPartyRecruitmentClosed(
-                event.getPartyTitle(),
-                event.getFcmToken()
-        );
+
+        Party party = partyReader.readWithMembers(event.getPartyId());
+
+        List<User> users = userRepository.findAllById(event.getPendingUserIds());
+
+        for (User user : users) {
+            fcmNotificationService.sendPartyRecruitmentClosed(
+                    party.getTitle(),
+                    user.getFcmToken()
+            );
+        }
     }
 
     /** 파티 종료 */

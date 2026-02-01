@@ -11,6 +11,7 @@ import com.partyguham.domain.application.repostiory.PartyApplicationQueryReposit
 import com.partyguham.domain.application.repostiory.PartyApplicationRepository;
 import com.partyguham.domain.notification.event.*;
 import com.partyguham.domain.party.reader.PartyReader;
+import com.partyguham.domain.party.repository.PartyRepository;
 import com.partyguham.global.exception.BusinessException;
 import com.partyguham.domain.party.entity.Party;
 import com.partyguham.domain.party.entity.PartyAuthority;
@@ -30,6 +31,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StopWatch;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static com.partyguham.domain.application.exception.ApplicationErrorCode.*;
@@ -47,6 +49,7 @@ public class PartyApplicationService {
     private final PartyRecruitmentReader partyRecruitmentReader;
 
     private final PartyUserRepository partyUserRepository;
+    private final PartyRepository partyRepository;
     private final PartyApplicationRepository partyApplicationRepository;
     private final PartyApplicationQueryRepository partyApplicationQueryRepository;
     private final ApplicationEventPublisher eventPublisher;
@@ -123,9 +126,9 @@ public class PartyApplicationService {
 
     @Transactional(readOnly = true)
     public PartyApplicationsResponse getPartyApplications(Long partyId,
-                                                             Long partyRecruitmentId,
-                                                             Long userId,
-                                                             PartyApplicantSearchRequest request) {
+                                                          Long partyRecruitmentId,
+                                                          Long userId,
+                                                          PartyApplicantSearchRequest request) {
 
         // 1) 권한 체크 (파티장/부파티장)
         PartyUser partyUser = partyUserReader.readByPartyAndUser(partyId, userId);
@@ -214,57 +217,43 @@ public class PartyApplicationService {
         recruitment.validateNotCompleted();
         recruitment.increaseParticipant();
 
-        // 3. 알림 및 저장을 위해 Party + PartyUser + User 를 페치 조인으로 통합 조회
-        Party party = partyReader.readWithMembers(partyId);
+        Party partyProxy = partyRepository.getReferenceById(partyId);
 
         // 4. 파티 합류 처리
         if (!partyUserReader.isMember(partyId, applicantUserId)) {
             partyUserRepository.save(PartyUser.builder()
-                    .party(party)
+                    .party(partyProxy)
                     .user(app.getUser())
                     .position(recruitment.getPosition())
                     .authority(PartyAuthority.MEMBER)
                     .build());
         }
 
-        // 5. 파티원들에게 합류 전체 알림 (N+1 문제 제거)
-        for (PartyUser member : party.getPartyUsers()) {
-            if (member.getUser().getId().equals(applicantUserId)) continue;
+        // 5. 파티원들에게 합류 전체 알림 이벤트 비동기 (N+1 문제 제거)
+        eventPublisher.publishEvent(PartyNewMemberJoinedEvent.builder()
+                .partyId(partyId)
+                .joinUserName(app.getUser().getNickname())
+                .build());
 
-            eventPublisher.publishEvent(PartyNewMemberJoinedEvent.builder()
-                    .partyUserId(member.getUser().getId())
-                    .partyId(partyId)
-                    .joinUserName(app.getUser().getNickname())
-                    .PartyTitle(party.getTitle())
-                    .partyImage(party.getImage())
-                    .fcmToken(member.getUser().getFcmToken())
-                    .build());
-        }
-
-        // 6. 모집 마감 처리 및 대기자 알림 이벤트 처리
+        // 6. 모집 마감 처리
         if (recruitment.getCompleted()) {
-            handleRecruitmentClosed(recruitment, party);
-        }
-    }
+            // 마감 지원 대상자 조회
+            List<PartyApplication> pendingApplications = partyApplicationRepository
+                    .findWithUserByRecruitmentIdAndStatusIn(recruitmentId,
+                            List.of(PartyApplicationStatus.PENDING, PartyApplicationStatus.PROCESSING));
 
-    /** 모집 마감 시 대기자 처리 로직 분리 */
-    private void handleRecruitmentClosed(PartyRecruitment recruitment, Party party) {
-        // 알림 대상자(User)를 페치 조인으로 한 번에 조회
-        List<PartyApplication> pendingApplications = partyApplicationRepository
-                .findWithUserByRecruitmentAndStatusIn(recruitment,
-                        List.of(PartyApplicationStatus.PENDING, PartyApplicationStatus.PROCESSING));
+            if (!pendingApplications.isEmpty()) {
+                // 벌크 업데이트로 상태 일괄 변경
+                partyApplicationRepository.bulkUpdateStatusToClosed(recruitment.getId(), LocalDateTime.now());
 
-        if (!pendingApplications.isEmpty()) {
-            // 벌크 업데이트로 상태 일괄 변경
-            partyApplicationRepository.bulkUpdateStatusToClosed(recruitment.getId());
-
-            // 이벤트 발행
-            for (PartyApplication application : pendingApplications) {
+                // 모집 마감 알람 이벤트 발행
+                List<Long> pendingUserIds = pendingApplications.stream()
+                        .map(pendingApp -> pendingApp.getUser().getId())
+                        .toList();
                 eventPublisher.publishEvent(PartyRecruitmentClosedEvent.builder()
-                        .applicationUserId(application.getUser().getId())
-                        .partyTitle(party.getTitle())
-                        .partyImage(party.getImage())
-                        .fcmToken(application.getUser().getFcmToken())
+                        .partyId(partyId)
+                        .recruitmentId(recruitmentId)
+                        .pendingUserIds(pendingUserIds)
                         .build());
             }
         }
