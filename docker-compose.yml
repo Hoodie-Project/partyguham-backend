@@ -1,0 +1,95 @@
+version: "3.9"
+
+services:
+  # =========================
+  # PostgreSQL (로컬 DB)
+  # =========================
+  db:
+    image: postgres:15-alpine
+    container_name: pg-partyguham-local
+    environment:
+      POSTGRES_DB: partyguham_local        # DB 이름
+      POSTGRES_USER: ${DB_USERNAME}            # DB 유저
+      POSTGRES_PASSWORD: ${DB_PASSWORD}        # DB 비밀번호
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    networks:
+      - appnet-local
+
+  # =========================
+  # Redis (세션/캐시용)
+  # =========================
+  redis:
+    image: redis:7-alpine
+    container_name: redis-partyguham-local
+    command:
+      redis-server --appendonly yes --appendfsync everysec
+      --save 900 1 --save 300 10 --save 60 10000
+    volumes:
+      - ./data/redis:/data
+    ports:
+      - "6380:6379"
+    networks:
+      - appnet-local
+
+  # =========================
+  # Spring Boot 앱 (개발 서버)
+  # =========================
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: partyguham-local
+    depends_on:
+      - db
+      - redis
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./resources/firebase/guam-dev-firebase.json:/app/resources/firebase/guam-dev-firebase.json:ro
+    env_file:
+      - .env
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/partyguham_local
+      - SPRING_REDIS_HOST=redis
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+    networks:
+      - appnet-local
+
+  # =========================
+  # Prometheus (데이터 수집)
+  # =========================
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus-partyguham-local
+    restart: always
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9091:9090"
+    networks:
+      - appnet-local
+
+  # =========================
+  # Grafana (시각화 대시보드)
+  # =========================
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana-partyguham-local
+    restart: always
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=localparty!
+    volumes:
+      - ./data/grafana:/var/lib/grafana
+    ports:
+      - "3081:3000"
+    networks:
+      - appnet-local
+
+networks:
+  appnet-local:
+    driver: bridge
