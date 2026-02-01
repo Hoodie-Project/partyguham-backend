@@ -244,7 +244,12 @@ public class PartyApplicationService {
 
             if (!pendingApplications.isEmpty()) {
                 // 벌크 업데이트로 상태 일괄 변경
-                partyApplicationRepository.bulkUpdateStatusToClosed(recruitment.getId(), LocalDateTime.now());
+                partyApplicationRepository.bulkUpdateStatusToClosed(
+                        recruitment.getId(),
+                        LocalDateTime.now(),
+                        PartyApplicationStatus.CLOSED,
+                        List.of(PartyApplicationStatus.PENDING, PartyApplicationStatus.PROCESSING)
+                );
 
                 // 모집 마감 알람 이벤트 발행
                 List<Long> pendingUserIds = pendingApplications.stream()

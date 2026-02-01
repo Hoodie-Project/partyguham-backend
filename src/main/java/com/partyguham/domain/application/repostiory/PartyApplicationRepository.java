@@ -71,9 +71,14 @@ public interface PartyApplicationRepository extends JpaRepository<PartyApplicati
      */
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("update PartyApplication pa " +
-            "set pa.applicationStatus = 'CLOSED', " +
-            "pa.updatedAt = now() " +
+            "set pa.applicationStatus = :closedStatus, " + // 파라미터로 처리
+            "pa.updatedAt = :now " +                      // : 추가
             "where pa.partyRecruitment.id = :recruitmentId " +
-            "and pa.applicationStatus in ('PENDING', 'PROCESSING')")
-    void bulkUpdateStatusToClosed(@Param("recruitmentId") Long recruitmentId, @Param("now") LocalDateTime now);
-}
+            "and pa.applicationStatus in :targetStatuses") // 파라미터로 처리
+    void bulkUpdateStatusToClosed(
+            @Param("recruitmentId") Long recruitmentId,
+            @Param("now") LocalDateTime now,
+            @Param("closedStatus") PartyApplicationStatus closedStatus,
+            @Param("targetStatuses") List<PartyApplicationStatus> targetStatuses
+    );
+    }
