@@ -3,12 +3,30 @@ spring:
     show-sql: true
     hibernate:
       ddl-auto: update
+
   datasource:
     url: ${DEV_DATABASE_URL}
     username: ${DEV_DB_USERNAME}
     password: ${DEV_DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
+  data:
+    redis:
+      host: ${DEV_REDIS_HOST}
+      port: ${DEV_REDIS_PORT:6379}
+      password: ${DEV_REDIS_PASSWORD:}   # 없으면 빈 값
+
+app:
+  domain:
+    base: ${DEV_DOMAIN_BASE}
+    dev-base: https://localhost:3000
+
+jwt:
+  access-exp: 31536000000
+  refresh-exp: 31536000000  # 1y
+
 logging:
   level:
-    root: debug
+    root: info
+    com.partyguham: debug
+    org.hibernate.SQL: debug
