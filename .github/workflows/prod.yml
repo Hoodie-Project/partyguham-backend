@@ -1,0 +1,72 @@
+name: Prod Deploy
+
+on:
+  push:
+    branches:
+      - prod
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1) 레포 체크아웃
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 2) JDK 세팅 (Gradle 빌드용)
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      # 3) Spring Boot jar 빌드
+      - name: Build jar
+        run: ./gradlew clean bootJar --no-daemon --refresh-dependencies
+
+      # 4) GHCR 로그인
+      - name: Log in to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      # 5) 이미지 빌드 & 푸시
+      - name: Build & Push image
+        run: |
+          IMAGE=ghcr.io/hoodie-project/partyguham-backend
+          TAG=prod-latest
+          docker build -t $IMAGE:$TAG .
+          docker push $IMAGE:$TAG
+
+      # 6) 맥미니 접속해서 배포 (docker compose up -d)
+      - name: Deploy to Mac mini (SSH)
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          passphrase: ${{ secrets.SSH_PASSPHRASE }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+            cd /opt/partyguham/prod
+
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+            # (맥/colima) 데몬 컨텍스트 고정
+            docker context use colima || true
+
+            # 최신 이미지 풀
+            docker-compose pull
+
+            # 변경분 반영하여 컨테이너 재시작
+            docker-compose up -d --force-recreate
+
+            # 상태 확인 (선택)
+            docker-compose ps
+
+            # 안쓰는 이미지 정리
+            docker image prune -f
