@@ -1,5 +1,6 @@
 package com.partyguham.domain.recruitment.repository;
 
+import com.partyguham.domain.catalog.entity.QPosition;
 import com.partyguham.global.entity.Status;
 import com.partyguham.domain.party.dto.party.request.GetPartyRecruitmentsRequest;
 import com.partyguham.domain.party.entity.QParty;
@@ -20,6 +21,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collections;
 import java.util.List;
 
 @Repository
@@ -141,42 +143,53 @@ public class PartyRecruitmentRepositoryImpl implements PartyRecruitmentCustomRep
                                                                  Pageable pageable) {
         QPartyRecruitment recruitment = QPartyRecruitment.partyRecruitment;
         QParty party = QParty.party;
-        
+        QPosition position = QPosition.position;
+        // 파티 타입 등 추가 엔티티가 있다면 여기서 선언 (예: QPartyType)
+
         BooleanBuilder builder = new BooleanBuilder();
+        builder.and(recruitment.status.ne(Status.DELETED)); // 인덱스 활용 조건
 
-        // DELETED 제외
-        builder.and(recruitment.status.ne(Status.DELETED));
-
-        // position 필터링
-        if (positionId != null) {   
-            builder.and(recruitment.position.id.eq(positionId));
+        if (positionId != null) {
+            builder.and(recruitment.position.id.eq(positionId)); // 인덱스 활용 조건
         }
-        
-        // 정렬
+
         OrderSpecifier<?> orderSpecifier = buildOrderSpecifier(request.getSort(), request.getOrder(), recruitment);
 
-        // 조회 (관련 엔티티 fetch join)
+        // [Step 1] 커버링 인덱스를 활용하여 식별자(ID)만 선출
+        // 실제 테이블 조인 없이 인덱스 페이지만 탐색하여 Deep Offset 성능 방어
+        List<Long> ids = queryFactory
+                .select(recruitment.id)
+                .from(recruitment)
+                .where(builder)
+                .orderBy(orderSpecifier)
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        if (ids.isEmpty()) {
+            return new PageImpl<>(Collections.emptyList(), pageable, 0L);
+        }
+
+        // [Step 2] 선출된 ID(20건)에 대해서만 필요한 데이터 fetchJoin 수행
+        // 파티 타입 등 연관 엔티티를 여기서 한 번에 조인
         List<PartyRecruitment> results = queryFactory
                 .selectFrom(recruitment)
                 .leftJoin(recruitment.party, party).fetchJoin()
-                .leftJoin(recruitment.position).fetchJoin()
-                .where(builder)
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
-                .orderBy(orderSpecifier)
+                .leftJoin(party.partyType).fetchJoin()
+                .leftJoin(recruitment.position, position).fetchJoin()
+                .where(recruitment.id.in(ids))
+                .orderBy(orderSpecifier) // IN 절 순서 보장을 위해 재정렬
                 .fetch();
 
-        // count
+        // [Step 3] Count 쿼리 최적화
         Long total = queryFactory
                 .select(recruitment.id.count())
                 .from(recruitment)
-                .leftJoin(recruitment.party, party)
                 .where(builder)
                 .fetchOne();
 
         return new PageImpl<>(results, pageable, total != null ? total : 0L);
     }
-
 
     private OrderSpecifier<?> buildOrderSpecifier(String sort, Sort.Direction direction, QPartyRecruitment recruitment) {
         Order order = direction.equals(Sort.Direction.ASC) ? Order.ASC : Order.DESC;

@@ -50,6 +50,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         /* ==== 공개 테스트 API ==== */
                         .requestMatchers(
+                                "/actuator/**",
                                 "/api/v2/auth/**",
                                 "/api/v2/banners",
                                 "/api/v2/locations",
