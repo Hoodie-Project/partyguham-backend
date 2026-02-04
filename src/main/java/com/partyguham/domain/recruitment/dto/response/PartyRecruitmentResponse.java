@@ -1,5 +1,6 @@
 package com.partyguham.domain.recruitment.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.partyguham.domain.recruitment.entity.PartyRecruitment;
 import com.partyguham.domain.catalog.dto.response.PositionResponse;
 import com.partyguham.domain.party.dto.party.PartyDto;
@@ -8,6 +9,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -21,7 +24,8 @@ public class PartyRecruitmentResponse {
    private Integer maxParticipants;
    private Integer currentParticipants;
    private Boolean completed;
-   private String createdAt;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
+   private LocalDateTime createdAt;
 
    private PartyDto party;
    private PositionResponse position;
@@ -42,9 +46,7 @@ public class PartyRecruitmentResponse {
                .maxParticipants(recruitment.getMaxParticipants())
                .currentParticipants(recruitment.getCurrentParticipants())
                .completed(recruitment.getCompleted())
-               .createdAt(recruitment.getCreatedAt() != null
-                       ? recruitment.getCreatedAt().toString()
-                       : null)
+               .createdAt(recruitment.getCreatedAt())
                .party(partyDto)
                .position(positionResponse)
                .build();

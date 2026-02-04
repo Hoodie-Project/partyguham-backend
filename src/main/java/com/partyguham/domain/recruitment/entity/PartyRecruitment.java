@@ -20,7 +20,18 @@ import static com.partyguham.domain.recruitment.exception.RecruitmentErrorCode.*
 
 
 @Entity
-@Table(name = "party_recruitments")
+@Table(
+        name = "party_recruitments",
+        indexes = {
+                // 포지션별로 모집 중인 공고를 최신순으로 조회
+                @Index(name = "idx_recruitment_search",
+                        columnList = "status, completed, position_id, id DESC"),
+
+                // 파티별 공고 조회 (FK 인덱스 겸용)
+                @Index(name = "idx_recruitment_party", columnList = "party_id")
+        }
+
+)
 @Getter
 @SuperBuilder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
