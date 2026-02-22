@@ -11,7 +11,7 @@ import java.util.Optional;
 
 public interface OauthAccountRepository extends JpaRepository<OauthAccount, Long> {
 
-    Optional<OauthAccount> findByProviderAndExternalId(Provider provider, String externalId);
+    Optional<OauthAccount> findByProviderAndOauthId(Provider provider, String OauthId);
 
     boolean existsByUserAndProvider(User user, Provider provider); // 같은 유저가 같은 provider 중복연동 방지
 

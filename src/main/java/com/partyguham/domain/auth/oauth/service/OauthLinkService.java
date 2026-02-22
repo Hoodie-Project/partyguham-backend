@@ -37,8 +37,8 @@ public class OauthLinkService {
 
         User user = userReader.read(userId);
 
-        // 2) 이 externalId가 이미 다른 유저에 연결되어 있는지 확인
-        OauthAccount oa = oauthAccountRepository.findByProviderAndExternalId(provider, externalId)
+        // 2) 이 OauthId가 이미 다른 유저에 연결되어 있는지 확인
+        OauthAccount oa = oauthAccountRepository.findByProviderAndOauthId(provider, externalId)
                 .map(existing -> {
                     // 이미 다른 유저에 연결된 경우 차단
                     if (existing.getUser() != null && !existing.getUser().getId().equals(userId)) {
@@ -61,7 +61,7 @@ public class OauthLinkService {
                     // 2) 완전 최초: row 자체가 없으면 생성
                     return OauthAccount.builder()
                             .provider(provider)
-                            .externalId(externalId)
+                            .oauthId(externalId)
                             .user(user)
                             .build();
                 });

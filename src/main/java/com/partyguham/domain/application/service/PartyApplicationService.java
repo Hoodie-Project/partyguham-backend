@@ -219,7 +219,7 @@ public class PartyApplicationService {
 
         Party partyProxy = partyRepository.getReferenceById(partyId);
 
-        // 4. 파티 합류 처리
+        // 3. 파티 합류 처리
         if (!partyUserReader.isMember(partyId, applicantUserId)) {
             partyUserRepository.save(PartyUser.builder()
                     .party(partyProxy)
@@ -229,13 +229,13 @@ public class PartyApplicationService {
                     .build());
         }
 
-        // 5. 파티원들에게 합류 전체 알림 이벤트 비동기 (N+1 문제 제거)
+        // 4. 파티원들에게 합류 전체 알림 이벤트 비동기 (N+1 문제 제거)
         eventPublisher.publishEvent(PartyNewMemberJoinedEvent.builder()
                 .partyId(partyId)
                 .joinUserName(app.getUser().getNickname())
                 .build());
 
-        // 6. 모집 마감 처리
+        // 5. 모집 마감 처리
         if (recruitment.getCompleted()) {
             // 마감 지원 대상자 조회
             List<PartyApplication> pendingApplications = partyApplicationRepository

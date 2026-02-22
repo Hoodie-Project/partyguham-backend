@@ -48,7 +48,7 @@ public class UserSignupService {
 
         // 2) 아직 연결 안 된 OAuthAccount 찾아오기 (없으면 에러)
         OauthAccount oauthAccount = oauthAccountRepository
-                .findByProviderAndExternalId(provider, externalId)
+                .findByProviderAndOauthId(provider, externalId)
                 .orElseThrow(() -> new BusinessException(USER_OAUTH_DATA_NOT_FOUND));
 
         if (oauthAccount.getUser() != null) {
@@ -75,9 +75,9 @@ public class UserSignupService {
 
         userRepository.save(user);
 
-        // 3) OAuthAccount 찾기 (provider + externalId)
+        // 3) OAuthAccount 찾기 (provider + OauthId)
         OauthAccount oauth = oauthAccountRepository
-                .findByProviderAndExternalId(provider, externalId)
+                .findByProviderAndOauthId(provider, externalId)
                 .orElseThrow(() -> new BusinessException(USER_OAUTH_DATA_NOT_FOUND));
 
         // 4) OAuthAccount 와 User 연결

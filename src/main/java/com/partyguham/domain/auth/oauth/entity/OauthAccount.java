@@ -33,8 +33,8 @@ public class OauthAccount {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "oauth_accounts_seq_gen")
     private Long id;
 
-    @Column(name = "external_id", nullable = false)
-    private String externalId;
+    @Column(name = "oauth_id", nullable = false)
+    private String oauthId;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -48,7 +48,7 @@ public class OauthAccount {
         var oa = new OauthAccount();
         oa.user = u;
         oa.provider = p;
-        oa.externalId = extId;
+        oa.oauthId = extId;
         return oa;
     }
 }

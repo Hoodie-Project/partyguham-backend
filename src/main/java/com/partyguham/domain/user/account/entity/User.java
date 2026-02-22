@@ -15,7 +15,8 @@ import static com.partyguham.domain.user.exception.UserErrorCode.*;
 
 @Entity
 @Table(name = "users",
-        indexes = @Index(name = "idx_nickname_lower", columnList = "lower(nickname)", unique = true))
+        indexes = @Index(name = "idx_nickname", columnList = "nickname", unique = true)
+)
 @SequenceGenerator(name="users_seq_gen",
         sequenceName="users_id_seq",
         allocationSize=50)
@@ -37,7 +38,7 @@ public class User extends BaseEntity {
     @Column(unique = true)
     String email;
 
-    @Column(nullable = false, unique = true, length = 15)
+    @Column(nullable = false, length = 15)
     String nickname;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)

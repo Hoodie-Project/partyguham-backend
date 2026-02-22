@@ -40,7 +40,7 @@ public class OauthLoginService {
 
     @Transactional
     public LoginResult handleCallback(Provider provider, String externalId, String email, String image) {
-        return oauthRepo.findByProviderAndExternalId(provider, externalId)
+        return oauthRepo.findByProviderAndOauthId(provider, externalId)
                 .map(oa -> handleExistingAccount(oa, provider, externalId, email, image))
                 .orElseGet(() -> handleFirstLogin(provider, externalId, email, image));
     }
@@ -97,7 +97,7 @@ public class OauthLoginService {
 
         OauthAccount oa = OauthAccount.builder()
                 .provider(provider)
-                .externalId(externalId)
+                .oauthId(externalId)
                 .user(null)
                 .build();
         oauthRepo.save(oa);
