@@ -106,7 +106,8 @@ public class SecurityConfig {
                 "http://localhost:3000",
                 "https://localhost:3000",
                 "https://partyguham.com",
-                "https://www.partyguham.com"
+                "https://www.partyguham.com",
+                "https://dev.partyguham.com"
         ));
 
         // 2. 허용할 HTTP 메서드
