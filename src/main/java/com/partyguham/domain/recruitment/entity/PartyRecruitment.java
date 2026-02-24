@@ -24,7 +24,7 @@ import static com.partyguham.domain.recruitment.exception.RecruitmentErrorCode.*
         name = "party_recruitments",
         indexes = {
                 @Index(name = "idx_recruitment_party", columnList = "party_id"),
-                @Index(name = "idx_recruitment_personalized", columnList = "status, position_id, created_at, id")
+                @Index(name = "idx_recruitment_personalized", columnList = "position_id, status, id DESC")
         }
 
 )
