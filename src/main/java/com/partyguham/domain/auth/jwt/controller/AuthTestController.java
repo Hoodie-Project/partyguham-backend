@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 import java.util.UUID;
 
-@Profile({"local", "dev"})
+@Profile({"local", "dev", "docker"})
 @ApiV2Controller
 @RequiredArgsConstructor
 @RequestMapping("auth/test")

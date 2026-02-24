@@ -11,7 +11,7 @@ import java.time.LocalDate;
         uniqueConstraints=@UniqueConstraint(name="uk_profile_nickname", columnNames="nickname"))
 @SequenceGenerator(name="user_profiles_seq_gen",
         sequenceName="user_profiles_id_seq",
-        allocationSize=50)
+        allocationSize=1)
 @Getter
 //@NoArgsConstructor(access = AccessLevel.PROTECTED)
 //@AllArgsConstructor
