@@ -19,7 +19,7 @@ import static com.partyguham.domain.user.exception.UserErrorCode.*;
 )
 @SequenceGenerator(name="users_seq_gen",
         sequenceName="users_id_seq",
-        allocationSize=50)
+        allocationSize=1)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
