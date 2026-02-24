@@ -59,7 +59,8 @@ public class PartyRecruitment extends BaseEntity {
     private Integer maxParticipants;
 
     @Column(nullable = false)
-    private Integer currentParticipants;
+    @Builder.Default
+    private Integer currentParticipants = 0;
 
     @Column(nullable = false)
     @Builder.Default
