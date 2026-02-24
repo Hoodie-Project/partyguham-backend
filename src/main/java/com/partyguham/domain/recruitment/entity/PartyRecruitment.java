@@ -23,8 +23,8 @@ import static com.partyguham.domain.recruitment.exception.RecruitmentErrorCode.*
 @Table(
         name = "party_recruitments",
         indexes = {
-                // 파티별 공고 조회 (FK 인덱스 겸용)
-                @Index(name = "idx_recruitment_party", columnList = "party_id")
+                @Index(name = "idx_recruitment_party", columnList = "party_id"),
+                @Index(name = "idx_recruitment_personalized", columnList = "status, position_id, created_at, id")
         }
 
 )
