@@ -112,8 +112,7 @@ public class PartyRecruitmentRepositoryImpl implements PartyRecruitmentCustomRep
         }
 
         // 정렬
-        OrderSpecifier<?> orderSpecifier = buildOrderSpecifier(request.getSort(), request.getOrder(), recruitment);
-
+        OrderSpecifier<?> orderSpecifier = buildOrderSpecifier("id", request.getOrder(), recruitment);
         // 조회 (관련 엔티티 fetch join)
         List<PartyRecruitment> results = queryFactory
                 .selectFrom(recruitment)
@@ -147,13 +146,13 @@ public class PartyRecruitmentRepositoryImpl implements PartyRecruitmentCustomRep
         // 파티 타입 등 추가 엔티티가 있다면 여기서 선언 (예: QPartyType)
 
         BooleanBuilder builder = new BooleanBuilder();
-        builder.and(recruitment.status.ne(Status.DELETED)); // 인덱스 활용 조건
+        builder.and(recruitment.status.eq(Status.ACTIVE)); // 인덱스 활용 조건
 
         if (positionId != null) {
             builder.and(recruitment.position.id.eq(positionId)); // 인덱스 활용 조건
         }
 
-        OrderSpecifier<?> orderSpecifier = buildOrderSpecifier(request.getSort(), request.getOrder(), recruitment);
+        OrderSpecifier<?> orderSpecifier = buildOrderSpecifier("id", request.getOrder(), recruitment);
 
         // [Step 1] 커버링 인덱스를 활용하여 식별자(ID)만 선출
         // 실제 테이블 조인 없이 인덱스 페이지만 탐색하여 Deep Offset 성능 방어
