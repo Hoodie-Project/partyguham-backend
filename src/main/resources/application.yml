@@ -33,6 +33,12 @@ spring:
       name: admin
       password: 1234
 
+  messages:
+    basename:
+      - messages/validations
+      - messages/message-user
+    encoding: UTF-8
+
 server:
   port: ${PORT}
   tomcat:
