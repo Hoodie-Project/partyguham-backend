@@ -1,6 +1,7 @@
 package com.partyguham.domain.user.profile.entity;
 
 import com.partyguham.domain.user.account.entity.User;
+import com.partyguham.domain.user.profile.dto.request.UserProfileUpdateRequest;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -26,7 +27,7 @@ public class UserProfile {
     LocalDate birth;
 
     @Enumerated(EnumType.STRING)
-    Gender gender; // MALE/FEMALE/UNKNOWN
+    Gender gender; // M / F / U
 
     boolean birthVisible = true;
 
@@ -43,4 +44,12 @@ public class UserProfile {
     @JoinColumn(name="user_id", nullable=false, unique=true)
     private User user;
 
+    public void update(UserProfileUpdateRequest dto) {
+        if (dto.getGender() != null) this.gender = dto.getGender();
+        if (dto.getGenderVisible() != null) this.genderVisible = dto.getGenderVisible();
+        if (dto.getBirth() != null) this.birth = dto.getBirth();
+        if (dto.getBirthVisible() != null) this.birthVisible = dto.getBirthVisible();
+        if (dto.getPortfolioTitle() != null) this.portfolioTitle = dto.getPortfolioTitle();
+        if (dto.getPortfolio() != null) this.portfolio = dto.getPortfolio();
+    }
 }

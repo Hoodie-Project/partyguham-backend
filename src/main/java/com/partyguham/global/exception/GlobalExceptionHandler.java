@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 
 @Slf4j
@@ -52,47 +52,34 @@ public class GlobalExceptionHandler {
                 .body(ErrorResponse.of(errorMessage, "INVALID_JSON_FORMAT", 400, request.getRequestURI(), errors));
     }
 
-    /**
-     * @Valid 검증 실패 시 발생하는 예외 처리
-     */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleMethodArgumentNotValidException(
             MethodArgumentNotValidException e, HttpServletRequest request) {
 
-        // 1. 필드 에러(FieldError) 추출 (@Pattern, @URL 등)
-        List<ErrorResponse.FieldErrorDetail> fieldErrors = e.getBindingResult()
-                .getFieldErrors()
-                .stream()
-                .map(error -> new ErrorResponse.FieldErrorDetail(
-                        error.getField(),
-                        error.getRejectedValue() == null ? "" : error.getRejectedValue().toString(),
-                        error.getDefaultMessage()))
-                .collect(Collectors.toList());
-
-        // 2. 글로벌 에러(ObjectError) 추가 (@AssertTrue 등)
-        List<ErrorResponse.FieldErrorDetail> globalErrors = e.getBindingResult()
-                .getGlobalErrors()
-                .stream()
-                .map(error -> new ErrorResponse.FieldErrorDetail(
-                        error.getObjectName(),
-                        "N/A",
-                        error.getDefaultMessage()))
-                .collect(Collectors.toList());
-
-        // 두 에러 리스트 합치기
-        fieldErrors.addAll(globalErrors);
+        // 필드 에러와 글로벌 에러를 모두 수집
+        List<ErrorResponse.FieldErrorDetail> errors = Stream.concat(
+                e.getBindingResult().getFieldErrors().stream()
+                        .map(error -> new ErrorResponse.FieldErrorDetail(
+                                error.getField(),
+                                String.valueOf(error.getRejectedValue()),
+                                error.getDefaultMessage())),
+                e.getBindingResult().getGlobalErrors().stream()
+                        .map(error -> new ErrorResponse.FieldErrorDetail(
+                                error.getObjectName(),
+                                "N/A",
+                                error.getDefaultMessage()))
+        ).toList();
 
         ErrorResponse response = ErrorResponse.of(
                 "입력값이 유효하지 않습니다.",
                 "INVALID_INPUT_VALUE",
                 HttpStatus.BAD_REQUEST.value(),
                 request.getRequestURI(),
-                fieldErrors
+                errors
         );
 
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        return ResponseEntity.badRequest().body(response);
     }
-
     /**
      * [1] 비즈니스 로직 상 발생하는 에러 처리
      */

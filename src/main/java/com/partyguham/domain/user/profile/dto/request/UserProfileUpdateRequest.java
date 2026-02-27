@@ -24,11 +24,4 @@ public class UserProfileUpdateRequest {
     private String portfolioTitle;
     @URL(message = "Invalid portfolio URL")
     private String portfolio;
-
-    @AssertTrue(message = "적어도 하나의 수정할 정보가 필요합니다.")
-    public boolean isUpdatePresent() {
-        return gender != null || genderVisible != null ||
-                birth != null || birthVisible != null ||
-                portfolioTitle != null || portfolio != null;
-    }
 }

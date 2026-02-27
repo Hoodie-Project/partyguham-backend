@@ -67,31 +67,6 @@ public class UserProfileService {
             throw new EntityNotFoundException("profile not found");
         }
 
-        // gender
-        if (req.getGender() != null) {
-            user.getProfile().setGender(req.getGender());
-        }
-
-        if (req.getGenderVisible() != null) {
-            user.getProfile().setGenderVisible(req.getGenderVisible());
-        }
-
-        // birth
-        if (req.getBirth() != null) {
-            user.getProfile().setBirth(req.getBirth());
-        }
-
-        if (req.getBirthVisible() != null) {
-            user.getProfile().setBirthVisible(req.getBirthVisible());
-        }
-
-        // portfolio
-        if (req.getPortfolioTitle() != null) {
-            user.getProfile().setPortfolioTitle(req.getPortfolioTitle());
-        }
-
-        if (req.getPortfolio() != null) {
-            user.getProfile().setPortfolio(req.getPortfolio());
-        }
+        user.getProfile().update(req);
     }
 }
